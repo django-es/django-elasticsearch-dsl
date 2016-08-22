@@ -1,0 +1,9 @@
+django>=1.9.6
+elasticsearch-dsl>=2.1.0
+coverage==4.1
+mock>=1.0.1
+flake8>=2.1.0
+tox>=1.7.0
+
+
+# Additional test requirements go here
