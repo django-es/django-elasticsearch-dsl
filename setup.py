@@ -41,7 +41,9 @@ setup(
         'django_elasticsearch_dsl',
     ],
     include_package_data=True,
-    install_requires=[],
+    install_requires=[
+        'elasticsearch-dsl>=2.0.0,<3.0.0',
+    ],
     license="Apache Software License 2.0",
     zip_safe=False,
     keywords='django-elasticsearch-dsl',
