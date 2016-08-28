@@ -426,7 +426,7 @@ To populate the Elasticsearch mappings with the django models data (index need t
 
 ::
 
-    $ search_index --create [--models [app[.model] app[.model] ...]]
+    $ search_index --populate [--models [app[.model] app[.model] ...]]
 
 To recreate and repopulate the indices you can use:
 
