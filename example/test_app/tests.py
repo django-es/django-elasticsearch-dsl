@@ -22,7 +22,9 @@ class IntegrationTestCase(ESTestCase, TestCase):
         car3.save()
 
         s = CarDocument.search().query("match", name="208")
-        car2_item = s.execute()[0]
+        result = s.execute()
+        self.assertEqual(len(result), 1)
+        car2_item = result[0]
         self.assertEqual(car2_item.ads, [])
         self.assertEqual(car2_item.name, car2.name)
         self.assertEqual(car2_item.launched, car2.launched)
