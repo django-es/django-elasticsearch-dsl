@@ -81,6 +81,8 @@ class ObjectField(DEDField, Object):
     def get_value_from_instance(self, instance):
         objs = super(ObjectField, self).get_value_from_instance(instance)
 
+        if objs is None:
+            return None
         if isinstance(objs, collections.Iterable):
             return [self._get_inner_field_data(obj) for obj in objs]
 

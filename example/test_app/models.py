@@ -19,7 +19,7 @@ class Car(models.Model):
         choices=TYPE_CHOICES,
         default='se',
     )
-    manufacturer = models.ForeignKey('Manufacturer')
+    manufacturer = models.ForeignKey('Manufacturer', null=True)
 
     def __str__(self):
         return self.name
@@ -56,7 +56,7 @@ class Ad(models.Model):
     created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now=True)
     url = models.URLField()
-    car = models.ForeignKey('Car')
+    car = models.ForeignKey('Car', null=True)
 
     def __str__(self):
         return self.title

@@ -1,7 +1,12 @@
 from unittest import TestCase
 from mock import Mock, NonCallableMock
-from django_elasticsearch_dsl.fields import (DEDField, ObjectField,
-                                             StringField, ListField)
+from django_elasticsearch_dsl.fields import (
+    DEDField,
+    ObjectField,
+    IntegerField,
+    StringField,
+    ListField
+)
 from django_elasticsearch_dsl.exceptions import VariableLookupError
 
 
@@ -37,7 +42,7 @@ class DEDFieldTestCase(TestCase):
 
     def test_get_value_from_instance_with_unknown_attr(self):
         class Dummy:
-            attr1 = 'foo'
+            attr1 = "foo"
 
         field = DEDField(attr='attr2')
         self.assertRaises(VariableLookupError, field.get_value_from_instance,
@@ -51,37 +56,77 @@ class DEDFieldTestCase(TestCase):
 
 class ObjectFieldTestCase(TestCase):
     def test_get_mapping(self):
-        field = ObjectField(attr="person", properties={
-            "first_name": StringField(analyzier="foo"),
-            "last_name": StringField()
+        field = ObjectField(attr='person', properties={
+            'first_name': StringField(analyzer='foo'),
+            'last_name': StringField()
         })
 
         self.assertEqual({
-            "type": "object",
-            "properties": {
-                "first_name": {"type": "string", "analyzier": "foo"},
-                "last_name": {"type": "string"},
+            'type': 'object',
+            'properties': {
+                'first_name': {'type': 'string', 'analyzer': 'foo'},
+                'last_name': {'type': 'string'},
             }
         }, field.to_dict())
 
     def test_get_value_from_instance(self):
-        field = ObjectField(attr="person", properties={
-            "first_name": StringField(analyzier="foo"),
-            "last_name": StringField()
+        field = ObjectField(attr='person', properties={
+            'first_name': StringField(analyzier='foo'),
+            'last_name': StringField()
         })
 
         instance = NonCallableMock(person=NonCallableMock(
-            first_name="foo", last_name="bar"))
+            first_name='foo', last_name='bar'))
 
         self.assertEqual(field.get_value_from_instance(instance), {
             'first_name': "foo",
-            "last_name": "bar",
+            'last_name': "bar",
+        })
+
+    def test_get_value_from_instance_with_inner_objectfield(self):
+        field = ObjectField(attr='person', properties={
+            'first_name': StringField(analyzier='foo'),
+            'last_name': StringField(),
+            'aditional': ObjectField(properties={
+                'age': IntegerField()
+            })
+        })
+
+        instance = NonCallableMock(person=NonCallableMock(
+            first_name="foo", last_name="bar",
+            aditional=NonCallableMock(age=12)
+        ))
+
+        self.assertEqual(field.get_value_from_instance(instance), {
+            'first_name': "foo",
+            'last_name': "bar",
+            'aditional': {'age': 12}
+        })
+
+    def test_get_value_from_instance_with_none_inner_objectfield(self):
+        field = ObjectField(attr='person', properties={
+            'first_name': StringField(analyzier='foo'),
+            'last_name': StringField(),
+            'aditional': ObjectField(properties={
+                'age': IntegerField()
+            })
+        })
+
+        instance = NonCallableMock(person=NonCallableMock(
+            first_name="foo", last_name="bar",
+            aditional=None
+        ))
+
+        self.assertEqual(field.get_value_from_instance(instance), {
+            'first_name': "foo",
+            'last_name': "bar",
+            'aditional': None
         })
 
     def test_get_value_from_iterable(self):
-        field = ObjectField(attr="person", properties={
-            "first_name": StringField(analyzier="foo"),
-            "last_name": StringField()
+        field = ObjectField(attr='person', properties={
+            'first_name': StringField(analyzier='foo'),
+            'last_name': StringField()
         })
 
         instance = NonCallableMock(
@@ -98,26 +143,26 @@ class ObjectFieldTestCase(TestCase):
         self.assertEqual(field.get_value_from_instance(instance), [
             {
                 'first_name': "foo1",
-                "last_name": "bar1",
+                'last_name': "bar1",
             },
             {
                 'first_name': "foo2",
-                "last_name": "bar2",
+                'last_name': "bar2",
             }
         ])
 
 
 class ListFieldTestCase(TestCase):
     def test_get_mapping(self):
-        field = ListField(StringField(attr="foo.bar"))
+        field = ListField(StringField(attr='foo.bar'))
         self.assertEqual({
-            "type": "string",
+            'type': 'string',
         }, field.to_dict())
 
     def test_get_value_from_instance(self):
         instance = NonCallableMock(
-            foo=NonCallableMock(bar=['alpha', 'beta', 'gamma'])
+            foo=NonCallableMock(bar=["alpha", "beta", "gamma"])
         )
-        field = ListField(StringField(attr="foo.bar"))
+        field = ListField(StringField(attr='foo.bar'))
         self.assertEqual(
             field.get_value_from_instance(instance), instance.foo.bar)
