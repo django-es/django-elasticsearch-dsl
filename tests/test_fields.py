@@ -120,7 +120,7 @@ class ObjectFieldTestCase(TestCase):
         self.assertEqual(field.get_value_from_instance(instance), {
             'first_name': "foo",
             'last_name': "bar",
-            'aditional': None
+            'aditional': {}
         })
 
     def test_get_value_from_iterable(self):
