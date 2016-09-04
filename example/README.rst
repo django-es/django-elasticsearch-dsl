@@ -24,11 +24,6 @@ connections setting in example/settings.py.
         },
     }
 
-Once it's done you can test it with::
-
-    $ ./manage.py test
-
-
 To launch a functional server::
 
     $ ./manage.py migrate

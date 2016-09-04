@@ -439,8 +439,19 @@ Testing
 -------
 
 You can run the tests by creating a Python virtual environment, installing
-the requirements from ``requirements_test.txt`` (``pip install -r requirements_test``)
-and running ``python runtests.py`` or ``make test`` (``make test-all`` for tox testing)
+the requirements from ``requirements_test.txt`` (``pip install -r requirements_test``)::
+
+    $ python runtests.py
+
+    # or
+
+    $ make test
+
+    $ make test-all # for tox testing
+
+For integration testing with a running Elasticsearch server::
+
+    $ python runtests.py --elasticsearch [localhost:9200]
 
 
 TODO
@@ -450,7 +461,7 @@ TODO
 - Add management commands for mapping level operations (like update_mapping....).
 - Dedicated documentation.
 - Generate ObjecField/NestField propeties from a DocType class.
-- Add possibility to set a default index in ``DocType: class Meta index = 'cars'``.
-- More examples and integration tests.
+- Add possibility to set a default index in ``class DocType: class Meta index = 'cars'``.
+- More examples.
 - Better ``ESTestCase`` and documentation for testing
 
