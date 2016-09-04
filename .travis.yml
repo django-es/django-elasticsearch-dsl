@@ -9,12 +9,21 @@ python:
 
 before_install:
   - pip install codecov
+  - sudo apt-get autoremove --purge elasticsearch
+  - wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+  - echo "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elk.list
+  - sudo apt-get update && sudo apt-get install elasticsearch -y
+  -sudo service elasticsearch start
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -r requirements_test.txt
 
+# sleep for elasticsearch
+before_script:
+  - sleep 10
+
 # command to run tests using coverage, e.g. python setup.py test
-script: coverage run --source django_elasticsearch_dsl runtests.py
+script: coverage run --source django_elasticsearch_dsl runtests.py --elasticsearch
 
 after_success:
   - codecov

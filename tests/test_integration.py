@@ -122,7 +122,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
                 }
             }
         })
-        print('DDDDDDDDDDDDDD', index_dict['mappings']['car_document'])
         self.assertEqual(index_dict['mappings'], {
             'manufacturer_document': {
                 'properties': {
