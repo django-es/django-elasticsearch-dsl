@@ -1,40 +1,47 @@
+import os
 import sys
+import argparse
 
 try:
     from django.conf import settings
     from django.test.utils import get_runner
 
-    settings.configure(
-        DEBUG=True,
-        USE_TZ=True,
-        DATABASES={
-            "default": {
-                "ENGINE": "django.db.backends.sqlite3",
-            }
-        },
-        ROOT_URLCONF="django_elasticsearch_dsl.urls",
-        INSTALLED_APPS=[
-            "django.contrib.auth",
-            "django.contrib.contenttypes",
-            "django.contrib.sites",
-            "django_elasticsearch_dsl",
-        ],
-        SITE_ID=1,
-        MIDDLEWARE_CLASSES=(),
-        ELASTICSEARCH_DSL={
-            'default': {
-                'hosts': 'localhost:9200'
+    def get_settings():
+        settings.configure(
+            DEBUG=True,
+            USE_TZ=True,
+            DATABASES={
+                "default": {
+                    "ENGINE": "django.db.backends.sqlite3",
+                }
             },
-        },
-    )
+            ROOT_URLCONF="django_elasticsearch_dsl.urls",
+            INSTALLED_APPS=[
+                "django.contrib.auth",
+                "django.contrib.contenttypes",
+                "django.contrib.sites",
+                "django_elasticsearch_dsl",
+                "tests",
+            ],
+            SITE_ID=1,
+            MIDDLEWARE_CLASSES=(),
+            ELASTICSEARCH_DSL={
+                'default': {
+                    'hosts': os.environ.get('ELASTICSEARCH_URL',
+                                            'localhost:9200')
+                },
+            },
+        )
 
-    try:
-        import django
-        setup = django.setup
-    except AttributeError:
-        pass
-    else:
-        setup()
+        try:
+            import django
+            setup = django.setup
+        except AttributeError:
+            pass
+        else:
+            setup()
+
+        return settings
 
 except ImportError:
     import traceback
@@ -43,11 +50,28 @@ except ImportError:
     raise ImportError(msg)
 
 
+def make_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--elasticsearch',
+        nargs='?',
+        metavar='localhost:9200',
+        const='localhost:9200',
+        help="To run integration test against an Elasticsearch server",
+    )
+    return parser
+
+
 def run_tests(*test_args):
+    args, test_args = make_parser().parse_known_args(test_args)
+    if args.elasticsearch:
+        print(args.elasticsearch)
+        os.environ.setdefault('ELASTICSEARCH_URL', args.elasticsearch)
+
     if not test_args:
         test_args = ['tests']
 
-    # Run tests
+    settings = get_settings()
     TestRunner = get_runner(settings)
     test_runner = TestRunner()
 
