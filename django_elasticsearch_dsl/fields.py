@@ -89,7 +89,7 @@ class ObjectField(DEDField, Object):
         return self._get_inner_field_data(objs)
 
 
-class NestedField(ObjectField, Nested):
+class NestedField(Nested, ObjectField):
     pass
 
 
