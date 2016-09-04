@@ -3,9 +3,20 @@ from mock import Mock, NonCallableMock
 from django_elasticsearch_dsl.fields import (
     DEDField,
     ObjectField,
+    NestedField,
     IntegerField,
+    ByteField,
+    LongField,
+    DoubleField,
+    FloatField,
+    BooleanField,
+    DateField,
     StringField,
-    ListField
+    ListField,
+    CompletionField,
+    GeoPointField,
+    GeoShapeField,
+    IpField,
 )
 from django_elasticsearch_dsl.exceptions import VariableLookupError
 
@@ -150,6 +161,121 @@ class ObjectFieldTestCase(TestCase):
                 'last_name': "bar2",
             }
         ])
+
+
+class NestedFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = NestedField(attr='person', properties={
+            'first_name': StringField(analyzer='foo'),
+            'last_name': StringField()
+        })
+
+        self.assertEqual({
+            'type': 'nested',
+            'properties': {
+                'first_name': {'type': 'string', 'analyzer': 'foo'},
+                'last_name': {'type': 'string'},
+            }
+        }, field.to_dict())
+
+
+class BooleanFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = BooleanField()
+
+        self.assertEqual({
+            'type': 'boolean',
+        }, field.to_dict())
+
+
+class DateFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = DateField()
+
+        self.assertEqual({
+            'type': 'date',
+        }, field.to_dict())
+
+
+class StringFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = StringField()
+
+        self.assertEqual({
+            'type': 'string',
+        }, field.to_dict())
+
+
+class CompletionFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = CompletionField()
+
+        self.assertEqual({
+            'type': 'completion',
+        }, field.to_dict())
+
+
+class GeoPointFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = GeoPointField()
+
+        self.assertEqual({
+            'type': 'geo_point',
+        }, field.to_dict())
+
+
+class GeoShapeFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = GeoShapeField()
+
+        self.assertEqual({
+            'type': 'geo_shape'
+        }, field.to_dict())
+
+
+class ByteFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = ByteField()
+
+        self.assertEqual({
+            'type': 'byte',
+        }, field.to_dict())
+
+
+class LongFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = LongField()
+
+        self.assertEqual({
+            'type': 'long',
+        }, field.to_dict())
+
+
+class DoubleFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = DoubleField()
+
+        self.assertEqual({
+            'type': 'double',
+        }, field.to_dict())
+
+
+class FloatFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = FloatField()
+
+        self.assertEqual({
+            'type': 'float',
+        }, field.to_dict())
+
+
+class IpFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = IpField()
+
+        self.assertEqual({
+            'type': 'ip',
+        }, field.to_dict())
 
 
 class ListFieldTestCase(TestCase):
