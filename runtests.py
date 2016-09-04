@@ -65,7 +65,6 @@ def make_parser():
 def run_tests(*test_args):
     args, test_args = make_parser().parse_known_args(test_args)
     if args.elasticsearch:
-        print(args.elasticsearch)
         os.environ.setdefault('ELASTICSEARCH_URL', args.elasticsearch)
 
     if not test_args:
