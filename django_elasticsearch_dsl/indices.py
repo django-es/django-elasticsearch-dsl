@@ -1,6 +1,6 @@
 from django.utils.encoding import python_2_unicode_compatible
-from .registries import registry
 from elasticsearch_dsl import Index as DSLIndex
+from .registries import registry
 
 
 @python_2_unicode_compatible

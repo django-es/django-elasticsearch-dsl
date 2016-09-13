@@ -154,12 +154,12 @@ class DocType(DSLDocType):
         if isinstance(thing, models.Model):
             thing = [thing]
 
-        operations = [{
+        actions = ({
             '_op_type': action,
             '_index': str(self._doc_type.index),
             '_type': self._doc_type.mapping.doc_type,
             '_id': model.pk,
             '_source': self.prepare(model) if action != 'delete' else None,
-        } for model in thing]
+        } for model in thing)
 
-        return self.bulk(operations, **kwargs)
+        return self.bulk(actions, **kwargs)
