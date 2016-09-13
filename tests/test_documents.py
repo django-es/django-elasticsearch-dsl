@@ -149,8 +149,7 @@ class DocTypeTestCase(TestCase):
                   not_indexed="not_indexex", pk=51)
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
             doc.update(car)
-            mock.assert_called_once_with(
-                actions=[{
+            actions = [{
                     '_id': car.pk,
                     '_op_type': 'index',
                     '_source': {
@@ -161,9 +160,14 @@ class DocTypeTestCase(TestCase):
                     },
                     '_index': 'car_index',
                     '_type': 'car_document'
-                }],
-                client=doc.connection,
-                refresh=True,
+            }]
+            self.assertEqual(1, mock.call_count)
+            self.assertEqual(
+                actions, list(mock.call_args_list[0][1]['actions'])
+            )
+            self.assertTrue(mock.call_args_list[0][1]['refresh'])
+            self.assertEqual(
+                doc.connection, mock.call_args_list[0][1]['client']
             )
 
     def test_model_instance_iterable_update(self):
@@ -174,8 +178,7 @@ class DocTypeTestCase(TestCase):
                    not_indexed="not_indexex", pk=31)
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
             doc.update([car, car2], action='update')
-            mock.assert_called_once_with(
-                actions=[{
+            actions = [{
                     '_id': car.pk,
                     '_op_type': 'update',
                     '_source': {
@@ -186,7 +189,8 @@ class DocTypeTestCase(TestCase):
                     },
                     '_index': 'car_index',
                     '_type': 'car_document'
-                }, {
+                },
+                {
                     '_id': car2.pk,
                     '_op_type': 'update',
                     '_source': {
@@ -197,7 +201,13 @@ class DocTypeTestCase(TestCase):
                     },
                     '_index': 'car_index',
                     '_type': 'car_document'
-                }],
-                client=doc.connection,
-                refresh=True,
+            }]
+            self.assertEqual(1, mock.call_count)
+            self.assertEqual(
+                actions, list(mock.call_args_list[0][1]['actions'])
             )
+            self.assertTrue(mock.call_args_list[0][1]['refresh'])
+            self.assertEqual(
+                doc.connection, mock.call_args_list[0][1]['client']
+            )
+
