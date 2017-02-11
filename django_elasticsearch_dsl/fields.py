@@ -1,8 +1,19 @@
 import collections
 from types import MethodType
-from elasticsearch_dsl.field import (Object, Nested, Date, String,
-                                     FIELDS, Field, Boolean)
+
+from django.db import models
+
+from elasticsearch_dsl.field import (
+    Boolean,
+    Date,
+    Field,
+    FIELDS,
+    Object,
+    Nested,
+    String
+)
 from elasticsearch_dsl.utils import _make_dsl_class
+
 from .exceptions import VariableLookupError
 
 
@@ -28,23 +39,29 @@ class DEDField(Field):
         for attr in self._path:
             try:
                 instance = instance[attr]
-            except (TypeError, AttributeError,
-                    KeyError, ValueError, IndexError):
+            except (
+                TypeError, AttributeError,
+                KeyError, ValueError, IndexError
+            ):
                 try:
                     instance = getattr(instance, attr)
                 except (TypeError, AttributeError):
                     try:
                         instance = instance[int(attr)]
-                    except (IndexError,
-                            ValueError,
-                            KeyError,
-                            TypeError):
-                                raise VariableLookupError(
-                                    "Failed lookup for key [{}] in "
-                                    "{!r}".format(attr, instance)
-                                )
+                    except (
+                        IndexError,
+                        ValueError,
+                        KeyError,
+                        TypeError
+                    ):
+                        raise VariableLookupError(
+                            "Failed lookup for key [{}] in "
+                            "{!r}".format(attr, instance)
+                        )
 
-            if callable(instance):
+            if (isinstance(instance, models.manager.Manager)):
+                instance = instance.all()
+            elif callable(instance):
                 instance = instance()
             elif instance is None:
                 return None

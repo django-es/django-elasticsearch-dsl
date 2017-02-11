@@ -210,4 +210,3 @@ class DocTypeTestCase(TestCase):
             self.assertEqual(
                 doc.connection, mock.call_args_list[0][1]['client']
             )
-

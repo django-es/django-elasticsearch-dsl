@@ -1,12 +1,15 @@
+from datetime import datetime
 import os
 import unittest
-from datetime import datetime
-from django.test import TestCase
+
 from django.core.management import call_command
+from django.test import TestCase
+
 from django.utils.six import StringIO
 from django_elasticsearch_dsl.test import ESTestCase
+
 from .documents import CarDocument, AdDocument, ad_index, car_index
-from .models import Car, Manufacturer, Ad, COUNTRIES
+from .models import Car, Manufacturer, Ad, Category, COUNTRIES
 
 
 @unittest.skipUnless(
@@ -26,7 +29,16 @@ class IntegrationTestCase(ESTestCase, TestCase):
         self.car2 = Car(name="208", launched=datetime(2010, 10, 9, 0, 0),
                         manufacturer=self.manufacturer)
         self.car2.save()
+        self.category1 = Category(title="Category 1", slug="category-1")
+        self.category1.save()
+        self.car2.categories.add(self.category1)
+        self.car2.save()
+
         self.car3 = Car(name="308", launched=datetime(2010, 11, 9, 0, 0))
+        self.car3.save()
+        self.category2 = Category(title="Category 2", slug="category-2")
+        self.category2.save()
+        self.car3.categories.add(self.category1, self.category2)
         self.car3.save()
 
         self.ad1 = Ad(title="Ad number 1", url="www.ad1.com",
@@ -66,19 +78,35 @@ class IntegrationTestCase(ESTestCase, TestCase):
         self.assertEqual(len(result), 1)
         car1_doc = result[0]
         self.assertEqual(car1_doc.ads, [
-             {
-                 'title': self.ad1.title,
-                 'description': self.ad1.description,
-                 'pk': self.ad1.pk,
-             },
-             {
-                 'title': self.ad2.title,
-                 'description': self.ad2.description,
-                 'pk': self.ad2.pk,
-             },
+            {
+                'title': self.ad1.title,
+                'description': self.ad1.description,
+                'pk': self.ad1.pk,
+            },
+            {
+                'title': self.ad2.title,
+                'description': self.ad2.description,
+                'pk': self.ad2.pk,
+            },
         ])
         self.assertEqual(car1_doc.name, self.car1.name)
         self.assertEqual(int(car1_doc.meta.id), self.car1.pk)
+
+    def test_get_doc_with_many_to_many_relationships(self):
+        s = CarDocument.search().query("match", name=self.car3.name)
+        result = s.execute()
+        self.assertEqual(len(result), 1)
+        car1_doc = result[0]
+        self.assertEqual(car1_doc.categories, [
+            {
+                'title': self.category1.title,
+                'slug': self.category1.slug,
+            },
+            {
+                'title': self.category2.title,
+                'slug': self.category2.slug,
+            }
+        ])
 
     def test_doc_to_dict(self):
         s = CarDocument.search().query("match", name=self.car2.name)
@@ -92,7 +120,11 @@ class IntegrationTestCase(ESTestCase, TestCase):
             'manufacturer': {
                 'name': self.manufacturer.name,
                 'country': COUNTRIES[self.manufacturer.country_code],
-            }
+            },
+            'categories': [{
+                'title': self.category1.title,
+                'slug': self.category1.slug,
+            }]
         })
 
         s = CarDocument.search().query("match", name=self.car3.name)
@@ -103,6 +135,16 @@ class IntegrationTestCase(ESTestCase, TestCase):
             'type': self.car3.type,
             'launched': self.car3.launched,
             'name': self.car3.name,
+            'categories': [
+                {
+                    'title': self.category1.title,
+                    'slug': self.category1.slug,
+                },
+                {
+                    'title': self.category2.title,
+                    'slug': self.category2.slug,
+                }
+            ]
         })
 
     def test_index_to_dict(self):
@@ -142,6 +184,13 @@ class IntegrationTestCase(ESTestCase, TestCase):
                             },
                             'pk': {'type': 'integer'},
                             'title': {'type': 'string'},
+                        },
+                    },
+                    'categories': {
+                        'type': 'nested',
+                        'properties': {
+                            'title': {'type': 'string'},
+                            'slug': {'type': 'string'},
                         },
                     },
                     'manufacturer': {
