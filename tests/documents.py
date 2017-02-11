@@ -32,6 +32,11 @@ class CarDocument(DocType):
         'pk': fields.IntegerField(),
     })
 
+    categories = fields.NestedField(properties={
+        'title': fields.StringField(),
+        'slug': fields.StringField(),
+    })
+
     class Meta:
         model = Car
         fields = [

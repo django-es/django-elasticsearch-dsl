@@ -21,6 +21,7 @@ class Car(models.Model):
         default='se',
     )
     manufacturer = models.ForeignKey('Manufacturer', null=True)
+    categories = models.ManyToManyField('Category', null=True)
 
     def __str__(self):
         return self.name
@@ -51,13 +52,22 @@ class Manufacturer(models.Model):
 
 
 @python_2_unicode_compatible
+class Category(models.Model):
+    title = models.CharField(max_length=255)
+    slug = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.title
+
+
+@python_2_unicode_compatible
 class Ad(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     created = models.DateField(auto_now_add=True)
     modified = models.DateField(auto_now=True)
     url = models.URLField()
-    car = models.ForeignKey('Car', null=True)
+    car = models.ForeignKey('Car', related_name='ads',  null=True)
 
     def __str__(self):
         return self.title

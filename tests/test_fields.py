@@ -56,8 +56,9 @@ class DEDFieldTestCase(TestCase):
             attr1 = "foo"
 
         field = DEDField(attr='attr2')
-        self.assertRaises(VariableLookupError, field.get_value_from_instance,
-                          Dummy())
+        self.assertRaises(
+            VariableLookupError, field.get_value_from_instance, Dummy()
+        )
 
     def test_get_value_from_none(self):
         field = DEDField(attr='related.none')
