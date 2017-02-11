@@ -4,8 +4,17 @@ language: python
 
 python:
   - "3.5"
-  - "3.4"
-  - "2.7"
+
+env:
+  - TOX_ENV=py35-django-18
+  - TOX_ENV=py34-django-18
+  - TOX_ENV=py27-django-18
+  - TOX_ENV=py35-django-19
+  - TOX_ENV=py34-django-19
+  - TOX_ENV=py27-django-19
+  - TOX_ENV=py35-django-110
+  - TOX_ENV=py34-django-110
+  - TOX_ENV=py27-django-110
 
 before_install:
   - pip install codecov
@@ -23,7 +32,7 @@ before_script:
   - sleep 10
 
 # command to run tests using coverage, e.g. python setup.py test
-script: coverage run --source django_elasticsearch_dsl runtests.py --elasticsearch
+script: tox -e $TOX_ENV -- --elasticsearch
 
 after_success:
-  - codecov
+  - codecov -e $TOX_ENV
