@@ -2,19 +2,40 @@ import collections
 from types import MethodType
 
 from django.db import models
-
 from elasticsearch_dsl.field import (
     Boolean,
     Date,
     Field,
-    FIELDS,
-    Object,
     Nested,
-    String
+    Object,
+    String,
 )
-from elasticsearch_dsl.utils import _make_dsl_class
-
 from .exceptions import VariableLookupError
+
+FIELDS = (
+    'float',
+    'double',
+    'byte',
+    'short',
+    'integer',
+    'long',
+    'ip',
+    'attachment',
+    'geo_point',
+    'geo_shape',
+    'completion',
+)
+
+
+def _make_dsl_class(base, name, params_def=None, suffix=''):
+    """
+    Generate a DSL class based on the name of the DSL object and it's parameters
+    """
+    attrs = {'name': name}
+    if params_def:
+        attrs['_param_defs'] = params_def
+    cls_name = str(''.join(s.title() for s in name.split('_')) + suffix)
+    return type(cls_name, (base, ), attrs)
 
 
 class DEDField(Field):
