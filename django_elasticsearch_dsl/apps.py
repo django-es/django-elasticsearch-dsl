@@ -10,3 +10,7 @@ class DEDConfig(AppConfig):
     def ready(self):
         self.module.autodiscover()
         connections.configure(**settings.ELASTICSEARCH_DSL)
+
+    @classmethod
+    def autosync_enabled(cls):
+        return getattr(settings, 'ELASTICSEARCH_DSL_AUTOSYNC', True)

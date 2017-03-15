@@ -2,6 +2,8 @@ from django.utils.six import itervalues, iterkeys, iteritems
 from collections import defaultdict
 from itertools import chain
 
+from .apps import DEDConfig
+
 
 class DocumentRegistry(object):
     """
@@ -21,7 +23,7 @@ class DocumentRegistry(object):
         Update all the elasticsearch documents attached to this model (if their
         ignore_signals flag allows it)
         """
-        if instance.__class__ in self._models:
+        if DEDConfig.autosync_enabled() and instance.__class__ in self._models:
             for doc in self._models[instance.__class__]:
                 if not doc._doc_type.ignore_signals:
                     doc.update(instance, **kwargs)

@@ -1,6 +1,7 @@
 from unittest import TestCase
 from mock import Mock
 from django_elasticsearch_dsl.registries import DocumentRegistry
+from django.conf import settings
 
 
 class DocumentRegistryTestCase(TestCase):
@@ -114,3 +115,12 @@ class DocumentRegistryTestCase(TestCase):
         self.assertFalse(self.doc_b1.update.called)
         self.doc_a1.update.assert_called_once_with(instance, action='delete')
         self.doc_a2.update.assert_called_once_with(instance, action='delete')
+
+    def test_autosync(self):
+        settings.ELASTICSEARCH_DSL_AUTOSYNC = False
+
+        instance = self.ModelA()
+        self.registry.update(instance)
+        self.assertFalse(self.doc_a1.update.called)
+
+        settings.ELASTICSEARCH_DSL_AUTOSYNC = True

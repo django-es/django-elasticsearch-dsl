@@ -47,7 +47,7 @@ For example
         },
     }
 
-``ELASTICSEARCH_DSL`` is then pass to ``elasticsearch-dsl-py.connections.configure`` (see here_).
+``ELASTICSEARCH_DSL`` is then passed to ``elasticsearch-dsl-py.connections.configure`` (see here_).
 
 .. _here: http://elasticsearch-dsl.readthedocs.io/en/stable/configuration.html#multiple-clusters
 
@@ -433,6 +433,17 @@ To recreate and repopulate the indices you can use:
 ::
 
     $ search_index --rebuild [-f] [--models [app[.model] app[.model] ...]]
+
+
+Settings
+--------
+
+ELASTICSEARCH_DSL_AUTOSYNC
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``True``
+
+Set to ``False`` to globally disable autosyncing.
 
 
 Testing
