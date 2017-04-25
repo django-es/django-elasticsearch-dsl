@@ -1,2 +1,2 @@
 django>=1.9.6
-elasticsearch-dsl>=2.0.0,<=5.1.0
+elasticsearch-dsl>=2.0.0,<=5.3.0

@@ -3,39 +3,27 @@ from types import MethodType
 
 from django.db import models
 from elasticsearch_dsl.field import (
+    Attachment,
     Boolean,
+    Byte,
+    Completion,
     Date,
+    Double,
     Field,
+    Float,
+    GeoPoint,
+    GeoShape,
+    Integer,
+    Ip,
+    Keyword,
+    Long,
     Nested,
     Object,
+    Short,
     String,
+    Text,
 )
 from .exceptions import VariableLookupError
-
-FIELDS = (
-    'float',
-    'double',
-    'byte',
-    'short',
-    'integer',
-    'long',
-    'ip',
-    'attachment',
-    'geo_point',
-    'geo_shape',
-    'completion',
-)
-
-
-def _make_dsl_class(base, name, params_def=None, suffix=''):
-    """
-    Generate a DSL class based on the name of the DSL object and it's parameters
-    """
-    attrs = {'name': name}
-    if params_def:
-        attrs['_param_defs'] = params_def
-    cls_name = str(''.join(s.title() for s in name.split('_')) + suffix)
-    return type(cls_name, (base, ), attrs)
 
 
 class DEDField(Field):
@@ -90,18 +78,6 @@ class DEDField(Field):
         return instance
 
 
-class StringField(DEDField, String):
-    pass
-
-
-class BooleanField(DEDField, Boolean):
-    pass
-
-
-class DateField(DEDField, Date):
-    pass
-
-
 class ObjectField(DEDField, Object):
     def _get_inner_field_data(self, obj):
         data = {}
@@ -127,10 +103,6 @@ class ObjectField(DEDField, Object):
         return self._get_inner_field_data(objs)
 
 
-class NestedField(Nested, ObjectField):
-    pass
-
-
 def ListField(field):
     """
     This wraps a field so that when get_value_from_instance
@@ -145,6 +117,69 @@ def ListField(field):
     return field
 
 
-for f in FIELDS:
-    fclass = _make_dsl_class(DEDField, f, suffix="Field")
-    globals()[fclass.__name__] = fclass
+class AttachmentField(DEDField, Attachment):
+    pass
+
+
+class BooleanField(DEDField, Boolean):
+    pass
+
+
+class ByteField(DEDField, Byte):
+    pass
+
+
+class CompletionField(DEDField, Completion):
+    pass
+
+
+class DateField(DEDField, Date):
+    pass
+
+
+class DoubleField(DEDField, Double):
+    pass
+
+
+class FloatField(DEDField, Float):
+    pass
+
+
+class GeoPointField(DEDField, GeoPoint):
+    pass
+
+
+class GeoShapeField(DEDField, GeoShape):
+    pass
+
+
+class IntegerField(DEDField, Integer):
+    pass
+
+
+class IpField(DEDField, Ip):
+    pass
+
+
+class KeywordField(DEDField, Keyword):
+    pass
+
+
+class LongField(DEDField, Long):
+    pass
+
+
+class NestedField(Nested, ObjectField):
+    pass
+
+
+class ShortField(DEDField, Short):
+    pass
+
+
+class StringField(DEDField, String):
+    pass
+
+
+class TextField(DEDField, Text):
+    pass
