@@ -76,29 +76,39 @@ class Command(BaseCommand):
 
         return set(models)
 
-    def _execute_index_action(self, action, index, options):
-        if action == 'delete':
-            if not options['force']:
-                response = input(
-                    "Are you sure you want to delete "
-                    "the '{}' index ? [n/Y]: ".format(index))
-            else:
-                response = 'y'
-            if response.lower() == 'y':
-                self.stdout.write("Deleting index '{}'".format(index))
-                index.delete(ignore=404)
-
-        elif action == 'create':
-            self.stdout.write(
-                "Creating index '{}'".format(index))
+    def _create(self, models, options):
+        for index in registry.get_indices(models):
+            self.stdout.write("Creating index '{}'".format(index))
             index.create()
 
-    def _execute_doc_action(self, action, doc, options):
-        if action == 'populate':
+    def _populate(self, models, options):
+        for doc in registry.get_documents(models):
             qs = doc.get_queryset()
-            self.stdout.write("Indexing {} '{}' objects".format(
-                qs.count(), doc._doc_type.model.__name__))
+            self.stdout.write("Indexing {} '{}' objects".format(qs.count(), doc._doc_type.model.__name__))
             doc.update(qs.iterator())
+
+    def _delete(self, models, options):
+        index_names = [str(index) for index in registry.get_indices(models)]
+
+        if not options['force']:
+            response = input(
+                "Are you sure you want to delete "
+                "the '{}' indexes? [n/Y]: ".format(", ".join(index_names)))
+            if response.lower() != 'y':
+                self.stdout.write('Aborted')
+                return False
+
+        for index in registry.get_indices(models):
+            self.stdout.write("Deleting index '{}'".format(index))
+            index.delete(ignore=404)
+        return True
+
+    def _rebuild(self, models, options):
+        if not self._delete(models, options):
+            return
+
+        self._create(models, options)
+        self._populate(models, options)
 
     def handle(self, *args, **options):
         if not options['action']:
@@ -108,20 +118,18 @@ class Command(BaseCommand):
             )
 
         action = options['action']
-        if action == 'rebuild':
-            options.update({'action': 'delete'})
-            self.handle(*args, **options)
-            options.update({'action': 'create'})
-            self.handle(*args, **options)
-            options.update({'action': 'populate'})
-            self.handle(*args, **options)
-            return
-
         models = self._get_models(options['models'])
 
-        if action in ['populate']:
-            for doc in registry.get_documents(models):
-                self._execute_doc_action(action, doc, options)
-        elif action in ['create', 'delete']:
-            for index in registry.get_indices(models):
-                self._execute_index_action(action, index, options)
+        if action == 'create':
+            self._create(models, options)
+        elif action == 'populate':
+            self._populate(models, options)
+        elif action == 'delete':
+            self._delete(models, options)
+        elif action == 'rebuild':
+            self._rebuild(models, options)
+        else:
+            raise CommandError(
+                "Invalid action. Must be one of"
+                " '--create','--populate', '--delete' or '--rebuild' ."
+            )
