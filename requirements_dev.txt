@@ -1,5 +1,5 @@
 bumpversion==0.5.3
 wheel==0.29.0
-django>=1.10
+django>=1.11
 elasticsearch-dsl>=2.0.0,<3.0.0
 

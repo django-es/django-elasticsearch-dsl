@@ -15,7 +15,6 @@ try:
                     "ENGINE": "django.db.backends.sqlite3",
                 }
             },
-            ROOT_URLCONF="django_elasticsearch_dsl.urls",
             INSTALLED_APPS=[
                 "django.contrib.auth",
                 "django.contrib.contenttypes",
