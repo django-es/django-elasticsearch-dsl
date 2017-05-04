@@ -21,7 +21,7 @@ class Car(models.Model):
         default='se',
     )
     manufacturer = models.ForeignKey('Manufacturer', null=True)
-    categories = models.ManyToManyField('Category', null=True)
+    categories = models.ManyToManyField('Category')
 
     def __str__(self):
         return self.name
