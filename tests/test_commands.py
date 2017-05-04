@@ -1,4 +1,4 @@
-from mock import Mock, patch
+from mock import DEFAULT, Mock, patch
 from unittest import TestCase
 from django.utils.six import StringIO
 from django.db import models
@@ -160,14 +160,23 @@ class SearchIndexTestCase(TestCase):
             )
 
     def test_rebuild_indices(self):
-        Command.old_handle = Command.handle
-        with patch.object(Command, 'handle', Mock()) as handle:
-            cmd = Command()
-            cmd.old_handle(stdout=self.out, action='rebuild',
-                           models=['foo'], force=True)
-            handle.assert_any_call(stdout=self.out, action='delete',
-                                   models=['foo'], force=True)
-            handle.assert_any_call(stdout=self.out, action='create',
-                                   models=['foo'], force=True)
-            handle.assert_any_call(stdout=self.out, action='populate',
-                                   models=['foo'], force=True)
+
+        with patch.multiple(
+            Command, _create=DEFAULT, _delete=DEFAULT, _populate=DEFAULT
+        ) as handles:
+            handles['_delete'].return_value = True
+            call_command('search_index', stdout=self.out, action='rebuild')
+            handles['_delete'].assert_called()
+            handles['_create'].assert_called()
+            handles['_populate'].assert_called()
+
+    def test_rebuild_indices_aborted(self):
+
+        with patch.multiple(
+            Command, _create=DEFAULT, _delete=DEFAULT, _populate=DEFAULT
+        ) as handles:
+            handles['_delete'].return_value = False
+            call_command('search_index', stdout=self.out, action='rebuild')
+            handles['_delete'].assert_called()
+            handles['_create'].assert_not_called()
+            handles['_populate'].assert_not_called()
