@@ -59,13 +59,15 @@ class Command(BaseCommand):
             for arg in args:
                 arg = arg.lower()
                 match_found = False
+
                 for model in registry.get_models():
                     if model._meta.app_label == arg:
                         models.append(model)
                         match_found = True
-                    elif '{}.{}'.format(model._meta.app_label.lower(),
-                                        model._meta.model_name.lower()) == arg:
-
+                    elif '{}.{}'.format(
+                        model._meta.app_label.lower(),
+                        model._meta.model_name.lower()
+                    ) == arg:
                         models.append(model)
                         match_found = True
 
@@ -84,7 +86,9 @@ class Command(BaseCommand):
     def _populate(self, models, options):
         for doc in registry.get_documents(models):
             qs = doc.get_queryset()
-            self.stdout.write("Indexing {} '{}' objects".format(qs.count(), doc._doc_type.model.__name__))
+            self.stdout.write("Indexing {} '{}' objects".format(
+                qs.count(), doc._doc_type.model.__name__)
+            )
             doc.update(qs.iterator())
 
     def _delete(self, models, options):
