@@ -2,21 +2,25 @@ from unittest import TestCase
 from mock import Mock, NonCallableMock
 from django_elasticsearch_dsl.fields import (
     DEDField,
-    ObjectField,
-    NestedField,
-    IntegerField,
+    AttachmentField,
+    BooleanField,
     ByteField,
-    LongField,
+    CompletionField,
+    DateField,
     DoubleField,
     FloatField,
-    BooleanField,
-    DateField,
-    StringField,
-    ListField,
-    CompletionField,
     GeoPointField,
     GeoShapeField,
+    IntegerField,
     IpField,
+    KeywordField,
+    ListField,
+    LongField,
+    NestedField,
+    ObjectField,
+    ShortField,
+    StringField,
+    TextField,
 )
 from django_elasticsearch_dsl.exceptions import VariableLookupError
 
@@ -293,3 +297,39 @@ class ListFieldTestCase(TestCase):
         field = ListField(StringField(attr='foo.bar'))
         self.assertEqual(
             field.get_value_from_instance(instance), instance.foo.bar)
+
+
+class TextFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = TextField()
+
+        self.assertEqual({
+            'type': 'text',
+        }, field.to_dict())
+
+
+class KeywordFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = KeywordField()
+
+        self.assertEqual({
+            'type': 'keyword',
+        }, field.to_dict())
+
+
+class AttachmentFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = AttachmentField()
+
+        self.assertEqual({
+            'type': 'attachment',
+        }, field.to_dict())
+
+
+class ShortFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = ShortField()
+
+        self.assertEqual({
+            'type': 'short',
+        }, field.to_dict())

@@ -42,7 +42,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        'elasticsearch-dsl>=2.0.0,<3.0.0',
+        'elasticsearch-dsl>=2.0.0,<6.0.0',
     ],
     license="Apache Software License 2.0",
     zip_safe=False,
