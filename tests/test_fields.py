@@ -13,14 +13,12 @@ from django_elasticsearch_dsl.fields import (
     GeoShapeField,
     IntegerField,
     IpField,
-    KeywordField,
     ListField,
     LongField,
     NestedField,
     ObjectField,
     ShortField,
     StringField,
-    TextField,
 )
 from django_elasticsearch_dsl.exceptions import VariableLookupError
 
@@ -299,24 +297,6 @@ class ListFieldTestCase(TestCase):
             field.get_value_from_instance(instance), instance.foo.bar)
 
 
-class TextFieldTestCase(TestCase):
-    def test_get_mapping(self):
-        field = TextField()
-
-        self.assertEqual({
-            'type': 'text',
-        }, field.to_dict())
-
-
-class KeywordFieldTestCase(TestCase):
-    def test_get_mapping(self):
-        field = KeywordField()
-
-        self.assertEqual({
-            'type': 'keyword',
-        }, field.to_dict())
-
-
 class AttachmentFieldTestCase(TestCase):
     def test_get_mapping(self):
         field = AttachmentField()
@@ -333,3 +313,27 @@ class ShortFieldTestCase(TestCase):
         self.assertEqual({
             'type': 'short',
         }, field.to_dict())
+
+
+# ES5 specific fields
+try:
+    from django_elasticsearch_dsl.fields import KeywordField, TextField
+
+    class TextFieldTestCase(TestCase):
+        def test_get_mapping(self):
+            field = TextField()
+
+            self.assertEqual({
+                'type': 'text',
+            }, field.to_dict())
+
+    class KeywordFieldTestCase(TestCase):
+        def test_get_mapping(self):
+            field = KeywordField()
+
+            self.assertEqual({
+                'type': 'keyword',
+            }, field.to_dict())
+
+except ImportError:
+    pass

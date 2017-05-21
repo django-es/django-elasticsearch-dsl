@@ -23,7 +23,7 @@ Features
 - Complex field type support (ObjectField, NestedField).
 - Requirements
    - Django >= 1.8
-   - Python 2.7, 3.4, 3.5
+   - Python 2.7, 3.4, 3.5, 3.6
    - Elasticsearch >= 2.1
 
 .. _Search: http://elasticsearch-dsl.readthedocs.io/en/stable/search_dsl.html
@@ -347,6 +347,11 @@ Available Fields
 
     - ObjectField(properties, attr=None, \*\*elasticsearch_properties)
     - NestedField(properties, attr=None, \*\*elasticsearch_properties)
+
+- Elasticsearch 5 Fields
+
+    - TextField(attr=None, \*\*elasticsearch_properties)
+    - KeywordField(attr=None, \*\*elasticsearch_properties)
 
 ``properties`` is a dict where the key is a field name, and the value is a field
 instance.
