@@ -24,7 +24,7 @@ Features
 - Requirements
    - Django >= 1.8
    - Python 2.7, 3.4, 3.5, 3.6
-   - Elasticsearch >= 2.1
+   - Elasticsearch >= 2.0 < 6.0
 
 .. _Search: http://elasticsearch-dsl.readthedocs.io/en/stable/search_dsl.html
 
