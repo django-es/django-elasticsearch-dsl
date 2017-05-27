@@ -31,7 +31,15 @@ Features
 Quickstart
 ----------
 
-Install Django Elasticsearch DSL
+Install Django Elasticsearch DSL::
+
+    pip install django-elasticsearch-dsl
+
+    # Elasticsearch 5.x
+    pip install 'elasticsearch-dsl>=5.0,<6.0'
+
+    # Elasticsearch 2.x
+    pip install 'elasticsearch-dsl>=2.0,<3.0'
 
 Then add ``django_elasticsearch_dsl`` to the INSTALLED_APPS
 
@@ -289,13 +297,13 @@ Most elasticsearch field types_ are supported. The ``attr`` argument is a dotted
 semantics (dict lookup, attribute lookup, list index lookup). By default the attr
 argument is set to the field name.
 
-For the rest, the field properties are the same as elasticsearch-dsl-py
+For the rest, the field properties are the same as elasticsearch-dsl
 fields_.
 
 So for example you can use a custom analyzer_:
 
 .. _analyzer: http://elasticsearch-dsl.readthedocs.io/en/stable/persistence.html#analysis
-.. _types: https://www.elastic.co/guide/en/elasticsearch/reference/2.3/mapping-types.html
+.. _types: https://www.elastic.co/guide/en/elasticsearch/reference/5.4/mapping-types.html
 
 .. code:: python
 
