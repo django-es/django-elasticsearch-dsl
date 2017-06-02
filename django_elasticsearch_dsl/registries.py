@@ -15,8 +15,14 @@ class DocumentRegistry(object):
 
     def register(self, index, doc):
         """Register the model with the registry"""
-        self._indices[index].add(doc)
         self._models[doc._doc_type.model].add(doc)
+
+        for idx, docs in iteritems(self._indices):
+            if index._name == idx._name:
+                docs.add(doc)
+                return
+
+        self._indices[index].add(doc)
 
     def update(self, instance, **kwargs):
         """
