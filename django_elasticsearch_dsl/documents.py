@@ -1,23 +1,16 @@
 from __future__ import unicode_literals
-from django.utils.six import add_metaclass, iteritems
+
 from django.db import models
+from django.utils.six import add_metaclass, iteritems
 from elasticsearch.helpers import bulk
+from elasticsearch_dsl import DocType as DSLDocType
 from elasticsearch_dsl.document import DocTypeMeta as DSLDocTypeMeta
 from elasticsearch_dsl.field import Field
-from elasticsearch_dsl import DocType as DSLDocType
 
-from .exceptions import RedeclaredFieldError, ModelFieldNotMappedError
-from .fields import (
-    DEDField,
-    StringField,
-    DoubleField,
-    ShortField,
-    IntegerField,
-    LongField,
-    DateField,
-    BooleanField,
-)
-
+from .exceptions import ModelFieldNotMappedError, RedeclaredFieldError
+from .fields import BooleanField, DEDField, DateField, DoubleField, IntegerField, LongField, ShortField, StringField
+from .indices import Index
+from .registries import registry
 
 model_field_class_to_field_class = {
     models.AutoField: IntegerField,
@@ -58,6 +51,7 @@ class DocTypeMeta(DSLDocTypeMeta):
         model = attrs['Meta'].model
         ignore_signals = getattr(attrs['Meta'], "ignore_signals", False)
         model_field_names = getattr(attrs['Meta'], "fields", [])
+        index = getattr(attrs['Meta'], 'index', None)
         class_fields = set(
             name for name, field in iteritems(attrs)
             if isinstance(field, Field)
@@ -69,6 +63,9 @@ class DocTypeMeta(DSLDocTypeMeta):
         cls._doc_type.ignore_signals = ignore_signals
 
         doc = cls()
+
+        if index:
+            registry.register(Index(index), doc)
 
         fields = model._meta.get_fields()
         fields_lookup = dict((field.name, field) for field in fields)
@@ -91,7 +88,6 @@ class DocTypeMeta(DSLDocTypeMeta):
 
 @add_metaclass(DocTypeMeta)
 class DocType(DSLDocType):
-
     def __eq__(self, other):
         return id(self) == id(other)
 
