@@ -6,6 +6,8 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from django.utils.six import StringIO
+
+from django_elasticsearch_dsl import registries
 from django_elasticsearch_dsl.test import ESTestCase
 
 from .documents import CarDocument, AdDocument, ad_index, car_index
@@ -19,6 +21,8 @@ from .models import Car, Manufacturer, Ad, Category, COUNTRIES
 class IntegrationTestCase(ESTestCase, TestCase):
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
+        registries.registry = registries.DocumentRegistry()
+
         self.manufacturer = Manufacturer(name="Peugeot",
                                          created=datetime(1900, 10, 9, 0, 0),
                                          country_code="FR")
@@ -235,6 +239,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
         Ad(title="Ad title 3").save()
 
         call_command('search_index', action='populate',
-                     force=True, stdout=out)
+                     force=True, stdout=out, models=['tests.ad'])
         result = AdDocument().search().execute()
         self.assertEqual(len(result), 3)
