@@ -1,6 +1,6 @@
-=============================
+========================
 Django Elasticsearch DSL
-=============================
+========================
 
 .. image:: https://travis-ci.org/sabricot/django-elasticsearch-dsl.png?branch=master
     :target: https://travis-ci.org/sabricot/django-elasticsearch-dsl
@@ -45,9 +45,9 @@ Then add ``django_elasticsearch_dsl`` to the INSTALLED_APPS
 
 You must define ``ELASTICSEARCH_DSL`` in your django settings.
 
-For example
+For example:
 
-.. code:: python
+.. code-block:: python
 
     ELASTICSEARCH_DSL={
         'default': {
@@ -59,9 +59,9 @@ For example
 
 .. _here: http://elasticsearch-dsl.readthedocs.io/en/stable/configuration.html#multiple-clusters
 
-Then for a model
+Then for a model:
 
-.. code:: python
+.. code-block:: python
 
     # models.py
 
@@ -79,7 +79,7 @@ To make this model work with Elasticsearch, create a subclass of ``django_elasti
 And create a ``django_elasticsearch_dsl.Index`` to define your Elasticsearch indices names and settings. This classes must be
 define in a ``documents.py`` file.
 
-.. code:: python
+.. code-block:: python
 
     # documents.py
 
@@ -115,7 +115,7 @@ To create and populate the Elasticsearch index and mapping use the search_index 
 
 Now, when you do something like:
 
-.. code:: python
+.. code-block:: python
 
     car = Car(name="Car one", color="red", type=1, description="A beautiful car")
     car.save()
@@ -123,7 +123,7 @@ Now, when you do something like:
 The object will be saved in Elasticsearch too (using a signal handler). To get a
 elasticsearch-dsl-py Search_ instance, use:
 
-.. code:: python
+.. code-block:: python
 
     s = CarDocument.search().filter("term", color="red")
 
@@ -150,7 +150,7 @@ Let's say you don't want to store the type of the car as an integer, but as the
 corresponding string instead. You need some way to convert the type field on
 the model to a string, so we'll just add a method for it:
 
-.. code:: python
+.. code-block:: python
 
     # models.py
 
@@ -169,7 +169,7 @@ Now we need to tell our ``DocType`` subclass to use that method instead of just
 accessing the ``type`` field on the model directly. Change the CarDocument to look
 like this:
 
-.. code:: python
+.. code-block:: python
 
     # documents.py
 
@@ -200,11 +200,11 @@ Using prepare_field
 ~~~~~~~~~~~~~~~~~~~
 
 Sometimes, you need to do some extra prepping before a field should be saved to
-elasticsearch. You can add a ``prepare_foo(self, instance)`` method to a DocType
+Elasticsearch. You can add a ``prepare_foo(self, instance)`` method to a DocType
 (where foo is the name of the field), and that will be called when the field
 needs to be saved.
 
-.. code:: python
+.. code-block:: python
 
     # documents.py
 
@@ -223,7 +223,7 @@ Handle relationship with NestedField/ObjecField
 
 For example for a model with ForeignKey relationships.
 
-.. code:: python
+.. code-block:: python
 
     # models.py
 
@@ -250,9 +250,9 @@ For example for a model with ForeignKey relationships.
             return self.ad_set.all()
 
 
-You can use an ObjecField or NestedField.
+You can use an ObjectField or NestedField.
 
-.. code:: python
+.. code-block:: python
 
     # documents.py
 
@@ -285,14 +285,14 @@ You can use an ObjecField or NestedField.
                 'color',
             ]
 
-        # Not mandadory but to improve performance we can select related in one sql request
+        # Not mandatory but to improve performance we can select related in one sql request
         def get_queryset(self):
             return super(CarDocument, self).get_queryset().select_related(
                 'manufacturer')
 
 Field Classes
 ~~~~~~~~~~~~~
-Most elasticsearch field types_ are supported. The ``attr`` argument is a dotted
+Most Elasticsearch field types_ are supported. The ``attr`` argument is a dotted
 "attribute path" which will be looked up on the model using Django template
 semantics (dict lookup, attribute lookup, list index lookup). By default the attr
 argument is set to the field name.
@@ -305,7 +305,7 @@ So for example you can use a custom analyzer_:
 .. _analyzer: http://elasticsearch-dsl.readthedocs.io/en/stable/persistence.html#analysis
 .. _types: https://www.elastic.co/guide/en/elasticsearch/reference/5.4/mapping-types.html
 
-.. code:: python
+.. code-block:: python
 
     # documents.py
 
@@ -376,7 +376,7 @@ want to put in this Elasticsearch index.
 
 .. _Index: http://elasticsearch-dsl.readthedocs.io/en/stable/persistence.html#index
 
-.. code:: python
+.. code-block:: python
 
     # documents.py
 
@@ -415,7 +415,7 @@ When you execute the command::
 
     $ ./manage.py search_index --rebuild
 
-This will create an index named ``cars`` in elasticsearch with two mapping
+This will create an index named ``cars`` in Elasticsearch with two mapping
 ``manufacturer_document`` and ``car_document``.
 
 
@@ -456,7 +456,7 @@ ELASTICSEARCH_DSL_AUTOSYNC
 
 Default: ``True``
 
-Set to ``False`` to globally disable autosyncing.
+Set to ``False`` to globally disable auto-syncing.
 
 
 Testing
@@ -467,7 +467,7 @@ the requirements from ``requirements_test.txt`` (``pip install -r requirements_t
 
     $ python runtests.py
 
-    # or
+Or::
 
     $ make test
 
@@ -481,11 +481,10 @@ For integration testing with a running Elasticsearch server::
 TODO
 ----
 
-- Add support for --using (use another elasticsearch cluster) in management commands.
+- Add support for --using (use another Elasticsearch cluster) in management commands.
 - Add management commands for mapping level operations (like update_mapping....).
 - Dedicated documentation.
-- Generate ObjecField/NestField propeties from a DocType class.
+- Generate ObjectField/NestField properties from a DocType class.
 - Add possibility to set a default index in ``class DocType: class Meta index = 'cars'``.
 - More examples.
 - Better ``ESTestCase`` and documentation for testing
-
