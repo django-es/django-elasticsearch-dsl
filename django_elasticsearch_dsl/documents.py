@@ -51,7 +51,6 @@ class DocTypeMeta(DSLDocTypeMeta):
         model = attrs['Meta'].model
         ignore_signals = getattr(attrs['Meta'], "ignore_signals", False)
         model_field_names = getattr(attrs['Meta'], "fields", [])
-        index = getattr(attrs['Meta'], 'index', None)
         class_fields = set(
             name for name, field in iteritems(attrs)
             if isinstance(field, Field)
@@ -63,9 +62,6 @@ class DocTypeMeta(DSLDocTypeMeta):
         cls._doc_type.ignore_signals = ignore_signals
 
         doc = cls()
-
-        if index:
-            registry.register(Index(index), doc)
 
         fields = model._meta.get_fields()
         fields_lookup = dict((field.name, field) for field in fields)
@@ -83,6 +79,12 @@ class DocTypeMeta(DSLDocTypeMeta):
 
         cls._doc_type._fields = (
             lambda: cls._doc_type.mapping.properties.properties.to_dict())
+
+        if getattr(cls._doc_type, 'index'):
+            index = Index(cls._doc_type.index)
+            index.mapping(cls._doc_type.mapping)
+            registry.register(index, doc)
+
         return cls
 
 
