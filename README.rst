@@ -99,14 +99,18 @@ define in a ``documents.py`` file.
     class CarDocument(DocType):
         class Meta:
             model = Car # The model associate with this DocType
+
+            # The fields of the model you want to be indexed in Elasticsearch
             fields = [
                 'name',
                 'color',
                 'description',
                 'type',
-            ] # the fields of the model you want to be indexed in Elasticsearch
+            ]
 
-            # ignore_signals = True # To ignore auto updating of Elasticsearch when a model is save or delete
+            # To ignore auto updating of Elasticsearch when a model is save
+            # or delete
+            # ignore_signals = True
 
 
 To create and populate the Elasticsearch index and mapping use the search_index command::
@@ -117,7 +121,12 @@ Now, when you do something like:
 
 .. code-block:: python
 
-    car = Car(name="Car one", color="red", type=1, description="A beautiful car")
+    car = Car(
+        name="Car one",
+        color="red",
+        type=1,
+        description="A beautiful car"
+    )
     car.save()
 
 The object will be saved in Elasticsearch too (using a signal handler). To get a
@@ -132,7 +141,9 @@ elasticsearch-dsl-py Search_ instance, use:
     s = CarDocument.search().query("match", description="beautiful")
 
     for hit in s:
-        print("Car name : {}, description {}".format(hit.name, hit.description))
+        print(
+            "Car name : {}, description {}".format(hit.name, hit.description)
+        )
 
 Fields
 ------
@@ -157,7 +168,9 @@ the model to a string, so we'll just add a method for it:
     class Car(models.Model):
         # ... #
         def type_to_string(self):
-            """Convert the type field to its string representation (the boneheaded way)"""
+            """Convert the type field to its string representation
+            (the boneheaded way).
+            """
             if self.type == 1:
                 return "Sedan"
             elif self.type == 2:
@@ -179,8 +192,8 @@ like this:
 
     @car.doc_type
     class CarDocument(DocType):
-        # add a string field to the Elasticsearch mapping called type, the value of
-        # which is derived from the model's type_to_string attribute
+        # add a string field to the Elasticsearch mapping called type, the
+        # value of which is derived from the model's type_to_string attribute
         type = fields.StringField(attr="type_to_string")
 
         class Meta:
@@ -245,7 +258,8 @@ For example for a model with ForeignKey relationships.
         url = models.URLField()
         car = models.ForeignKey('Car')
 
-        # This function will be called by the ads NestedField from the CarDocument
+        # This function will be called by the ads NestedField from the
+        # CarDocument
         def ads(self):
             return self.ad_set.all()
 
@@ -285,7 +299,8 @@ You can use an ObjectField or NestedField.
                 'color',
             ]
 
-        # Not mandatory but to improve performance we can select related in one sql request
+        # Not mandatory but to improve performance we can select related in
+        # one sql request
         def get_queryset(self):
             return super(CarDocument, self).get_queryset().select_related(
                 'manufacturer')
@@ -406,8 +421,9 @@ want to put in this Elasticsearch index.
         class Meta:
             model = Car
             fields = [
-                'name', # If a field as the same name in multiple DocType of the same Index,
-                        # the field type must be identical (here fields.StringField)
+                'name', # If a field as the same name in multiple DocType of
+                        # the same Index, the field type must be identical
+                        # (here fields.StringField)
                 'country_code',
             ]
 
