@@ -14,3 +14,7 @@ class DEDConfig(AppConfig):
     @classmethod
     def autosync_enabled(cls):
         return getattr(settings, 'ELASTICSEARCH_DSL_AUTOSYNC', True)
+
+    @classmethod
+    def default_index_settings(cls):
+        return getattr(settings, 'ELASTICSEARCH_DSL_INDEX_SETTINGS', {})
