@@ -82,7 +82,7 @@ class DocTypeMeta(DSLDocTypeMeta):
 
         if getattr(cls._doc_type, 'index'):
             index = Index(cls._doc_type.index)
-            index.mapping(cls._doc_type.mapping)
+            index.doc_type(cls)
             registry.register(index, doc)
 
         return cls
