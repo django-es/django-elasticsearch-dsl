@@ -7,8 +7,18 @@ from elasticsearch_dsl import DocType as DSLDocType
 from elasticsearch_dsl.document import DocTypeMeta as DSLDocTypeMeta
 from elasticsearch_dsl.field import Field
 
+from .apps import DEDConfig
 from .exceptions import ModelFieldNotMappedError, RedeclaredFieldError
-from .fields import BooleanField, DEDField, DateField, DoubleField, IntegerField, LongField, ShortField, StringField
+from .fields import (
+    BooleanField,
+    DateField,
+    DEDField,
+    DoubleField,
+    IntegerField,
+    LongField,
+    ShortField,
+    StringField,
+)
 from .indices import Index
 from .registries import registry
 
@@ -49,8 +59,13 @@ class DocTypeMeta(DSLDocTypeMeta):
             return super_new(cls, name, bases, attrs)
 
         model = attrs['Meta'].model
+
         ignore_signals = getattr(attrs['Meta'], "ignore_signals", False)
+        auto_refresh = getattr(
+            attrs['Meta'], 'auto_refresh', DEDConfig.auto_refresh_enabled()
+        )
         model_field_names = getattr(attrs['Meta'], "fields", [])
+
         class_fields = set(
             name for name, field in iteritems(attrs)
             if isinstance(field, Field)
@@ -60,6 +75,7 @@ class DocTypeMeta(DSLDocTypeMeta):
 
         cls._doc_type.model = model
         cls._doc_type.ignore_signals = ignore_signals
+        cls._doc_type.auto_refresh = auto_refresh
 
         doc = cls()
 
@@ -140,15 +156,18 @@ class DocType(DSLDocType):
                 "to an Elasticsearch field!".format(field_name)
             )
 
-    def bulk(self, actions, refresh=True, **kwargs):
-        return bulk(client=self.connection, actions=actions,
-                    refresh=refresh, **kwargs)
+    def bulk(self, actions, **kwargs):
+        return bulk(client=self.connection, actions=actions, **kwargs)
 
-    def update(self, thing, refresh=True, action='index', **kwargs):
+    def update(self, thing, refresh=None, action='index', **kwargs):
         """
         Update each document in ES for a model, iterable of models or queryset
         """
-        kwargs['refresh'] = refresh
+        if refresh is True or (
+            refresh is None and self._doc_type.auto_refresh
+        ):
+            kwargs['refresh'] = True
+
         if isinstance(thing, models.Model):
             thing = [thing]
 

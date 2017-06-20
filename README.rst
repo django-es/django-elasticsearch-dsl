@@ -111,6 +111,8 @@ define in a ``documents.py`` file.
             # To ignore auto updating of Elasticsearch when a model is save
             # or delete
             # ignore_signals = True
+            # Don't perform an index refresh after every update (overrides global setting)
+            # auto_refresh = False
 
 
 To create and populate the Elasticsearch index and mapping use the search_index command::
@@ -480,6 +482,13 @@ ELASTICSEARCH_DSL_INDEX_SETTINGS
 Default: ``{}``
 
 Additional options passed to the elasticsearch-dsl Index settings (like ``number_of_replicas`` or ``number_of_shards``).
+
+ELASTICSEARCH_DSL_AUTO_REFRESH
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``True``
+
+Set to ``False`` not force an [index refresh](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-refresh.html) with every save.
 
 Testing
 -------

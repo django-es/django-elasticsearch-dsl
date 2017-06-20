@@ -18,3 +18,7 @@ class DEDConfig(AppConfig):
     @classmethod
     def default_index_settings(cls):
         return getattr(settings, 'ELASTICSEARCH_DSL_INDEX_SETTINGS', {})
+
+    @classmethod
+    def auto_refresh_enabled(cls):
+        return getattr(settings, 'ELASTICSEARCH_DSL_AUTO_REFRESH', True)
