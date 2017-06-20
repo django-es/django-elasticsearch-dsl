@@ -127,8 +127,7 @@ class DocType(DSLDocType):
         """
         Return the queryset that should be indexed by this doc type.
         """
-        qs = self._doc_type.model._default_manager
-        return qs
+        return self._doc_type.model._default_manager.all()
 
     def prepare(self, instance):
         """
