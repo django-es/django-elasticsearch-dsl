@@ -110,6 +110,23 @@ class DocumentRegistryTestCase(TestCase):
         doc_d1.get_instances_from_related.assert_called_once_with(instance)
         doc_d1.update.assert_called_once_with(related_instance)
 
+    def test_update_related_isntances_not_defined(self):
+        class ModelD():
+            pass
+
+        class ModelE():
+            pass
+
+        doc_d1 = self._generate_doc_mock(ModelD, self.index_1, related_models=[ModelE])
+
+        instance = ModelE()
+
+        doc_d1.get_instances_from_related.return_value = None
+        self.registry.update(instance)
+
+        doc_d1.get_instances_from_related.assert_called_once_with(instance)
+        doc_d1.update.assert_not_called()
+
     def test_delete_instance(self):
         doc_a3 = self._generate_doc_mock(self.ModelA, self.index_1, ignore_signals=True)
 
