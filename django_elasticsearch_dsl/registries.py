@@ -12,6 +12,7 @@ class DocumentRegistry(object):
     def __init__(self):
         self._indices = defaultdict(set)
         self._models = defaultdict(set)
+        self._related_models = defaultdict(set)
 
     def register(self, index, doc):
         """Register the model with the registry"""
@@ -24,15 +25,24 @@ class DocumentRegistry(object):
 
         self._indices[index].add(doc)
 
+        for related in doc._doc_type.related_models:
+            self._related_models[related].add(doc._doc_type.model)
+
     def update(self, instance, **kwargs):
         """
         Update all the elasticsearch documents attached to this model (if their
         ignore_signals flag allows it)
         """
-        if DEDConfig.autosync_enabled() and instance.__class__ in self._models:
-            for doc in self._models[instance.__class__]:
-                if not doc._doc_type.ignore_signals:
-                    doc.update(instance, **kwargs)
+        if DEDConfig.autosync_enabled():
+            if instance.__class__ in self._models:
+                for doc in self._models[instance.__class__]:
+                    if not doc._doc_type.ignore_signals:
+                        doc.update(instance, **kwargs)
+            if instance.__class__ in self._related_models:
+                for model in self._related_models[instance.__class__]:
+                    for doc in self._models[model]:
+                        related_instances = doc.get_instances_from_related(instance)
+                        doc.update(related_instances, **kwargs)
 
     def delete(self, instance, **kwargs):
         """

@@ -39,6 +39,7 @@ class CarDocument(DocType):
         fields = ['name', 'price']
         model = Car
         index = 'car_index'
+        related_models = [Manufacturer]
 
 
 class DocTypeTestCase(TestCase):
@@ -72,6 +73,10 @@ class DocTypeTestCase(TestCase):
             set(mapping.properties.properties.to_dict().keys()),
             set(['color', 'name', 'price', 'type'])
         )
+
+    def test_related_models_added(self):
+        related_models = CarDocument._doc_type.related_models
+        self.assertEqual([Manufacturer], related_models)
 
     def test_duplicate_field_names_not_allowed(self):
         with self.assertRaises(RedeclaredFieldError):
