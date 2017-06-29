@@ -41,8 +41,9 @@ class DocumentRegistry(object):
             if instance.__class__ in self._related_models:
                 for model in self._related_models[instance.__class__]:
                     for doc in self._models[model]:
-                        related_instances = doc.get_instances_from_related(instance)
-                        doc.update(related_instances, **kwargs)
+                        related = doc.get_instances_from_related(instance)
+                        if related:
+                            doc.update(related, **kwargs)
 
     def delete(self, instance, **kwargs):
         """
