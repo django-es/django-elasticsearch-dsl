@@ -58,14 +58,6 @@ class ManufacturerDocument(DocType):
         ]
 
 
-ad = Index('test_ads')
-ad.settings(
-    number_of_shards=1,
-    number_of_replicas=0
-)
-
-
-@ad.doc_type
 class AdDocument(DocType):
     description = fields.StringField(
         analyzer=html_strip,
@@ -74,9 +66,19 @@ class AdDocument(DocType):
 
     class Meta:
         model = Ad
+        index = 'test_ads'
         fields = [
             'title',
             'created',
             'modified',
             'url',
+        ]
+
+
+class AdDocument2(DocType):
+    class Meta:
+        model = Ad
+        index = 'test_ads'
+        fields = [
+            'title',
         ]

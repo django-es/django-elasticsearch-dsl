@@ -474,8 +474,8 @@ Default: ``True``
 
 Set to ``False`` to globally disable auto-syncing.
 
-ELASTICSEARCH_DSL_AUTOSYNC
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+ELASTICSEARCH_DSL_INDEX_SETTINGS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Default: ``{}``
 

@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.utils.encoding import python_2_unicode_compatible
 from elasticsearch_dsl import Index as DSLIndex
 
@@ -9,7 +11,7 @@ from .registries import registry
 class Index(DSLIndex):
     def __init__(self, name, using='default'):
         super(Index, self).__init__(name, using)
-        self._settings = DEDConfig.default_index_settings()
+        self._settings = deepcopy(DEDConfig.default_index_settings())
 
     def doc_type(self, doc_type, *args, **kwargs):
         """
