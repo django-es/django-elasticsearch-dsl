@@ -490,6 +490,23 @@ Default: ``True``
 
 Set to ``False`` not force an [index refresh](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-refresh.html) with every save.
 
+ELASTICSEARCH_DSL_SIGNAL_PROCESSOR
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This (optional) setting controls what SignalProcessor class is used to handle
+Django's signals and keep the search index up-to-date.
+
+An example:
+
+.. code-block:: python
+
+    ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = 'django_elasticsearch_dsl.signals.RealTimeSignalProcessor'
+
+Defaults to ``django_elasticsearch_dsl.signals.RealTimeSignalProcessor``.
+
+You could, for instance, make a ``CelerySignalProcessor`` which would add
+update jobs to the queue to for delayed processing.
+
 Testing
 -------
 
