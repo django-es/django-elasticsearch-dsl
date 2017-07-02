@@ -474,6 +474,12 @@ Default: ``True``
 
 Set to ``False`` to globally disable auto-syncing.
 
+ELASTICSEARCH_DSL_AUTOSYNC
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``{}``
+
+Additional options passed to the elasticsearch-dsl Index settings (like ``number_of_replicas`` or ``number_of_shards``).
 
 Testing
 -------

@@ -4,6 +4,7 @@ from mock import patch
 from django_elasticsearch_dsl.indices import Index
 from django_elasticsearch_dsl.documents import DocType
 from django_elasticsearch_dsl.registries import DocumentRegistry
+from django.conf import settings
 
 
 class IndexTestCase(TestCase):
@@ -43,3 +44,17 @@ class IndexTestCase(TestCase):
     def test__str__(self):
         index = Index('test')
         self.assertEqual(index.__str__(), 'test')
+
+    def test__init__(self):
+        settings.ELASTICSEARCH_DSL_INDEX_SETTINGS = {
+            'number_of_replicas': 0,
+            'number_of_shards': 2,
+        }
+
+        index = Index('test')
+        self.assertEqual(index._settings, {
+            'number_of_replicas': 0,
+            'number_of_shards': 2,
+        })
+
+        settings.ELASTICSEARCH_DSL_INDEX_SETTINGS = {}
