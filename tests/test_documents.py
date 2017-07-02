@@ -49,12 +49,22 @@ class DocTypeTestCase(TestCase):
     def test_ignore_signal_default(self):
         self.assertFalse(CarDocument._doc_type.ignore_signals)
 
+    def test_auto_refresh_default(self):
+        self.assertTrue(CarDocument._doc_type.auto_refresh)
+
     def test_ignore_signal_added(self):
         class Car2Document(DocType):
             class Meta:
                 model = Car
                 ignore_signals = True
         self.assertTrue(Car2Document._doc_type.ignore_signals)
+
+    def test_auto_refresh_added(self):
+        class Car3Document(DocType):
+            class Meta:
+                model = Car
+                auto_refresh = False
+        self.assertFalse(Car3Document._doc_type.auto_refresh)
 
     def test_fields_populated(self):
         mapping = CarDocument._doc_type.mapping
@@ -210,3 +220,11 @@ class DocTypeTestCase(TestCase):
             self.assertEqual(
                 doc.connection, mock.call_args_list[0][1]['client']
             )
+
+    def test_model_instance_update_no_refresh(self):
+        doc = CarDocument()
+        doc._doc_type.auto_refresh = False
+        car = Car()
+        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
+            doc.update(car)
+            self.assertNotIn('refresh', mock.call_args_list[0][1])
