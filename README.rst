@@ -533,6 +533,5 @@ TODO
 - Add management commands for mapping level operations (like update_mapping....).
 - Dedicated documentation.
 - Generate ObjectField/NestField properties from a DocType class.
-- Add possibility to set a default index in ``class DocType: class Meta index = 'cars'``.
 - More examples.
 - Better ``ESTestCase`` and documentation for testing
