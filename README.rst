@@ -235,7 +235,7 @@ needs to be saved.
         def prepare_foo(self, instance):
             return " ".join(instance.foos)
 
-Handle relationship with NestedField/ObjecField
+Handle relationship with NestedField/ObjectField
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For example for a model with ForeignKey relationships.
