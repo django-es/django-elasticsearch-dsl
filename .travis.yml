@@ -1,9 +1,7 @@
 # Config file for automatic testing at travis-ci.org
 
 language: python
-
-python:
-  - "3.6"
+python: 3.6
 
 dist: trusty # default "precise" distro doesn't include Java 8 for Elasticsearch 5
 
@@ -38,6 +36,8 @@ env:
   - TOX_ENV=py27-django-111-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
 
 before_install:
+  # work around https://github.com/travis-ci/travis-ci/issues/8363
+  - pyenv global system 3.5
   - pip install codecov
   - wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
   - echo "deb $ES_APT_URL stable main" | sudo tee -a /etc/apt/sources.list.d/elk.list
