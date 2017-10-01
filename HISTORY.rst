@@ -3,6 +3,12 @@
 History
 -------
 
+0.3.0 (2017-01-10)
+~~~~~~~~~~~~~~~~~~
+* Add support for resynching ES documents if related models are updated (HansAdema)
+* Better management for django FileField and ImageField
+* Fix some errors in the doc (barseghyanartur, diwu1989)
+
 0.2.0 (2017-02-07)
 ~~~~~~~~~~~~~~~~~~
 
