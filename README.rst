@@ -362,18 +362,19 @@ Available Fields
 
 - Simple Fields
 
-    - StringField(attr=None, \*\*elasticsearch_properties)
-    - FloatField(attr=None, \*\*elasticsearch_properties)
-    - DoubleField(attr=None, \*\*elasticsearch_properties)
-    - ByteField(attr=None, \*\*elasticsearch_properties)
-    - ShortField(attr=None, \*\*elasticsearch_properties)
-    - IntegerField(attr=None, \*\*elasticsearch_properties)
-    - DateField(attr=None, \*\*elasticsearch_properties)
     - BooleanField(attr=None, \*\*elasticsearch_properties)
+    - ByteField(attr=None, \*\*elasticsearch_properties)
+    - CompletionField(attr=None, \*\*elasticsearch_properties)
+    - DateField(attr=None, \*\*elasticsearch_properties)
+    - DoubleField(attr=None, \*\*elasticsearch_properties)
+    - FileField(attr=None, \*\*elasticsearch_properties)
+    - FloatField(attr=None, \*\*elasticsearch_properties)
+    - IntegerField(attr=None, \*\*elasticsearch_properties)
+    - IpField(attr=None, \*\*elasticsearch_properties)
     - GeoPointField(attr=None, \*\*elasticsearch_properties)
     - GeoShapField(attr=None, \*\*elasticsearch_properties)
-    - IpField(attr=None, \*\*elasticsearch_properties)
-    - CompletionField(attr=None, \*\*elasticsearch_properties)
+    - ShortField(attr=None, \*\*elasticsearch_properties)
+    - StringField(attr=None, \*\*elasticsearch_properties)
 
 - Complex Fields
 

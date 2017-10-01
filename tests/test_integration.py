@@ -4,7 +4,6 @@ import unittest
 
 from django.core.management import call_command
 from django.test import TestCase
-
 from django.utils.six import StringIO
 
 from django_elasticsearch_dsl import registries
@@ -23,17 +22,25 @@ class IntegrationTestCase(ESTestCase, TestCase):
         super(IntegrationTestCase, self).setUp()
         registries.registry = registries.DocumentRegistry()
 
-        self.manufacturer = Manufacturer(name="Peugeot",
-                                         created=datetime(1900, 10, 9, 0, 0),
-                                         country_code="FR")
+        self.manufacturer = Manufacturer(
+            name="Peugeot", created=datetime(1900, 10, 9, 0, 0),
+            country_code="FR", logo='logo.jpg'
+        )
         self.manufacturer.save()
-        self.car1 = Car(name="508", launched=datetime(2010, 9, 9, 0, 0),
-                        manufacturer=self.manufacturer)
+        self.car1 = Car(
+            name="508", launched=datetime(2010, 9, 9, 0, 0),
+            manufacturer=self.manufacturer
+        )
+
         self.car1.save()
-        self.car2 = Car(name="208", launched=datetime(2010, 10, 9, 0, 0),
-                        manufacturer=self.manufacturer)
+        self.car2 = Car(
+            name="208", launched=datetime(2010, 10, 9, 0, 0),
+            manufacturer=self.manufacturer
+        )
         self.car2.save()
-        self.category1 = Category(title="Category 1", slug="category-1")
+        self.category1 = Category(
+            title="Category 1", slug="category-1", icon="icon.jpeg"
+        )
         self.category1.save()
         self.car2.categories.add(self.category1)
         self.car2.save()
@@ -45,13 +52,17 @@ class IntegrationTestCase(ESTestCase, TestCase):
         self.car3.categories.add(self.category1, self.category2)
         self.car3.save()
 
-        self.ad1 = Ad(title="Ad number 1", url="www.ad1.com",
-                      description="My super ad description 1",
-                      car=self.car1)
+        self.ad1 = Ad(
+            title="Ad number 1", url="www.ad1.com",
+            description="My super ad description 1",
+            car=self.car1
+        )
         self.ad1.save()
-        self.ad2 = Ad(title="Ad number 2", url="www.ad2.com",
-                      description="My super ad descriptio 2",
-                      car=self.car1)
+        self.ad2 = Ad(
+            title="Ad number 2", url="www.ad2.com",
+            description="My super ad descriptio 2",
+            car=self.car1
+        )
         self.ad2.save()
         self.car1.save()
 
@@ -105,10 +116,12 @@ class IntegrationTestCase(ESTestCase, TestCase):
             {
                 'title': self.category1.title,
                 'slug': self.category1.slug,
+                'icon': self.category1.icon,
             },
             {
                 'title': self.category2.title,
                 'slug': self.category2.slug,
+                'icon': '',
             }
         ])
 
@@ -128,6 +141,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
             'categories': [{
                 'title': self.category1.title,
                 'slug': self.category1.slug,
+                'icon': self.category1.icon,
             }]
         })
 
@@ -143,10 +157,12 @@ class IntegrationTestCase(ESTestCase, TestCase):
                 {
                     'title': self.category1.title,
                     'slug': self.category1.slug,
+                    'icon': self.category1.icon,
                 },
                 {
                     'title': self.category2.title,
                     'slug': self.category2.slug,
+                    'icon': '',
                 }
             ]
         })
@@ -175,6 +191,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
                     'name': {'type': 'string'},
                     'country': {'type': 'string'},
                     'country_code': {'type': 'string'},
+                    'logo': {'type': 'string'},
                 }
             },
             'car_document': {
@@ -195,6 +212,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
                         'properties': {
                             'title': {'type': 'string'},
                             'slug': {'type': 'string'},
+                            'icon': {'type': 'string'},
                         },
                     },
                     'manufacturer': {

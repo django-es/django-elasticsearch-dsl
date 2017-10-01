@@ -43,6 +43,7 @@ class Manufacturer(models.Model):
     name = models.CharField(max_length=255)
     country_code = models.CharField(max_length=2)
     created = models.DateField()
+    logo = models.ImageField(blank=True)
 
     def country(self):
         return COUNTRIES.get(self.country_code, self.country_code)
@@ -55,6 +56,7 @@ class Manufacturer(models.Model):
 class Category(models.Model):
     title = models.CharField(max_length=255)
     slug = models.CharField(max_length=255)
+    icon = models.ImageField(blank=True)
 
     def __str__(self):
         return self.title

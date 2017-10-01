@@ -4,3 +4,4 @@
 -e ../
 
 django-autofixture==0.12.1
+Pillow==4.2.1

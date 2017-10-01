@@ -35,6 +35,7 @@ class CarDocument(DocType):
     categories = fields.NestedField(properties={
         'title': fields.StringField(),
         'slug': fields.StringField(),
+        'icon': fields.FileField(),
     })
 
     class Meta:
@@ -60,6 +61,7 @@ class ManufacturerDocument(DocType):
             'name',
             'created',
             'country_code',
+            'logo',
         ]
 
 

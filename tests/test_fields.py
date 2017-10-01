@@ -1,13 +1,17 @@
 from unittest import TestCase
+
 from mock import Mock, NonCallableMock
+
+from django.db.models.fields.files import FieldFile
 from django_elasticsearch_dsl.fields import (
-    DEDField,
     AttachmentField,
     BooleanField,
     ByteField,
     CompletionField,
     DateField,
+    DEDField,
     DoubleField,
+    FileField,
     FloatField,
     GeoPointField,
     GeoShapeField,
@@ -313,6 +317,30 @@ class ShortFieldTestCase(TestCase):
         self.assertEqual({
             'type': 'short',
         }, field.to_dict())
+
+
+class FileFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = FileField()
+        self.assertEqual({
+            'type': 'string',
+        }, field.to_dict())
+
+    def test_get_value_from_instance(self):
+        field = FileField(attr='file')
+
+        instance = NonCallableMock(
+            file=NonCallableMock(spec=FieldFile, url='myfile.pdf'),
+        )
+        self.assertEqual(
+            field.get_value_from_instance(instance), 'myfile.pdf'
+        )
+
+        field = FileField(attr='related.attr1')
+        instance = NonCallableMock(
+            attr1="foo", related=NonCallableMock(attr1="bar")
+        )
+        self.assertEqual(field.get_value_from_instance(instance), 'bar')
 
 
 # ES5 specific fields

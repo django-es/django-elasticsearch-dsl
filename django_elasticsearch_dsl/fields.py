@@ -2,6 +2,7 @@ import collections
 from types import MethodType
 
 from django.db import models
+from django.db.models.fields.files import FieldFile
 from elasticsearch_dsl.field import (
     Attachment,
     Boolean,
@@ -173,6 +174,15 @@ class ShortField(DEDField, Short):
 
 class StringField(DEDField, String):
     pass
+
+
+class FileField(DEDField, String):
+    def get_value_from_instance(self, instance):
+        _file = super(FileField, self).get_value_from_instance(instance)
+
+        if isinstance(_file, FieldFile):
+            return _file.url if _file else ''
+        return _file
 
 
 # ES5 specific fields

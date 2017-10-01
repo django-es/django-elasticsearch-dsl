@@ -41,6 +41,7 @@ COUNTRIES = {
 class Manufacturer(models.Model):
     name = models.CharField(max_length=255)
     country_code = models.CharField(max_length=2)
+    logo = models.ImageField(blank=True)
     created = models.DateField()
 
     def country(self):

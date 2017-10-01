@@ -24,6 +24,7 @@ class CarDocument(DocType):
     manufacturer = fields.ObjectField(properties={
         'name': fields.StringField(),
         'country': fields.StringField(),
+        'logo': fields.FileField(),
     })
 
     ads = fields.NestedField(properties={
@@ -59,6 +60,7 @@ class ManufacturerDocument(DocType):
             'name',
             'created',
             'country_code',
+            'logo',
         ]
 
 
