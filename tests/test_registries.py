@@ -15,11 +15,14 @@ class DocumentRegistryTestCase(TestCase):
     class ModelC():
         pass
 
-    def _generate_doc_mock(self, model, index=None, ignore_signals=False, related_models=None):
+    def _generate_doc_mock(
+        self, model, index=None, ignore_signals=False, related_models=None
+    ):
         doc = Mock()
         doc._doc_type.model = model
         doc._doc_type.ignore_signals = ignore_signals
-        doc._doc_type.related_models = related_models if related_models is not None else []
+        doc._doc_type.related_models = related_models if (
+            related_models) is not None else []
 
         if index:
             self.registry.register(index, doc)
@@ -82,7 +85,9 @@ class DocumentRegistryTestCase(TestCase):
         self.assertFalse(self.registry.get_indices([ModelC]))
 
     def test_update_instance(self):
-        doc_a3 = self._generate_doc_mock(self.ModelA, self.index_1, ignore_signals=True)
+        doc_a3 = self._generate_doc_mock(
+            self.ModelA, self.index_1, ignore_signals=True
+        )
 
         instance = self.ModelA()
         self.registry.update(instance)
@@ -99,7 +104,9 @@ class DocumentRegistryTestCase(TestCase):
         class ModelE():
             pass
 
-        doc_d1 = self._generate_doc_mock(ModelD, self.index_1, related_models=[ModelE])
+        doc_d1 = self._generate_doc_mock(
+            ModelD, self.index_1, related_models=[ModelE]
+        )
 
         instance = ModelE()
         related_instance = ModelD()
@@ -117,7 +124,9 @@ class DocumentRegistryTestCase(TestCase):
         class ModelE():
             pass
 
-        doc_d1 = self._generate_doc_mock(ModelD, self.index_1, related_models=[ModelE])
+        doc_d1 = self._generate_doc_mock(
+            ModelD, self.index_1, related_models=[ModelE]
+        )
 
         instance = ModelE()
 
@@ -128,7 +137,9 @@ class DocumentRegistryTestCase(TestCase):
         doc_d1.update.assert_not_called()
 
     def test_delete_instance(self):
-        doc_a3 = self._generate_doc_mock(self.ModelA, self.index_1, ignore_signals=True)
+        doc_a3 = self._generate_doc_mock(
+            self.ModelA, self.index_1, ignore_signals=True
+        )
 
         instance = self.ModelA()
         self.registry.delete(instance)
