@@ -15,31 +15,26 @@ class DocumentRegistryTestCase(TestCase):
     class ModelC():
         pass
 
+    def _generate_doc_mock(self, model, index=None, ignore_signals=False, related_models=None):
+        doc = Mock()
+        doc._doc_type.model = model
+        doc._doc_type.ignore_signals = ignore_signals
+        doc._doc_type.related_models = related_models if related_models is not None else []
+
+        if index:
+            self.registry.register(index, doc)
+
+        return doc
+
     def setUp(self):
         self.registry = DocumentRegistry()
         self.index_1 = Mock()
         self.index_2 = Mock()
 
-        self.doc_a1 = Mock()
-        self.doc_a1._doc_type.model = self.ModelA
-        self.doc_a1._doc_type.ignore_signals = False
-
-        self.doc_a2 = Mock()
-        self.doc_a2._doc_type.model = self.ModelA
-        self.doc_a2._doc_type.ignore_signals = False
-
-        self.doc_b1 = Mock()
-        self.doc_b1._doc_type.model = self.ModelB
-        self.doc_b1._doc_type.ignore_signals = False
-
-        self.doc_c1 = Mock()
-        self.doc_c1._doc_type.model = self.ModelC
-        self.doc_c1._doc_type.ignore_signals = False
-
-        self.registry.register(self.index_1, self.doc_a1)
-        self.registry.register(self.index_1, self.doc_a2)
-        self.registry.register(self.index_2, self.doc_b1)
-        self.registry.register(self.index_1, self.doc_c1)
+        self.doc_a1 = self._generate_doc_mock(self.ModelA, self.index_1)
+        self.doc_a2 = self._generate_doc_mock(self.ModelA, self.index_1)
+        self.doc_b1 = self._generate_doc_mock(self.ModelB, self.index_2)
+        self.doc_c1 = self._generate_doc_mock(self.ModelC, self.index_1)
 
     def test_empty_registry(self):
         registry = DocumentRegistry()
@@ -87,11 +82,7 @@ class DocumentRegistryTestCase(TestCase):
         self.assertFalse(self.registry.get_indices([ModelC]))
 
     def test_update_instance(self):
-        doc_a3 = Mock()
-        doc_a3._doc_type.model = self.ModelA
-        doc_a3._doc_type.ignore_signals = True
-
-        self.registry.register(self.index_1, doc_a3)
+        doc_a3 = self._generate_doc_mock(self.ModelA, self.index_1, ignore_signals=True)
 
         instance = self.ModelA()
         self.registry.update(instance)
@@ -101,12 +92,43 @@ class DocumentRegistryTestCase(TestCase):
         self.doc_a1.update.assert_called_once_with(instance)
         self.doc_a2.update.assert_called_once_with(instance)
 
-    def test_delete_instance(self):
-        doc_a3 = Mock()
-        doc_a3._doc_type.model = self.ModelA
-        doc_a3._doc_type.ignore_signals = True
+    def test_update_related_instances(self):
+        class ModelD():
+            pass
 
-        self.registry.register(self.index_1, doc_a3)
+        class ModelE():
+            pass
+
+        doc_d1 = self._generate_doc_mock(ModelD, self.index_1, related_models=[ModelE])
+
+        instance = ModelE()
+        related_instance = ModelD()
+
+        doc_d1.get_instances_from_related.return_value = related_instance
+        self.registry.update(instance)
+
+        doc_d1.get_instances_from_related.assert_called_once_with(instance)
+        doc_d1.update.assert_called_once_with(related_instance)
+
+    def test_update_related_isntances_not_defined(self):
+        class ModelD():
+            pass
+
+        class ModelE():
+            pass
+
+        doc_d1 = self._generate_doc_mock(ModelD, self.index_1, related_models=[ModelE])
+
+        instance = ModelE()
+
+        doc_d1.get_instances_from_related.return_value = None
+        self.registry.update(instance)
+
+        doc_d1.get_instances_from_related.assert_called_once_with(instance)
+        doc_d1.update.assert_not_called()
+
+    def test_delete_instance(self):
+        doc_a3 = self._generate_doc_mock(self.ModelA, self.index_1, ignore_signals=True)
 
         instance = self.ModelA()
         self.registry.delete(instance)

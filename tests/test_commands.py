@@ -29,21 +29,25 @@ class SearchIndexTestCase(TestCase):
 
         self.doc_a1 = Mock()
         self.doc_a1._doc_type.model = self.ModelA
+        self.doc_a1._doc_type.related_models = []
         self.doc_a1_qs = Mock()
         self.doc_a1.get_queryset = Mock(return_value=self.doc_a1_qs)
 
         self.doc_a2 = Mock()
         self.doc_a2._doc_type.model = self.ModelA
+        self.doc_a2._doc_type.related_models = []
         self.doc_a2_qs = Mock()
         self.doc_a2.get_queryset = Mock(return_value=self.doc_a2_qs)
 
         self.doc_b1 = Mock()
         self.doc_b1._doc_type.model = self.ModelB
+        self.doc_b1._doc_type.related_models = []
         self.doc_b1_qs = Mock()
         self.doc_b1.get_queryset = Mock(return_value=self.doc_b1_qs)
 
         self.doc_c1 = Mock()
         self.doc_c1._doc_type.model = self.ModelC
+        self.doc_c1._doc_type.related_models = []
         self.doc_c1_qs = Mock()
         self.doc_c1.get_queryset = Mock(return_value=self.doc_c1_qs)
 
