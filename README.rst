@@ -249,6 +249,12 @@ For example for a model with ForeignKey relationships.
         color = models.CharField()
         manufacturer = models.ForeignKey('Manufacturer')
 
+        # This function will be called by the ads NestedField from the
+        # CarDocument
+        def ads(self):
+            return self.ad_set.all()
+
+
     class Manufacturer(models.Model):
         name = models.CharField()
         country_code = models.CharField(max_length=2)
@@ -261,11 +267,6 @@ For example for a model with ForeignKey relationships.
         modified = models.DateField(auto_now=True)
         url = models.URLField()
         car = models.ForeignKey('Car')
-
-        # This function will be called by the ads NestedField from the
-        # CarDocument
-        def ads(self):
-            return self.ad_set.all()
 
 
 You can use an ObjectField or NestedField.
