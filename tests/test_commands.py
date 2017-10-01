@@ -147,21 +147,13 @@ class SearchIndexTestCase(TestCase):
         ):
             call_command('search_index', stdout=self.out, action='populate')
             self.doc_a1.get_queryset.assert_called_once()
-            self.doc_a1.update.assert_called_once_with(
-                self.doc_a1_qs.iterator()
-            )
+            self.doc_a1.update.assert_called_once_with(self.doc_a1_qs)
             self.doc_a2.get_queryset.assert_called_once()
-            self.doc_a2.update.assert_called_once_with(
-                self.doc_a2_qs.iterator()
-            )
+            self.doc_a2.update.assert_called_once_with(self.doc_a2_qs)
             self.doc_b1.get_queryset.assert_called_once()
-            self.doc_b1.update.assert_called_once_with(
-                self.doc_b1_qs.iterator()
-            )
+            self.doc_b1.update.assert_called_once_with(self.doc_b1_qs)
             self.doc_c1.get_queryset.assert_called_once()
-            self.doc_c1.update.assert_called_once_with(
-                self.doc_c1_qs.iterator()
-            )
+            self.doc_c1.update.assert_called_once_with(self.doc_c1_qs)
 
     def test_rebuild_indices(self):
 

@@ -123,7 +123,7 @@ class DocTypeTestCase(TestCase):
 
     def test_get_queryset(self):
         qs = CarDocument().get_queryset()
-        self.assertIsInstance(qs, models.Manager)
+        self.assertIsInstance(qs, models.QuerySet)
         self.assertEqual(qs.model, Car)
 
     def test_prepare(self):
