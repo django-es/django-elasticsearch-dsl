@@ -34,6 +34,7 @@ class CarDocument(DocType):
 
     class Meta:
         model = Car
+        related_models = [Manufacturer]
         fields = [
             'name',
             'launched',
@@ -43,6 +44,9 @@ class CarDocument(DocType):
     def get_queryset(self):
         return super(CarDocument, self).get_queryset().select_related(
             'manufacturer')
+
+    def get_instances_from_related(self, manufacturer_instance):
+        return manufacturer_instance.car_set.all()
 
 
 @car.doc_type
