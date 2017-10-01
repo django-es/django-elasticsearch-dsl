@@ -249,12 +249,6 @@ For example for a model with ForeignKey relationships.
         color = models.CharField()
         manufacturer = models.ForeignKey('Manufacturer')
 
-        # This function will be called by the ads NestedField from the
-        # CarDocument
-        def ads(self):
-            return self.ad_set.all()
-
-
     class Manufacturer(models.Model):
         name = models.CharField()
         country_code = models.CharField(max_length=2)
@@ -266,10 +260,10 @@ For example for a model with ForeignKey relationships.
         created = models.DateField(auto_now_add=True)
         modified = models.DateField(auto_now=True)
         url = models.URLField()
-        car = models.ForeignKey('Car')
+        car = models.ForeignKey('Car', related_name='ads')
 
 
-You can use an ObjectField or NestedField.
+You can use an ObjectField or a NestedField.
 
 .. code-block:: python
 
@@ -297,10 +291,6 @@ You can use an ObjectField or NestedField.
             'pk': fields.IntegerField(),
         })
 
-        def get_instances_from_related(self, related_instance):
-            """If related_models is set, define how to retrieve the Car instances from the related model."""
-            return related_instance.car_set.all()
-
         class Meta:
             model = Car
             fields = [
@@ -309,11 +299,16 @@ You can use an ObjectField or NestedField.
             ]
             related_models = [Manufacturer]  # Optional: to ensure the Car will be re-saved when Manufacturer is updated
 
-        # Not mandatory but to improve performance we can select related in
-        # one sql request
         def get_queryset(self):
+            """Not mandatory but to improve performance we can select related in one sql request"""
             return super(CarDocument, self).get_queryset().select_related(
-                'manufacturer')
+                'manufacturer'
+            )
+
+        def get_instances_from_related(self, related_instance):
+            """If related_models is set, define how to retrieve the Car instances from the related model."""
+            return related_instance.car_set.all()
+
 
 Field Classes
 ~~~~~~~~~~~~~

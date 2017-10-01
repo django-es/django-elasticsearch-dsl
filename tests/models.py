@@ -26,9 +26,6 @@ class Car(models.Model):
     def __str__(self):
         return self.name
 
-    def ads(self):
-        return self.ad_set.all()
-
 
 COUNTRIES = {
     'FR': 'France',
