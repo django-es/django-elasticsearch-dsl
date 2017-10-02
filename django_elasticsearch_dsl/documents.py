@@ -22,6 +22,7 @@ from .fields import (
 )
 from .indices import Index
 from .registries import registry
+from .search import Search
 
 model_field_class_to_field_class = {
     models.AutoField: IntegerField,
@@ -112,6 +113,15 @@ class DocType(DSLDocType):
 
     def __hash__(self):
         return id(self)
+
+    @classmethod
+    def search(cls, using=None, index=None):
+        return Search(
+            using=using or cls._doc_type.using,
+            index=index or cls._doc_type.index,
+            doc_type=[cls],
+            model=cls._doc_type.model
+        )
 
     def get_queryset(self):
         """

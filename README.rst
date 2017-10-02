@@ -149,6 +149,22 @@ elasticsearch-dsl-py Search_ instance, use:
             "Car name : {}, description {}".format(hit.name, hit.description)
         )
 
+The previous example return a result specific to elasticsearch_dsl_. But it is also
+possible to convert the elastisearch result in a real django queryset, just be aware
+that this cost a sql request to retrieve the model instances with the ids returned by
+elastisearch query.
+
+.. _elasticsearch_dsl: http://elasticsearch-dsl.readthedocs.io/en/latest/search_dsl.html#response
+
+.. code-block:: python
+
+    s = CarDocument.search().filter("term", color="blue")[:30]
+    qs = s.to_queryset()
+    # qs is just a django queryset and it is called with order_by to keep
+    # the same order as the elasticsearch result.
+    for car in qs:
+        print(car.name)
+
 Fields
 ------
 

@@ -260,3 +260,10 @@ class IntegrationTestCase(ESTestCase, TestCase):
                      force=True, stdout=out, models=['tests.ad'])
         result = AdDocument().search().execute()
         self.assertEqual(len(result), 3)
+
+    def test_to_queryset(self):
+        Ad(title="Nothing that match",  car=self.car1).save()
+        qs = AdDocument().search().query(
+            'match', title='Ad number 2').to_queryset()
+        self.assertEqual(qs.count(), 2)
+        self.assertEqual(list(qs), [self.ad2, self.ad1])

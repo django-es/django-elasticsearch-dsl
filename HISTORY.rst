@@ -6,6 +6,7 @@ History
 0.4.0 (Unreleased)
 ~~~~~~~~~~~~~~~~~~
 * Fix DocType inheritance. The DocType is store in the registry as a class and not anymore as an instance
+* Add a method on the Search class to return a django queryset from an es result
 
 0.3.0 (2017-10-01)
 ~~~~~~~~~~~~~~~~~~

@@ -45,3 +45,6 @@ output/*/index.html
 
 # Sphinx
 docs/_buildenv*
+
+*.sqlite3
+_autofixture*
