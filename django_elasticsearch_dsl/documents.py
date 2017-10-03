@@ -80,8 +80,6 @@ class DocTypeMeta(DSLDocTypeMeta):
         cls._doc_type.auto_refresh = auto_refresh
         cls._doc_type.related_models = related_models
 
-        doc = cls()
-
         fields = model._meta.get_fields()
         fields_lookup = dict((field.name, field) for field in fields)
 
@@ -92,7 +90,7 @@ class DocTypeMeta(DSLDocTypeMeta):
                     .format(field_name, cls.__name__)
                 )
 
-            field_instance = doc.to_field(field_name,
+            field_instance = cls.to_field(field_name,
                                           fields_lookup[field_name])
             cls._doc_type.mapping.field(field_name, field_instance)
 
@@ -102,7 +100,7 @@ class DocTypeMeta(DSLDocTypeMeta):
         if getattr(cls._doc_type, 'index'):
             index = Index(cls._doc_type.index)
             index.doc_type(cls)
-            registry.register(index, doc)
+            registry.register(index, cls)
 
         return cls
 
@@ -144,7 +142,8 @@ class DocType(DSLDocType):
 
         return data
 
-    def to_field(self, field_name, model_field):
+    @classmethod
+    def to_field(cls, field_name, model_field):
         """
         Returns the elasticsearch field instance appropriate for the model
         field class. This is a good place to hook into if you have more complex

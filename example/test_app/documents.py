@@ -87,6 +87,9 @@ class AdDocument(DocType):
 
 
 class AdDocument2(DocType):
+    def __init__(self, *args, **kwargs):
+        super(AdDocument2, self).__init__(*args, **kwargs)
+
     class Meta:
         model = Ad
         index = 'test_ads'

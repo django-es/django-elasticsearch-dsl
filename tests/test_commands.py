@@ -1,60 +1,42 @@
 from mock import DEFAULT, Mock, patch
 from unittest import TestCase
-from django.utils.six import StringIO
-from django.db import models
+
 from django.core.management.base import CommandError
 from django.core.management import call_command
-from django_elasticsearch_dsl.registries import DocumentRegistry
+from django.utils.six import StringIO
+
 from django_elasticsearch_dsl.management.commands.search_index import Command
+from django_elasticsearch_dsl.registries import DocumentRegistry
+
+from .fixtures import WithFixturesMixin
 
 
-class SearchIndexTestCase(TestCase):
-    class ModelA(models.Model):
-        class Meta:
-            app_label = 'foo'
-
-    class ModelB(models.Model):
-        class Meta:
-            app_label = 'foo'
-
-    class ModelC(models.Model):
-        class Meta:
-            app_label = 'bar'
-
+class SearchIndexTestCase(WithFixturesMixin, TestCase):
     def setUp(self):
         self.out = StringIO()
         self.registry = DocumentRegistry()
         self.index_a = Mock()
         self.index_b = Mock()
 
-        self.doc_a1 = Mock()
-        self.doc_a1._doc_type.model = self.ModelA
-        self.doc_a1._doc_type.related_models = []
         self.doc_a1_qs = Mock()
-        self.doc_a1.get_queryset = Mock(return_value=self.doc_a1_qs)
+        self.doc_a1 = self._generate_doc_mock(
+            self.ModelA, self.index_a, self.doc_a1_qs
+        )
 
-        self.doc_a2 = Mock()
-        self.doc_a2._doc_type.model = self.ModelA
-        self.doc_a2._doc_type.related_models = []
         self.doc_a2_qs = Mock()
-        self.doc_a2.get_queryset = Mock(return_value=self.doc_a2_qs)
+        self.doc_a2 = self._generate_doc_mock(
+            self.ModelA, self.index_a, self.doc_a2_qs
+        )
 
-        self.doc_b1 = Mock()
-        self.doc_b1._doc_type.model = self.ModelB
-        self.doc_b1._doc_type.related_models = []
         self.doc_b1_qs = Mock()
-        self.doc_b1.get_queryset = Mock(return_value=self.doc_b1_qs)
+        self.doc_b1 = self._generate_doc_mock(
+            self.ModelB, self.index_a, self.doc_b1_qs
+        )
 
-        self.doc_c1 = Mock()
-        self.doc_c1._doc_type.model = self.ModelC
-        self.doc_c1._doc_type.related_models = []
         self.doc_c1_qs = Mock()
-        self.doc_c1.get_queryset = Mock(return_value=self.doc_c1_qs)
-
-        self.registry.register(self.index_a, self.doc_a1)
-        self.registry.register(self.index_a, self.doc_a2)
-        self.registry.register(self.index_a, self.doc_b1)
-        self.registry.register(self.index_b, self.doc_c1)
+        self.doc_c1 = self._generate_doc_mock(
+            self.ModelC, self.index_b, self.doc_c1_qs
+        )
 
     def test_get_models(self):
         cmd = Command()

@@ -7,26 +7,26 @@ from .apps import DEDConfig
 
 class DocumentRegistry(object):
     """
-    Registry of models classes to a set of Document instances.
+    Registry of models classes to a set of Document classes.
     """
     def __init__(self):
         self._indices = defaultdict(set)
         self._models = defaultdict(set)
         self._related_models = defaultdict(set)
 
-    def register(self, index, doc):
+    def register(self, index, doc_class):
         """Register the model with the registry"""
-        self._models[doc._doc_type.model].add(doc)
+        self._models[doc_class._doc_type.model].add(doc_class)
 
-        for related in doc._doc_type.related_models:
-            self._related_models[related].add(doc._doc_type.model)
+        for related in doc_class._doc_type.related_models:
+            self._related_models[related].add(doc_class._doc_type.model)
 
         for idx, docs in iteritems(self._indices):
             if index._name == idx._name:
-                docs.add(doc)
+                docs.add(doc_class)
                 return
 
-        self._indices[index].add(doc)
+        self._indices[index].add(doc_class)
 
     def update(self, instance, **kwargs):
         """
@@ -37,13 +37,17 @@ class DocumentRegistry(object):
             if instance.__class__ in self._models:
                 for doc in self._models[instance.__class__]:
                     if not doc._doc_type.ignore_signals:
-                        doc.update(instance, **kwargs)
+                        doc().update(instance, **kwargs)
+
             if instance.__class__ in self._related_models:
                 for model in self._related_models[instance.__class__]:
                     for doc in self._models[model]:
-                        related = doc.get_instances_from_related(instance)
+                        doc_instance = doc()
+                        related = doc_instance.get_instances_from_related(
+                            instance
+                        )
                         if related:
-                            doc.update(related, **kwargs)
+                            doc_instance.update(related, **kwargs)
 
     def delete(self, instance, **kwargs):
         """
@@ -72,8 +76,10 @@ class DocumentRegistry(object):
         Get all indices in the registry or the indices for a list of models
         """
         if models is not None:
-            return set(indice for indice, docs in iteritems(self._indices)
-                       for doc in docs if doc._doc_type.model in models)
+            return set(
+                indice for indice, docs in iteritems(self._indices)
+                for doc in docs if doc._doc_type.model in models
+            )
 
         return set(iterkeys(self._indices))
 

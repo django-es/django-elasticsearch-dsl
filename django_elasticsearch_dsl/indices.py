@@ -18,7 +18,7 @@ class Index(DSLIndex):
         Extend to register the doc_type in the global document registry
         """
         doc_type = super(Index, self).doc_type(doc_type, *args, **kwargs)
-        registry.register(self, doc_type())
+        registry.register(self, doc_type)
         return doc_type
 
     def __str__(self):

@@ -1,34 +1,14 @@
-from unittest import TestCase
 from mock import Mock
-from django_elasticsearch_dsl.registries import DocumentRegistry
+from unittest import TestCase
+
 from django.conf import settings
 
+from django_elasticsearch_dsl.registries import DocumentRegistry
 
-class DocumentRegistryTestCase(TestCase):
+from .fixtures import WithFixturesMixin
 
-    class ModelA():
-        pass
 
-    class ModelB():
-        pass
-
-    class ModelC():
-        pass
-
-    def _generate_doc_mock(
-        self, model, index=None, ignore_signals=False, related_models=None
-    ):
-        doc = Mock()
-        doc._doc_type.model = model
-        doc._doc_type.ignore_signals = ignore_signals
-        doc._doc_type.related_models = related_models if (
-            related_models) is not None else []
-
-        if index:
-            self.registry.register(index, doc)
-
-        return doc
-
+class DocumentRegistryTestCase(WithFixturesMixin, TestCase):
     def setUp(self):
         self.registry = DocumentRegistry()
         self.index_1 = Mock()
@@ -86,7 +66,7 @@ class DocumentRegistryTestCase(TestCase):
 
     def test_update_instance(self):
         doc_a3 = self._generate_doc_mock(
-            self.ModelA, self.index_1, ignore_signals=True
+            self.ModelA, self.index_1, _ignore_signals=True
         )
 
         instance = self.ModelA()
@@ -98,18 +78,12 @@ class DocumentRegistryTestCase(TestCase):
         self.doc_a2.update.assert_called_once_with(instance)
 
     def test_update_related_instances(self):
-        class ModelD():
-            pass
-
-        class ModelE():
-            pass
-
         doc_d1 = self._generate_doc_mock(
-            ModelD, self.index_1, related_models=[ModelE]
+            self.ModelD, self.index_1, _related_models=[self.ModelE]
         )
 
-        instance = ModelE()
-        related_instance = ModelD()
+        instance = self.ModelE()
+        related_instance = self.ModelD()
 
         doc_d1.get_instances_from_related.return_value = related_instance
         self.registry.update(instance)
@@ -118,17 +92,11 @@ class DocumentRegistryTestCase(TestCase):
         doc_d1.update.assert_called_once_with(related_instance)
 
     def test_update_related_isntances_not_defined(self):
-        class ModelD():
-            pass
-
-        class ModelE():
-            pass
-
         doc_d1 = self._generate_doc_mock(
-            ModelD, self.index_1, related_models=[ModelE]
+            self.ModelD, self.index_1, _related_models=[self.ModelE]
         )
 
-        instance = ModelE()
+        instance = self.ModelE()
 
         doc_d1.get_instances_from_related.return_value = None
         self.registry.update(instance)
@@ -138,7 +106,7 @@ class DocumentRegistryTestCase(TestCase):
 
     def test_delete_instance(self):
         doc_a3 = self._generate_doc_mock(
-            self.ModelA, self.index_1, ignore_signals=True
+            self.ModelA, self.index_1, _ignore_signals=True
         )
 
         instance = self.ModelA()

@@ -21,6 +21,10 @@ html_strip = analyzer(
 
 @car_index.doc_type
 class CarDocument(DocType):
+    # test can override __init__
+    def __init__(self, *args, **kwargs):
+        super(CarDocument, self).__init__(*args, **kwargs)
+
     manufacturer = fields.ObjectField(properties={
         'name': fields.StringField(),
         'country': fields.StringField(),
