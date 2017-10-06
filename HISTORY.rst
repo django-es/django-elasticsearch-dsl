@@ -3,10 +3,14 @@
 History
 -------
 
-0.4.0 (Unreleased)
+0.4.0 (2017-10-07)
 ~~~~~~~~~~~~~~~~~~
-* Fix DocType inheritance. The DocType is store in the registry as a class and not anymore as an instance
 * Add a method on the Search class to return a django queryset from an es result
+* Add a queryset_pagination option to DocType.Meta for allow the pagination of
+  big django querysets during the index populating
+* Remove the call to iterator method for the django queryset
+* Fix DocType inheritance. The DocType is store in the registry as a class and not anymore as an instance
+
 
 0.3.0 (2017-10-01)
 ~~~~~~~~~~~~~~~~~~

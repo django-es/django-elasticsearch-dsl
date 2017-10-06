@@ -91,3 +91,19 @@ class AdDocument(DocType):
             'modified',
             'url',
         ]
+
+
+class PaginatedAdDocument(DocType):
+    class Meta:
+        model = Ad
+        index = 'ad_index'
+        queryset_pagination = 2
+        fields = [
+            'title',
+            'created',
+            'modified',
+            'url',
+        ]
+
+    def get_queryset(self):
+        return Ad.objects.all().order_by('-id')

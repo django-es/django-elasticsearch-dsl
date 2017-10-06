@@ -54,18 +54,26 @@ class DocTypeTestCase(TestCase):
         self.assertTrue(CarDocument._doc_type.auto_refresh)
 
     def test_ignore_signal_added(self):
-        class Car2Document(DocType):
+        class CarDocument2(DocType):
             class Meta:
                 model = Car
                 ignore_signals = True
-        self.assertTrue(Car2Document._doc_type.ignore_signals)
+        self.assertTrue(CarDocument2._doc_type.ignore_signals)
 
     def test_auto_refresh_added(self):
-        class Car3Document(DocType):
+        class CarDocument2(DocType):
             class Meta:
                 model = Car
                 auto_refresh = False
-        self.assertFalse(Car3Document._doc_type.auto_refresh)
+        self.assertFalse(CarDocument2._doc_type.auto_refresh)
+
+    def test_queryset_pagination_added(self):
+        class CarDocument2(DocType):
+            class Meta:
+                model = Car
+                queryset_pagination = 120
+        self.assertIsNone(CarDocument._doc_type.queryset_pagination)
+        self.assertEqual(CarDocument2._doc_type.queryset_pagination, 120)
 
     def test_fields_populated(self):
         mapping = CarDocument._doc_type.mapping
@@ -233,3 +241,18 @@ class DocTypeTestCase(TestCase):
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
             doc.update(car)
             self.assertNotIn('refresh', mock.call_args_list[0][1])
+
+    def test_model_instance_iterable_update_with_pagination(self):
+        class CarDocument2(DocType):
+            class Meta:
+                model = Car
+                queryset_pagination = 2
+        doc = CarDocument()
+        car1 = Car()
+        car2 = Car()
+        car3 = Car()
+        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
+            doc.update([car1, car2, car3])
+            self.assertEqual(
+                3, len(list(mock.call_args_list[0][1]['actions']))
+            )

@@ -115,6 +115,9 @@ define in a ``documents.py`` file.
             # ignore_signals = True
             # Don't perform an index refresh after every update (overrides global setting)
             # auto_refresh = False
+            # Paginate the django queryset used to populate the index with the specified size
+            # (by default there is no pagination)
+            # queryset_pagination = 5000
 
 
 To create and populate the Elasticsearch index and mapping use the search_index command::
@@ -252,7 +255,7 @@ needs to be saved.
             return " ".join(instance.foos)
 
 Handle relationship with NestedField/ObjectField
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For example for a model with ForeignKey relationships.
 

@@ -6,10 +6,15 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.utils.six import StringIO
 
-from django_elasticsearch_dsl import registries
 from django_elasticsearch_dsl.test import ESTestCase
 
-from .documents import CarDocument, AdDocument, ad_index, car_index
+from .documents import (
+    ad_index,
+    AdDocument,
+    car_index,
+    CarDocument,
+    PaginatedAdDocument
+)
 from .models import Car, Manufacturer, Ad, Category, COUNTRIES
 
 
@@ -20,8 +25,6 @@ from .models import Car, Manufacturer, Ad, Category, COUNTRIES
 class IntegrationTestCase(ESTestCase, TestCase):
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
-        registries.registry = registries.DocumentRegistry()
-
         self.manufacturer = Manufacturer(
             name="Peugeot", created=datetime(1900, 10, 9, 0, 0),
             country_code="FR", logo='logo.jpg'
@@ -264,6 +267,22 @@ class IntegrationTestCase(ESTestCase, TestCase):
     def test_to_queryset(self):
         Ad(title="Nothing that match",  car=self.car1).save()
         qs = AdDocument().search().query(
-            'match', title='Ad number 2').to_queryset()
+            'match', title="Ad number 2").to_queryset()
         self.assertEqual(qs.count(), 2)
         self.assertEqual(list(qs), [self.ad2, self.ad1])
+
+    def test_queryset_pagination(self):
+        ad3 = Ad(title="Ad 3",  car=self.car1)
+        ad3.save()
+        with self.assertNumQueries(1):
+            AdDocument().update(Ad.objects.all())
+
+        doc = PaginatedAdDocument()
+
+        with self.assertNumQueries(3):
+            doc.update(Ad.objects.all().order_by('-id'))
+            self.assertEqual(
+                set(int(instance.meta.id) for instance in
+                    doc.search().query('match', title="Ad")),
+                set([ad3.pk, self.ad1.pk, self.ad2.pk])
+            )

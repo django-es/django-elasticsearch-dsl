@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.core.paginator import Paginator
 from django.utils.six import add_metaclass, iteritems
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl import DocType as DSLDocType
@@ -68,6 +69,9 @@ class DocTypeMeta(DSLDocTypeMeta):
         )
         model_field_names = getattr(attrs['Meta'], "fields", [])
         related_models = getattr(attrs['Meta'], "related_models", [])
+        queryset_pagination = getattr(
+            attrs['Meta'], "queryset_pagination", None
+        )
 
         class_fields = set(
             name for name, field in iteritems(attrs)
@@ -80,6 +84,7 @@ class DocTypeMeta(DSLDocTypeMeta):
         cls._doc_type.ignore_signals = ignore_signals
         cls._doc_type.auto_refresh = auto_refresh
         cls._doc_type.related_models = related_models
+        cls._doc_type.queryset_pagination = queryset_pagination
 
         fields = model._meta.get_fields()
         fields_lookup = dict((field.name, field) for field in fields)
@@ -170,6 +175,29 @@ class DocType(DSLDocType):
     def bulk(self, actions, **kwargs):
         return bulk(client=self.connection, actions=actions, **kwargs)
 
+    def _prepare_action(self, object_instance, action):
+        return {
+            '_op_type': action,
+            '_index': str(self._doc_type.index),
+            '_type': self._doc_type.mapping.doc_type,
+            '_id': object_instance.pk,
+            '_source': (
+                self.prepare(object_instance) if action != 'delete' else None
+            ),
+        }
+
+    def _get_actions(self, object_list, action):
+        if self._doc_type.queryset_pagination is not None:
+            paginator = Paginator(
+                object_list, self._doc_type.queryset_pagination
+            )
+            for page in paginator.page_range:
+                for object_instance in paginator.page(page).object_list:
+                    yield self._prepare_action(object_instance, action)
+        else:
+            for object_instance in object_list:
+                yield self._prepare_action(object_instance, action)
+
     def update(self, thing, refresh=None, action='index', **kwargs):
         """
         Update each document in ES for a model, iterable of models or queryset
@@ -180,14 +208,10 @@ class DocType(DSLDocType):
             kwargs['refresh'] = True
 
         if isinstance(thing, models.Model):
-            thing = [thing]
+            object_list = [thing]
+        else:
+            object_list = thing
 
-        actions = ({
-            '_op_type': action,
-            '_index': str(self._doc_type.index),
-            '_type': self._doc_type.mapping.doc_type,
-            '_id': model.pk,
-            '_source': self.prepare(model) if action != 'delete' else None,
-        } for model in thing)
-
-        return self.bulk(actions, **kwargs)
+        return self.bulk(
+            self._get_actions(object_list, action), **kwargs
+        )

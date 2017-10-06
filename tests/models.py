@@ -23,6 +23,9 @@ class Car(models.Model):
     manufacturer = models.ForeignKey('Manufacturer', null=True)
     categories = models.ManyToManyField('Category')
 
+    class Meta:
+        app_label = 'tests'
+
     def __str__(self):
         return self.name
 
@@ -42,6 +45,9 @@ class Manufacturer(models.Model):
     created = models.DateField()
     logo = models.ImageField(blank=True)
 
+    class meta:
+        app_label = 'tests'
+
     def country(self):
         return COUNTRIES.get(self.country_code, self.country_code)
 
@@ -55,6 +61,9 @@ class Category(models.Model):
     slug = models.CharField(max_length=255)
     icon = models.ImageField(blank=True)
 
+    class Meta:
+        app_label = 'tests'
+
     def __str__(self):
         return self.title
 
@@ -67,6 +76,9 @@ class Ad(models.Model):
     modified = models.DateField(auto_now=True)
     url = models.URLField()
     car = models.ForeignKey('Car', related_name='ads',  null=True)
+
+    class Meta:
+        app_label = 'tests'
 
     def __str__(self):
         return self.title
