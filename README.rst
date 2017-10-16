@@ -10,7 +10,7 @@ Django Elasticsearch DSL
     :target: https://pypi.python.org/pypi/django-elasticsearch-dsl
 
 This is a package that allows indexing of django models in elasticsearch. It is
-built as a tin wrapper around elasticsearch-dsl-py_ so you can use all the features developed
+built as a thin wrapper around elasticsearch-dsl-py_ so you can use all the features developed
 by the elasticsearch-dsl-py team.
 
 .. _elasticsearch-dsl-py: https://github.com/elastic/elasticsearch-dsl-py
@@ -18,9 +18,9 @@ by the elasticsearch-dsl-py team.
 Features
 --------
 
-- Based on elasticsearch-dsl-py_ so you can make query with the Search_ class.
+- Based on elasticsearch-dsl-py_ so you can make queries with the Search_ class.
 - Django signal receivers on save and delete for keeping Elasticsearch in sync.
-- Management commands for create, delete, rebuild indices and populate them.
+- Management commands for creating, deleting, rebuilding and populating indices.
 - Elasticsearch auto mapping from django models fields.
 - Complex field type support (ObjectField, NestedField).
 - Requirements
@@ -77,9 +77,9 @@ Then for a model:
             (4, "SUV"),
         ])
 
-To make this model work with Elasticsearch, create a subclass of ``django_elasticsearch_dsl.DocType``.
-And create a ``django_elasticsearch_dsl.Index`` to define your Elasticsearch indices names and settings. This classes must be
-define in a ``documents.py`` file.
+To make this model work with Elasticsearch, create a subclass of ``django_elasticsearch_dsl.DocType``
+and create a ``django_elasticsearch_dsl.Index`` to define your Elasticsearch indices, names, and settings. This classes must be
+defined in a ``documents.py`` file.
 
 .. code-block:: python
 
@@ -100,7 +100,7 @@ define in a ``documents.py`` file.
     @car.doc_type
     class CarDocument(DocType):
         class Meta:
-            model = Car # The model associate with this DocType
+            model = Car # The model associated with this DocType
 
             # The fields of the model you want to be indexed in Elasticsearch
             fields = [
@@ -110,10 +110,10 @@ define in a ``documents.py`` file.
                 'type',
             ]
 
-            # To ignore auto updating of Elasticsearch when a model is save
-            # or delete
+            # Ignore auto updating of Elasticsearch when a model is saved
+            # or deleted:
             # ignore_signals = True
-            # Don't perform an index refresh after every update (overrides global setting)
+            # Don't perform an index refresh after every update (overrides global setting):
             # auto_refresh = False
             # Paginate the django queryset used to populate the index with the specified size
             # (by default there is no pagination)
@@ -136,7 +136,7 @@ Now, when you do something like:
     )
     car.save()
 
-The object will be saved in Elasticsearch too (using a signal handler). To get a
+The object will be saved in Elasticsearch too (using a signal handler). To get an
 elasticsearch-dsl-py Search_ instance, use:
 
 .. code-block:: python
@@ -152,10 +152,10 @@ elasticsearch-dsl-py Search_ instance, use:
             "Car name : {}, description {}".format(hit.name, hit.description)
         )
 
-The previous example return a result specific to elasticsearch_dsl_. But it is also
-possible to convert the elastisearch result in a real django queryset, just be aware
-that this cost a sql request to retrieve the model instances with the ids returned by
-elastisearch query.
+The previous example returns a result specific to elasticsearch_dsl_, but it is also
+possible to convert the elastisearch result into a real django queryset, just be aware
+that this costs a sql request to retrieve the model instances with the ids returned by
+the elastisearch query.
 
 .. _elasticsearch_dsl: http://elasticsearch-dsl.readthedocs.io/en/latest/search_dsl.html#response
 
@@ -408,9 +408,9 @@ instance.
 Index
 -----
 
-To define an Elasticsearch index you must instantiate a ``django_elasticsearch_dsl.Index`` class for set the name
-and settings of the index. This class inherit form elasticsearch-dsl-py Index_.
-After you instantiate your class you need to associate it with the DocType you
+To define an Elasticsearch index you must instantiate a ``django_elasticsearch_dsl.Index`` class and set the name
+and settings of the index. This class inherits from elasticsearch-dsl-py Index_.
+After you instantiate your class, you need to associate it with the DocType you
 want to put in this Elasticsearch index.
 
 
@@ -456,33 +456,33 @@ When you execute the command::
 
     $ ./manage.py search_index --rebuild
 
-This will create an index named ``cars`` in Elasticsearch with two mapping
+This will create an index named ``cars`` in Elasticsearch with two mappings:
 ``manufacturer_document`` and ``car_document``.
 
 
 Management Commands
 -------------------
 
-To delete all indices in Elasticsearch or only the indices associate with a model (--models):
+Delete all indices in Elasticsearch or only the indices associate with a model (--models):
 
 ::
 
     $ search_index --delete [-f] [--models [app[.model] app[.model] ...]]
 
 
-To create the indices and their mapping in Elasticsearch
+Create the indices and their mapping in Elasticsearch:
 
 ::
 
     $ search_index --create [--models [app[.model] app[.model] ...]]
 
-To populate the Elasticsearch mappings with the django models data (index need to be existing)
+Populate the Elasticsearch mappings with the django models data (index need to be existing):
 
 ::
 
     $ search_index --populate [--models [app[.model] app[.model] ...]]
 
-To recreate and repopulate the indices you can use:
+Recreate and repopulate the indices:
 
 ::
 
