@@ -3,6 +3,11 @@
 History
 -------
 
+0.4.1 (2017-10-17)
+~~~~~~~~~~~~~~~~~~
+* Update example app with get_instances_from_related
+* Typo/grammar fixes
+
 0.4.0 (2017-10-07)
 ~~~~~~~~~~~~~~~~~~
 * Add a method on the Search class to return a django queryset from an es result
