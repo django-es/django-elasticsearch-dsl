@@ -112,9 +112,16 @@ class Command(BaseCommand):
             qs = doc.get_queryset()
             if options.get('limit', None):
                 qs = self._limit(qs, options['limit'])
-            self.stdout.write("Indexing {} '{}' objects".format(
-                qs.count(), doc._doc_type.model.__name__)
-            )
+            if not options['force']:
+              response = input(
+                "Are you sure you want to index "
+                "{} document for '{}'? [n/Y]: ".format(
+                  qs.count(), doc._doc_type.model.__name__)
+                )
+              if response.lower() != 'y':
+                self.stdout.write('Aborted')
+                return False
+
             doc.update(qs.iterator())
 
     def _delete(self, models, options):
