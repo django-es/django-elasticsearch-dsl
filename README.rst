@@ -482,6 +482,12 @@ Populate the Elasticsearch mappings with the django models data (index need to b
 
     $ search_index --populate [--models [app[.model] app[.model] ...]]
 
+Populate with query filter, also you could pass django style filter to populate (index need to be existing):
+
+::
+
+    $ search_index --populate [--models [app[.model] app[.model] ...] [--limit [[field value] [field__style value] ...]]
+
 Recreate and repopulate the indices:
 
 ::

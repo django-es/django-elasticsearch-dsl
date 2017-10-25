@@ -15,6 +15,14 @@ class Command(BaseCommand):
             nargs='*',
             help="Specify the model or app to be updated in elasticsearch"
         )
+
+        parser.add_argument(
+            '--limit',
+            metavar='app',
+            type=str,
+            nargs='*',
+            help="Specify the filter for model"
+        )
         parser.add_argument(
             '--create',
             action='store_const',
@@ -78,6 +86,22 @@ class Command(BaseCommand):
 
         return set(models)
 
+    def _limit(self, qs, limit_options):
+        '''
+        Create filter query based on array
+        '''
+        filter_kwargs = {}
+        key = None
+        for item in limit_options:
+            if not key:
+                key = item
+                continue
+            value = item
+            filter_kwargs[key] = value
+            key = None
+        qs = qs.filter(**filter_kwargs)
+        return qs
+
     def _create(self, models, options):
         for index in registry.get_indices(models):
             self.stdout.write("Creating index '{}'".format(index))
@@ -85,11 +109,13 @@ class Command(BaseCommand):
 
     def _populate(self, models, options):
         for doc in registry.get_documents(models):
-            qs = doc().get_queryset()
+            qs = doc.get_queryset()
+            if options.get('limit', None):
+                qs = self._limit(qs, options['limit'])
             self.stdout.write("Indexing {} '{}' objects".format(
                 qs.count(), doc._doc_type.model.__name__)
             )
-            doc().update(qs)
+            doc.update(qs.iterator())
 
     def _delete(self, models, options):
         index_names = [str(index) for index in registry.get_indices(models)]
