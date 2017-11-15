@@ -191,10 +191,10 @@ class IntegrationTestCase(ESTestCase, TestCase):
             'manufacturer_document': {
                 'properties': {
                     'created': {'type': 'date'},
-                    'name': {'type': 'string'},
-                    'country': {'type': 'string'},
-                    'country_code': {'type': 'string'},
-                    'logo': {'type': 'string'},
+                    'name': {'type': 'text'},
+                    'country': {'type': 'text'},
+                    'country_code': {'type': 'text'},
+                    'logo': {'type': 'text'},
                 }
             },
             'car_document': {
@@ -203,31 +203,31 @@ class IntegrationTestCase(ESTestCase, TestCase):
                         'type': 'nested',
                         'properties': {
                             'description': {
-                                'type': 'string', 'analyzer':
+                                'type': 'text', 'analyzer':
                                 'html_strip'
                             },
                             'pk': {'type': 'integer'},
-                            'title': {'type': 'string'},
+                            'title': {'type': 'text'},
                         },
                     },
                     'categories': {
                         'type': 'nested',
                         'properties': {
-                            'title': {'type': 'string'},
-                            'slug': {'type': 'string'},
-                            'icon': {'type': 'string'},
+                            'title': {'type': 'text'},
+                            'slug': {'type': 'text'},
+                            'icon': {'type': 'text'},
                         },
                     },
                     'manufacturer': {
                         'type': 'object',
                         'properties': {
-                            'country': {'type': 'string'},
-                            'name': {'type': 'string'},
+                            'country': {'type': 'text'},
+                            'name': {'type': 'text'},
                         },
                     },
-                    'name': {'type': 'string'},
+                    'name': {'type': 'text'},
                     'launched': {'type': 'date'},
-                    'type': {'type': 'string'},
+                    'type': {'type': 'text'},
                 }
             }
         })

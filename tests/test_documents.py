@@ -113,13 +113,13 @@ class DocTypeTestCase(TestCase):
                 'car_document': {
                     'properties': {
                         'name': {
-                            'type': 'string'
+                            'type': 'text'
                         },
                         'color': {
-                            'type': 'string'
+                            'type': 'text'
                         },
                         'type': {
-                            'type': 'string'
+                            'type': 'text'
                         },
                         'price': {
                             'type': 'double'

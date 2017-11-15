@@ -22,7 +22,7 @@ from django_elasticsearch_dsl.fields import (
     NestedField,
     ObjectField,
     ShortField,
-    StringField,
+    TextField,
 )
 from django_elasticsearch_dsl.exceptions import VariableLookupError
 
@@ -75,22 +75,22 @@ class DEDFieldTestCase(TestCase):
 class ObjectFieldTestCase(TestCase):
     def test_get_mapping(self):
         field = ObjectField(attr='person', properties={
-            'first_name': StringField(analyzer='foo'),
-            'last_name': StringField()
+            'first_name': TextField(analyzer='foo'),
+            'last_name': TextField()
         })
 
         self.assertEqual({
             'type': 'object',
             'properties': {
-                'first_name': {'type': 'string', 'analyzer': 'foo'},
-                'last_name': {'type': 'string'},
+                'first_name': {'type': 'text', 'analyzer': 'foo'},
+                'last_name': {'type': 'text'},
             }
         }, field.to_dict())
 
     def test_get_value_from_instance(self):
         field = ObjectField(attr='person', properties={
-            'first_name': StringField(analyzier='foo'),
-            'last_name': StringField()
+            'first_name': TextField(analyzier='foo'),
+            'last_name': TextField()
         })
 
         instance = NonCallableMock(person=NonCallableMock(
@@ -103,8 +103,8 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_instance_with_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
-            'first_name': StringField(analyzier='foo'),
-            'last_name': StringField(),
+            'first_name': TextField(analyzier='foo'),
+            'last_name': TextField(),
             'aditional': ObjectField(properties={
                 'age': IntegerField()
             })
@@ -123,8 +123,8 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_instance_with_none_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
-            'first_name': StringField(analyzier='foo'),
-            'last_name': StringField(),
+            'first_name': TextField(analyzier='foo'),
+            'last_name': TextField(),
             'aditional': ObjectField(properties={
                 'age': IntegerField()
             })
@@ -143,8 +143,8 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_iterable(self):
         field = ObjectField(attr='person', properties={
-            'first_name': StringField(analyzier='foo'),
-            'last_name': StringField()
+            'first_name': TextField(analyzier='foo'),
+            'last_name': TextField()
         })
 
         instance = NonCallableMock(
@@ -173,15 +173,15 @@ class ObjectFieldTestCase(TestCase):
 class NestedFieldTestCase(TestCase):
     def test_get_mapping(self):
         field = NestedField(attr='person', properties={
-            'first_name': StringField(analyzer='foo'),
-            'last_name': StringField()
+            'first_name': TextField(analyzer='foo'),
+            'last_name': TextField()
         })
 
         self.assertEqual({
             'type': 'nested',
             'properties': {
-                'first_name': {'type': 'string', 'analyzer': 'foo'},
-                'last_name': {'type': 'string'},
+                'first_name': {'type': 'text', 'analyzer': 'foo'},
+                'last_name': {'type': 'text'},
             }
         }, field.to_dict())
 
@@ -204,12 +204,12 @@ class DateFieldTestCase(TestCase):
         }, field.to_dict())
 
 
-class StringFieldTestCase(TestCase):
+class TextFieldTestCase(TestCase):
     def test_get_mapping(self):
-        field = StringField()
+        field = TextField()
 
         self.assertEqual({
-            'type': 'string',
+            'type': 'text',
         }, field.to_dict())
 
 
@@ -287,16 +287,16 @@ class IpFieldTestCase(TestCase):
 
 class ListFieldTestCase(TestCase):
     def test_get_mapping(self):
-        field = ListField(StringField(attr='foo.bar'))
+        field = ListField(TextField(attr='foo.bar'))
         self.assertEqual({
-            'type': 'string',
+            'type': 'text',
         }, field.to_dict())
 
     def test_get_value_from_instance(self):
         instance = NonCallableMock(
             foo=NonCallableMock(bar=["alpha", "beta", "gamma"])
         )
-        field = ListField(StringField(attr='foo.bar'))
+        field = ListField(TextField(attr='foo.bar'))
         self.assertEqual(
             field.get_value_from_instance(instance), instance.foo.bar)
 
@@ -323,7 +323,7 @@ class FileFieldTestCase(TestCase):
     def test_get_mapping(self):
         field = FileField()
         self.assertEqual({
-            'type': 'string',
+            'type': 'text',
         }, field.to_dict())
 
     def test_get_value_from_instance(self):
