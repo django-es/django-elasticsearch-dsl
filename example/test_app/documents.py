@@ -76,7 +76,7 @@ class ManufacturerDocument(DocType):
 class AdDocument(DocType):
     description = fields.TextField(
         analyzer=html_strip,
-        fields={'raw': fields.StringField(index='not_analyzed')}
+        fields={'raw': fields.KeywordField()}
     )
 
     class Meta:

@@ -361,7 +361,7 @@ So for example you can use a custom analyzer_:
     class CarDocument(DocType):
         description = fields.TextField(
             analyzer=html_strip,
-            fields={'raw': fields.StringField(index='not_analyzed')}
+            fields={'raw': fields.KeywordField()}
         )
 
         class Meta:
