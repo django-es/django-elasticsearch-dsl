@@ -29,8 +29,8 @@ class Manufacturer(models.Model):
 
 
 class CarDocument(DocType):
-    color = fields.StringField()
-    type = fields.StringField()
+    color = fields.TextField()
+    type = fields.TextField()
 
     def prepare_color(self, instance):
         return "blue"
@@ -89,8 +89,8 @@ class DocTypeTestCase(TestCase):
     def test_duplicate_field_names_not_allowed(self):
         with self.assertRaises(RedeclaredFieldError):
             class CarDocument(DocType):
-                color = fields.StringField()
-                name = fields.StringField()
+                color = fields.TextField()
+                name = fields.TextField()
 
                 class Meta:
                     fields = ['name']
@@ -99,7 +99,7 @@ class DocTypeTestCase(TestCase):
     def test_to_field(self):
         doc = DocType()
         nameField = doc.to_field('name', Car._meta.get_field('name'))
-        self.assertIsInstance(nameField, fields.StringField)
+        self.assertIsInstance(nameField, fields.TextField)
         self.assertEqual(nameField._path, ['name'])
 
     def test_to_field_with_unknown_field(self):
@@ -113,13 +113,13 @@ class DocTypeTestCase(TestCase):
                 'car_document': {
                     'properties': {
                         'name': {
-                            'type': 'string'
+                            'type': 'text'
                         },
                         'color': {
-                            'type': 'string'
+                            'type': 'text'
                         },
                         'type': {
-                            'type': 'string'
+                            'type': 'text'
                         },
                         'price': {
                             'type': 'double'

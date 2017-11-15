@@ -22,19 +22,19 @@ html_strip = analyzer(
 @car.doc_type
 class CarDocument(DocType):
     manufacturer = fields.ObjectField(properties={
-        'name': fields.StringField(),
-        'country': fields.StringField(),
+        'name': fields.TextField(),
+        'country': fields.TextField(),
         'logo': fields.FileField(),
     })
 
     ads = fields.NestedField(properties={
-        'description': fields.StringField(analyzer=html_strip),
-        'title': fields.StringField(),
+        'description': fields.TextField(analyzer=html_strip),
+        'title': fields.TextField(),
         'pk': fields.IntegerField(),
     })
 
     categories = fields.NestedField(properties={
-        'title': fields.StringField(),
+        'title': fields.TextField(),
     })
 
     class Meta:
@@ -61,7 +61,7 @@ class CarDocument(DocType):
 
 @car.doc_type
 class ManufacturerDocument(DocType):
-    country = fields.StringField()
+    country = fields.TextField()
 
     class Meta:
         model = Manufacturer
@@ -74,9 +74,9 @@ class ManufacturerDocument(DocType):
 
 
 class AdDocument(DocType):
-    description = fields.StringField(
+    description = fields.TextField(
         analyzer=html_strip,
-        fields={'raw': fields.StringField(index='not_analyzed')}
+        fields={'raw': fields.KeywordField()}
     )
 
     class Meta:
