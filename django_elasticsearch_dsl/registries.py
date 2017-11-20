@@ -19,7 +19,7 @@ class DocumentRegistry(object):
         """Register the model with the registry"""
         self._models[doc_class._doc_type.model].add(doc_class)
 
-        for related in doc_class._doc_type.related_models:
+        for related, method in iteritems(doc_class._doc_type.related_models):
             self._related_models[related].add(doc_class._doc_type.model)
 
         for idx, docs in iteritems(self._indices):
@@ -43,7 +43,13 @@ class DocumentRegistry(object):
 
         for doc in self._get_related_doc(instance):
             doc_instance = doc()
-            related = doc_instance.get_instances_from_related(instance)
+
+            method = getattr(
+                doc_instance,
+                doc._doc_type.related_models[instance.__class__]
+            )
+
+            related = method(instance)
             if related is not None:
                 doc_instance.update(related, **kwargs)
 
@@ -56,7 +62,13 @@ class DocumentRegistry(object):
 
         for doc in self._get_related_doc(instance):
             doc_instance = doc(related_instance_to_ignore=instance)
-            related = doc_instance.get_instances_from_related(instance)
+
+            method = getattr(
+                doc_instance,
+                doc._doc_type.related_models[instance.__class__]
+            )
+
+            related = method(instance)
             if related is not None:
                 doc_instance.update(related, **kwargs)
 

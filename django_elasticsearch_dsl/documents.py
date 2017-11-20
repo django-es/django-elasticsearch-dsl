@@ -68,15 +68,28 @@ class DocTypeMeta(DSLDocTypeMeta):
             attrs['Meta'], 'auto_refresh', DEDConfig.auto_refresh_enabled()
         )
         model_field_names = getattr(attrs['Meta'], "fields", [])
-        related_models = getattr(attrs['Meta'], "related_models", [])
+        related_models = {}
+
+        # Backwards compatibility with the old structure.
+        for related_model in getattr(attrs['Meta'], 'related_models', []):
+            related_models[related_model] = 'get_instances_from_related'
+
         queryset_pagination = getattr(
             attrs['Meta'], "queryset_pagination", None
         )
 
-        class_fields = set(
-            name for name, field in iteritems(attrs)
-            if isinstance(field, Field)
-        )
+        class_field_names = set()
+
+        for field_name, field in iteritems(attrs):
+            if not isinstance(field, Field):
+                continue
+
+            class_field_names.add(field_name)
+
+            related = cls._get_relateds_for_field(field_name, field)
+
+            for related_model, related_method in iteritems(related):
+                related_models[related_model] = 'get_instances_from_{}'.format(related_method)
 
         cls = super_new(cls, name, bases, attrs)
 
@@ -90,7 +103,7 @@ class DocTypeMeta(DSLDocTypeMeta):
         fields_lookup = dict((field.name, field) for field in fields)
 
         for field_name in model_field_names:
-            if field_name in class_fields:
+            if field_name in class_field_names:
                 raise RedeclaredFieldError(
                     "You cannot redeclare the field named '{}' on {}"
                     .format(field_name, cls.__name__)
@@ -109,6 +122,23 @@ class DocTypeMeta(DSLDocTypeMeta):
             registry.register(index, cls)
 
         return cls
+
+    @classmethod
+    def _get_relateds_for_field(cls, name, field):
+        related = {}
+
+        if hasattr(field, '_related_model') and field._related_model:
+            related[field._related_model] = name
+
+        if hasattr(field, 'properties'):
+            for property_name, property_field in iteritems(field.properties.to_dict()):
+                property_related = cls._get_relateds_for_field(property_name, property_field)
+
+                for property_model, property_method in iteritems(property_related):
+                    if property_model not in related.keys():
+                        related[property_model] = '{}_{}'.format(name, property_method)
+
+        return related
 
 
 @add_metaclass(DocTypeMeta)

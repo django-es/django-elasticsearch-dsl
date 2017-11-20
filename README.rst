@@ -303,12 +303,20 @@ You can use an ObjectField or a NestedField.
         manufacturer = fields.ObjectField(properties={
             'name': fields.StringField(),
             'country_code': fields.StringField(),
-        })
+        }, related_model=Manufacturer)  # Optional: ensure the Cars are updated when a Manufacturer is updated.
         ads = fields.NestedField(properties={
             'description': fields.StringField(analyzer=html_strip),
             'title': fields.StringField(),
             'pk': fields.IntegerField(),
-        })
+        }, related_model=Ad)  # Optional: ensure the Cars are updated when a Manufacturer is updated.
+
+        def get_instances_from_manufacturer(self, manufacturer):
+            # Mandatory when using related_model: define how the instance should be retrieved from the related model.
+            return manufacturer.car_set.all()
+
+        def get_instances_from_ads(self, ad):
+            # Mandatory when using related_model: define how the instance should be retrieved from the related model.
+            return ad.car
 
         class Meta:
             model = Car
@@ -316,20 +324,12 @@ You can use an ObjectField or a NestedField.
                 'name',
                 'color',
             ]
-            related_models = [Manufacturer, Ad]  # Optional: to ensure the Car will be re-saved when Manufacturer or Ad is updated
 
         def get_queryset(self):
             """Not mandatory but to improve performance we can select related in one sql request"""
             return super(CarDocument, self).get_queryset().select_related(
                 'manufacturer'
             )
-
-        def get_instances_from_related(self, related_instance):
-            """If related_models is set, define how to retrieve the Car instance(s) from the related model."""
-            if isinstance(related_instance, Manufacturer):
-                return related_instance.car_set.all()
-            elif isinstance(related_instance, Ad):
-                return related_instance.car
 
 
 Field Classes
