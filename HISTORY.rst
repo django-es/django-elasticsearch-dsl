@@ -3,6 +3,10 @@
 History
 -------
 
+0.4.2 (XXX-XX-XX)
+~~~~~~~~~~~~~~~~~~
+* Add signals for manage m2m related objects auto synching
+
 0.4.1 (2017-10-17)
 ~~~~~~~~~~~~~~~~~~
 * Update example app with get_instances_from_related
