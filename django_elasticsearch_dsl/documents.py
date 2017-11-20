@@ -113,6 +113,10 @@ class DocTypeMeta(DSLDocTypeMeta):
 
 @add_metaclass(DocTypeMeta)
 class DocType(DSLDocType):
+    def __init__(self, related_instance_to_ignore=None, **kwargs):
+        super(DocType, self).__init__(**kwargs)
+        self._related_instance_to_ignore = related_instance_to_ignore
+
     def __eq__(self, other):
         return id(self) == id(other)
 
@@ -147,12 +151,15 @@ class DocType(DSLDocType):
             if field._path == []:
                 field._path = [name]
 
-            prep_func = getattr(
-                self,
-                "prepare_" + name,
-                field.get_value_from_instance
-            )
-            data[name] = prep_func(instance)
+            prep_func = getattr(self, 'prepare_%s' % name, None)
+            if prep_func:
+                field_value = prep_func(instance)
+            else:
+                field_value = field.get_value_from_instance(
+                    instance, self._related_instance_to_ignore
+                )
+
+            data[name] = field_value
 
         return data
 

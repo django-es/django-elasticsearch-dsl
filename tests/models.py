@@ -21,7 +21,9 @@ class Car(models.Model):
         choices=TYPE_CHOICES,
         default='se',
     )
-    manufacturer = models.ForeignKey('Manufacturer', null=True)
+    manufacturer = models.ForeignKey(
+        'Manufacturer', null=True, on_delete=models.SET_NULL
+    )
     categories = models.ManyToManyField('Category')
 
     class Meta:

@@ -31,15 +31,15 @@ from .exceptions import VariableLookupError
 class DEDField(Field):
     def __init__(self, attr=None, **kwargs):
         super(DEDField, self).__init__(**kwargs)
-        self._path = attr.split(".") if attr else []
+        self._path = attr.split('.') if attr else []
 
     def __setattr__(self, key, value):
-        if key == "get_value_from_instance":
+        if key == 'get_value_from_instance':
             self.__dict__[key] = value
         else:
             super(DEDField, self).__setattr__(key, value)
 
-    def get_value_from_instance(self, instance):
+    def get_value_from_instance(self, instance, field_value_to_ignore=None):
         """
         Given an model instance to index with ES, return the value that
         should be put into ES for this field.
@@ -60,10 +60,8 @@ class DEDField(Field):
                     try:
                         instance = instance[int(attr)]
                     except (
-                        IndexError,
-                        ValueError,
-                        KeyError,
-                        TypeError
+                        IndexError, ValueError,
+                        KeyError, TypeError
                     ):
                         raise VariableLookupError(
                             "Failed lookup for key [{}] in "
@@ -77,6 +75,9 @@ class DEDField(Field):
             elif instance is None:
                 return None
 
+        if instance == field_value_to_ignore:
+            return None
+
         # convert lazy object like lazy translations to string
         if isinstance(instance, Promise):
             return force_text(instance)
@@ -85,7 +86,7 @@ class DEDField(Field):
 
 
 class ObjectField(DEDField, Object):
-    def _get_inner_field_data(self, obj):
+    def _get_inner_field_data(self, obj, field_value_to_ignore=None):
         data = {}
         for name, field in self.properties.to_dict().items():
             if not isinstance(field, DEDField):
@@ -94,19 +95,26 @@ class ObjectField(DEDField, Object):
             if field._path == []:
                 field._path = [name]
 
-            data[name] = field.get_value_from_instance(obj)
+            data[name] = field.get_value_from_instance(
+                obj, field_value_to_ignore
+            )
 
         return data
 
-    def get_value_from_instance(self, instance):
-        objs = super(ObjectField, self).get_value_from_instance(instance)
+    def get_value_from_instance(self, instance, field_value_to_ignore=None):
+        objs = super(ObjectField, self).get_value_from_instance(
+            instance, field_value_to_ignore
+        )
 
         if objs is None:
             return {}
         if isinstance(objs, collections.Iterable):
-            return [self._get_inner_field_data(obj) for obj in objs]
+            return [
+                self._get_inner_field_data(obj, field_value_to_ignore)
+                for obj in objs if obj != field_value_to_ignore
+            ]
 
-        return self._get_inner_field_data(objs)
+        return self._get_inner_field_data(objs, field_value_to_ignore)
 
 
 def ListField(field):
@@ -116,7 +124,7 @@ def ListField(field):
     """
     original_get_value_from_instance = field.get_value_from_instance
 
-    def get_value_from_instance(self, instance):
+    def get_value_from_instance(self, instance, field_value_to_ignore=None):
         return [value for value in original_get_value_from_instance(instance)]
 
     field.get_value_from_instance = MethodType(get_value_from_instance, field)
@@ -184,8 +192,9 @@ class StringField(DEDField, String):
 
 
 class FileField(DEDField, String):
-    def get_value_from_instance(self, instance):
-        _file = super(FileField, self).get_value_from_instance(instance)
+    def get_value_from_instance(self, instance, field_value_to_ignore=None):
+        _file = super(FileField, self).get_value_from_instance(
+            instance, field_value_to_ignore)
 
         if isinstance(_file, FieldFile):
             return _file.url if _file else ''

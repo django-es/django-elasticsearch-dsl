@@ -233,6 +233,56 @@ class IntegrationTestCase(ESTestCase, TestCase):
             }
         })
 
+    def test_related_docs_are_updated(self):
+        # test foreignkey relation
+        self.manufacturer.name = 'Citroen'
+        self.manufacturer.save()
+
+        s = CarDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(car2_doc.manufacturer.name, 'Citroen')
+        self.assertEqual(len(car2_doc.ads), 0)
+
+        ad3 = Ad.objects.create(
+            title=_("Ad number 3"), url="www.ad3.com",
+            description="My super ad description 3",
+            car=self.car2
+        )
+        s = CarDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(len(car2_doc.ads), 1)
+        ad3.delete()
+        s = CarDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(len(car2_doc.ads), 0)
+
+        self.manufacturer.delete()
+        s = CarDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(car2_doc.manufacturer, {})
+
+    def test_m2m_related_docs_are_updated(self):
+        # test m2m add
+        category = Category(
+            title="Category", slug="category", icon="icon.jpeg"
+        )
+        category.save()
+        self.car2.categories.add(category)
+        s = CarDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(len(car2_doc.categories), 2)
+
+        # test m2m deletion
+        self.car2.categories.remove(category)
+        s = CarDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(len(car2_doc.categories), 1)
+
+        self.category1.car_set.clear()
+        s = CarDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(len(car2_doc.categories), 0)
+
     def test_delete_create_populate_commands(self):
         out = StringIO()
         self.assertTrue(ad_index.exists())

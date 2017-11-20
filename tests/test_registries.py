@@ -86,7 +86,7 @@ class DocumentRegistryTestCase(WithFixturesMixin, TestCase):
         related_instance = self.ModelD()
 
         doc_d1.get_instances_from_related.return_value = related_instance
-        self.registry.update(instance)
+        self.registry.update_related(instance)
 
         doc_d1.get_instances_from_related.assert_called_once_with(instance)
         doc_d1.update.assert_called_once_with(related_instance)
@@ -99,7 +99,7 @@ class DocumentRegistryTestCase(WithFixturesMixin, TestCase):
         instance = self.ModelE()
 
         doc_d1.get_instances_from_related.return_value = None
-        self.registry.update(instance)
+        self.registry.update_related(instance)
 
         doc_d1.get_instances_from_related.assert_called_once_with(instance)
         doc_d1.update.assert_not_called()

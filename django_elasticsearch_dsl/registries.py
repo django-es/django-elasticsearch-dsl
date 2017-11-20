@@ -29,26 +29,49 @@ class DocumentRegistry(object):
 
         self._indices[index].add(doc_class)
 
+    def _get_related_doc(self, instance):
+        for model in self._related_models.get(instance.__class__, []):
+            for doc in self._models[model]:
+                yield doc
+
+    def update_related(self, instance, **kwargs):
+        """
+        Update docs that have related_models.
+        """
+        if not DEDConfig.autosync_enabled():
+            return
+
+        for doc in self._get_related_doc(instance):
+            doc_instance = doc()
+            related = doc_instance.get_instances_from_related(instance)
+            if related is not None:
+                doc_instance.update(related, **kwargs)
+
+    def delete_related(self, instance, **kwargs):
+        """
+        Remove `instance` from related models.
+        """
+        if not DEDConfig.autosync_enabled():
+            return
+
+        for doc in self._get_related_doc(instance):
+            doc_instance = doc(related_instance_to_ignore=instance)
+            related = doc_instance.get_instances_from_related(instance)
+            if related is not None:
+                doc_instance.update(related, **kwargs)
+
     def update(self, instance, **kwargs):
         """
         Update all the elasticsearch documents attached to this model (if their
         ignore_signals flag allows it)
         """
-        if DEDConfig.autosync_enabled():
-            if instance.__class__ in self._models:
-                for doc in self._models[instance.__class__]:
-                    if not doc._doc_type.ignore_signals:
-                        doc().update(instance, **kwargs)
+        if not DEDConfig.autosync_enabled():
+            return
 
-            if instance.__class__ in self._related_models:
-                for model in self._related_models[instance.__class__]:
-                    for doc in self._models[model]:
-                        doc_instance = doc()
-                        related = doc_instance.get_instances_from_related(
-                            instance
-                        )
-                        if related:
-                            doc_instance.update(related, **kwargs)
+        if instance.__class__ in self._models:
+            for doc in self._models[instance.__class__]:
+                if not doc._doc_type.ignore_signals:
+                    doc().update(instance, **kwargs)
 
     def delete(self, instance, **kwargs):
         """
