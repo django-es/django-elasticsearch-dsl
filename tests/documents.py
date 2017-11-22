@@ -1,7 +1,7 @@
 from elasticsearch_dsl import analyzer
 from django_elasticsearch_dsl import DocType, Index, fields
 
-from .models import Car, Manufacturer, Ad
+from .models import Ad, Category, Car, Manufacturer
 
 
 car_index = Index('test_cars')
@@ -44,6 +44,7 @@ class CarDocument(DocType):
 
     class Meta:
         model = Car
+        related_models = [Ad, Manufacturer, Category]
         fields = [
             'name',
             'launched',
@@ -53,6 +54,13 @@ class CarDocument(DocType):
     def get_queryset(self):
         return super(CarDocument, self).get_queryset().select_related(
             'manufacturer')
+
+    def get_instances_from_related(self, related_instance):
+        if isinstance(related_instance, Ad):
+            return related_instance.car
+
+        # otherwise it's a Manufacturer or a Category
+        return related_instance.car_set.all()
 
 
 @car_index.doc_type
