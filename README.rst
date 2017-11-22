@@ -316,7 +316,7 @@ You can use an ObjectField or a NestedField.
                 'name',
                 'color',
             ]
-            related_models = [Manufacturer]  # Optional: to ensure the Car will be re-saved when Manufacturer is updated
+            related_models = [Manufacturer, Ad]  # Optional: to ensure the Car will be re-saved when Manufacturer or Ad is updated
 
         def get_queryset(self):
             """Not mandatory but to improve performance we can select related in one sql request"""
@@ -325,8 +325,11 @@ You can use an ObjectField or a NestedField.
             )
 
         def get_instances_from_related(self, related_instance):
-            """If related_models is set, define how to retrieve the Car instances from the related model."""
-            return related_instance.car_set.all()
+            """If related_models is set, define how to retrieve the Car instance(s) from the related model."""
+            if isinstance(related_instance, Manufacturer):
+                return related_instance.car_set.all()
+            elif isinstance(related_instance, Ad):
+                return related_instance.car
 
 
 Field Classes
