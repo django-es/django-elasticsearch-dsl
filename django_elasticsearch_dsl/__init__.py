@@ -4,7 +4,7 @@ from .documents import DocType  # noqa
 from .indices import Index  # noqa
 from .fields import *  # noqa
 
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 
 
 def autodiscover():
