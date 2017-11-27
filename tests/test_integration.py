@@ -5,6 +5,7 @@ import unittest
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils.six import StringIO
+from django.utils.translation import ugettext_lazy as _
 
 from django_elasticsearch_dsl.test import ESTestCase
 
@@ -56,7 +57,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
         self.car3.save()
 
         self.ad1 = Ad(
-            title="Ad number 1", url="www.ad1.com",
+            title=_("Ad number 1"), url="www.ad1.com",
             description="My super ad description 1",
             car=self.car1
         )

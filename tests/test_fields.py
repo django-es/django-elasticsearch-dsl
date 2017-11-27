@@ -3,6 +3,9 @@ from unittest import TestCase
 from mock import Mock, NonCallableMock
 
 from django.db.models.fields.files import FieldFile
+from django.utils.six import string_types
+from django.utils.translation import ugettext_lazy as _
+
 from django_elasticsearch_dsl.fields import (
     AttachmentField,
     BooleanField,
@@ -70,6 +73,14 @@ class DEDFieldTestCase(TestCase):
         field = DEDField(attr='related.none')
         instance = NonCallableMock(attr1="foo", related=None)
         self.assertEqual(field.get_value_from_instance(instance), None)
+
+    def test_get_value_from_lazy_object(self):
+        field = DEDField(attr='translation')
+        instance = NonCallableMock(translation=_("foo"))
+        self.assertIsInstance(
+            field.get_value_from_instance(instance), string_types
+        )
+        self.assertEqual(field.get_value_from_instance(instance), "foo")
 
 
 class ObjectFieldTestCase(TestCase):

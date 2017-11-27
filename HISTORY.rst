@@ -3,6 +3,11 @@
 History
 -------
 
+0.4.2 (2017-11-27)
+~~~~~~~~~~~~~~~~~~
+* Convert lazy string to string before serialization
+* Readme update (arielpontes)
+
 0.4.1 (2017-10-17)
 ~~~~~~~~~~~~~~~~~~
 * Update example app with get_instances_from_related
@@ -25,7 +30,6 @@ History
 
 0.2.0 (2017-07-02)
 ~~~~~~~~~~~~~~~~~~
-
 * Replace simple model signals with easier to customise signal processors (barseghyanartur)
 * Add options to disable automatic index refreshes (HansAdema)
 * Support defining DocType indexes through Meta class (HansAdema)
@@ -33,5 +37,4 @@ History
 
 0.1.0 (2017-05-26)
 ~~~~~~~~~~~~~~~~~~
-
 * First release on PyPI.

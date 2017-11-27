@@ -1,6 +1,7 @@
-from django.utils.six import itervalues, iterkeys, iteritems
 from collections import defaultdict
 from itertools import chain
+
+from django.utils.six import itervalues, iterkeys, iteritems
 
 from .apps import DEDConfig
 

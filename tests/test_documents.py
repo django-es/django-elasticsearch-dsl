@@ -1,7 +1,11 @@
 from unittest import TestCase
 from mock import patch
+
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
+
 from elasticsearch_dsl import GeoPoint
+
 from django_elasticsearch_dsl.documents import DocType
 from django_elasticsearch_dsl import fields
 from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
@@ -197,7 +201,7 @@ class DocTypeTestCase(TestCase):
         doc = CarDocument()
         car = Car(name="Type 57", price=5400000.0,
                   not_indexed="not_indexex", pk=51)
-        car2 = Car(name="Type 42", price=50000.0,
+        car2 = Car(name=_("Type 42"), price=50000.0,
                    not_indexed="not_indexex", pk=31)
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
             doc.update([car, car2], action='update')

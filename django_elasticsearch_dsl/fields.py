@@ -3,6 +3,9 @@ from types import MethodType
 
 from django.db import models
 from django.db.models.fields.files import FieldFile
+from django.utils.encoding import force_text
+from django.utils.functional import Promise
+
 from elasticsearch_dsl.field import (
     Attachment,
     Boolean,
@@ -73,6 +76,10 @@ class DEDField(Field):
                 instance = instance()
             elif instance is None:
                 return None
+
+        # convert lazy object like lazy translations to string
+        if isinstance(instance, Promise):
+            return force_text(instance)
 
         return instance
 
