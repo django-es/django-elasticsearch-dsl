@@ -143,6 +143,10 @@ class DateField(DEDField, Date):
     pass
 
 
+class DateTimeField(DEDField, Date):
+    pass
+
+
 class DoubleField(DEDField, Double):
     pass
 
