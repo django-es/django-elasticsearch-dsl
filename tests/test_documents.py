@@ -16,7 +16,9 @@ class Car(models.Model):
     name = models.CharField(max_length=255)
     price = models.FloatField()
     not_indexed = models.TextField()
-    manufacturer = models.ForeignKey('Manufacturer')
+    manufacturer = models.ForeignKey(
+        'Manufacturer', null=True, on_delete=models.SET_NULL
+    )
 
     class Meta:
         app_label = 'car'
