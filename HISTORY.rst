@@ -3,6 +3,11 @@
 History
 -------
 
+0.4.3 (2017-12-12)
+~~~~~~~~~~~~~~~~~~
+* Fix syncing of related objects when deleted
+* Add django 2.0 support
+
 0.4.2 (2017-11-27)
 ~~~~~~~~~~~~~~~~~~
 * Convert lazy string to string before serialization
