@@ -23,7 +23,7 @@ class Search(DSLSearch):
         # Do not query again if the es result is already cached
         if not hasattr(self, '_response'):
             # We only need the meta fields with the models ids
-            s = self.source(exclude=['*'])
+            s = self.source(excludes=['*'])
 
         pks = [result._id for result in s]
 
