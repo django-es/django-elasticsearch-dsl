@@ -15,7 +15,7 @@ class DEDConfig(AppConfig):
         self.module.autodiscover()
         connections.configure(**settings.ELASTICSEARCH_DSL)
         # Setup the signal processor.
-        if not self.signal_processor:
+        if not self.signal_processor and self.autosync_enabled():
             signal_processor_path = getattr(
                 settings,
                 'ELASTICSEARCH_DSL_SIGNAL_PROCESSOR',

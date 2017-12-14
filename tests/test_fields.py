@@ -60,6 +60,10 @@ class DEDFieldTestCase(TestCase):
             callable=Mock(return_value="bar"), attr1="foo"))
         self.assertEqual(field.get_value_from_instance(instance), "bar")
 
+    def test_get_value_from_instance_none(self):
+        field = DEDField(attr='related.callable')
+        self.assertIsNone(field.get_value_from_instance(None))
+
     def test_get_value_from_instance_with_unknown_attr(self):
         class Dummy:
             attr1 = "foo"

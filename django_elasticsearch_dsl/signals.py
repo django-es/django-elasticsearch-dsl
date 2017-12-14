@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 from django.db import models
 
+from .actions import ActionBuffer
 from .registries import registry
 
 
@@ -54,22 +55,49 @@ class BaseSignalProcessor(object):
         Given an individual model instance, update the object in the index.
         Update the related objects either.
         """
-        registry.update(instance)
-        registry.update_related(instance)
+        actions = ActionBuffer(registry=registry)
+
+        for doc in registry.get_documents(instance.__class__):
+            if not doc._doc_type.ignore_signals:
+                actions.add_doc_actions(doc(), instance, 'index')
+
+        for doc in registry.get_related_doc(instance.__class__):
+            if not doc._doc_type.ignore_signals:
+                doc_instance = doc()
+                related = doc_instance.get_instances_from_related(instance)
+                if related is not None:
+                    actions.add_doc_actions(doc_instance, related, 'index')
+
+        return actions.execute()
 
     def handle_pre_delete(self, sender, instance, **kwargs):
         """Handle removing of instance object from related models instance.
         We need to do this before the real delete otherwise the relation
         doesn't exists anymore and we can't get the related models instance.
         """
-        registry.delete_related(instance)
+        actions = ActionBuffer(registry=registry)
+
+        for doc in registry.get_related_doc(instance.__class__):
+            if not doc._doc_type.ignore_signals:
+                doc_instance = doc(related_instance_to_ignore=instance)
+                related = doc_instance.get_instances_from_related(instance)
+                if related is not None:
+                    actions.add_doc_actions(doc_instance, related, 'index')
+
+        return actions.execute()
 
     def handle_delete(self, sender, instance, **kwargs):
         """Handle delete.
 
         Given an individual model instance, delete the object from index.
         """
-        registry.delete(instance, raise_on_error=False)
+        actions = ActionBuffer(registry=registry)
+
+        for doc in registry.get_documents(instance.__class__):
+            if not doc._doc_type.ignore_signals:
+                actions.add_doc_actions(doc(), instance, 'delete')
+
+        return actions.execute()
 
 
 class RealTimeSignalProcessor(BaseSignalProcessor):
