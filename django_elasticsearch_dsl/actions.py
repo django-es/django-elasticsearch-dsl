@@ -3,7 +3,7 @@ from itertools import chain
 from collections import defaultdict
 
 from django.core.paginator import Paginator
-from django.db.models import Model
+from django.db.models import Model, Manager
 from elasticsearch.helpers import bulk
 from six import iteritems
 
@@ -40,6 +40,8 @@ class ActionBuffer(object):
         """
         if isinstance(instances, Model):
             instances = [instances]
+        elif isinstance(instances, Manager):
+            instances = instances.all()
 
         self._actions[doc_instance.connection].add(self._get_actions(
             doc_instance, instances, action=action,
