@@ -1,15 +1,15 @@
 from unittest import TestCase
-from mock import patch
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-
 from elasticsearch_dsl import GeoPoint
+from mock import patch
 
-from django_elasticsearch_dsl.documents import DocType
 from django_elasticsearch_dsl import fields
+from django_elasticsearch_dsl.documents import DocType
 from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
                                                  RedeclaredFieldError)
+from tests import ES_MAJOR_VERSION
 
 
 class Car(models.Model):
@@ -35,7 +35,7 @@ class Manufacturer(models.Model):
 
 
 class CarDocument(DocType):
-    color = fields.StringField()
+    color = fields.TextField()
     type = fields.StringField()
 
     def prepare_color(self, instance):
@@ -46,6 +46,7 @@ class CarDocument(DocType):
         model = Car
         index = 'car_index'
         related_models = [Manufacturer]
+        doc_type = 'car_document'
 
 
 class DocTypeTestCase(TestCase):
@@ -64,6 +65,7 @@ class DocTypeTestCase(TestCase):
             class Meta:
                 model = Car
                 ignore_signals = True
+
         self.assertTrue(CarDocument2._doc_type.ignore_signals)
 
     def test_auto_refresh_added(self):
@@ -71,6 +73,7 @@ class DocTypeTestCase(TestCase):
             class Meta:
                 model = Car
                 auto_refresh = False
+
         self.assertFalse(CarDocument2._doc_type.auto_refresh)
 
     def test_queryset_pagination_added(self):
@@ -78,6 +81,7 @@ class DocTypeTestCase(TestCase):
             class Meta:
                 model = Car
                 queryset_pagination = 120
+
         self.assertIsNone(CarDocument._doc_type.queryset_pagination)
         self.assertEqual(CarDocument2._doc_type.queryset_pagination, 120)
 
@@ -105,7 +109,7 @@ class DocTypeTestCase(TestCase):
     def test_to_field(self):
         doc = DocType()
         nameField = doc.to_field('name', Car._meta.get_field('name'))
-        self.assertIsInstance(nameField, fields.StringField)
+        self.assertIsInstance(nameField, fields.TextField)
         self.assertEqual(nameField._path, ['name'])
 
     def test_to_field_with_unknown_field(self):
@@ -114,18 +118,20 @@ class DocTypeTestCase(TestCase):
             doc.to_field('manufacturer', Car._meta.get_field('manufacturer'))
 
     def test_mapping(self):
+        text_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
+
         self.assertEqual(
             CarDocument._doc_type.mapping.to_dict(), {
                 'car_document': {
                     'properties': {
                         'name': {
-                            'type': 'string'
+                            'type': text_type
                         },
                         'color': {
-                            'type': 'string'
+                            'type': text_type
                         },
                         'type': {
-                            'type': 'string'
+                            'type': text_type
                         },
                         'price': {
                             'type': 'double'
@@ -179,16 +185,16 @@ class DocTypeTestCase(TestCase):
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
             doc.update(car)
             actions = [{
-                    '_id': car.pk,
-                    '_op_type': 'index',
-                    '_source': {
-                        'name': car.name,
-                        'price': car.price,
-                        'type': car.type(),
-                        'color': doc.prepare_color(None),
-                    },
-                    '_index': 'car_index',
-                    '_type': 'car_document'
+                '_id': car.pk,
+                '_op_type': 'index',
+                '_source': {
+                    'name': car.name,
+                    'price': car.price,
+                    'type': car.type(),
+                    'color': doc.prepare_color(None),
+                },
+                '_index': 'car_index',
+                '_type': 'car_document'
             }]
             self.assertEqual(1, mock.call_count)
             self.assertEqual(
@@ -208,17 +214,17 @@ class DocTypeTestCase(TestCase):
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
             doc.update([car, car2], action='update')
             actions = [{
-                    '_id': car.pk,
-                    '_op_type': 'update',
-                    '_source': {
-                        'name': car.name,
-                        'price': car.price,
-                        'type': car.type(),
-                        'color': doc.prepare_color(None),
-                    },
-                    '_index': 'car_index',
-                    '_type': 'car_document'
+                '_id': car.pk,
+                '_op_type': 'update',
+                '_source': {
+                    'name': car.name,
+                    'price': car.price,
+                    'type': car.type(),
+                    'color': doc.prepare_color(None),
                 },
+                '_index': 'car_index',
+                '_type': 'car_document'
+            },
                 {
                     '_id': car2.pk,
                     '_op_type': 'update',
@@ -230,7 +236,7 @@ class DocTypeTestCase(TestCase):
                     },
                     '_index': 'car_index',
                     '_type': 'car_document'
-            }]
+                }]
             self.assertEqual(1, mock.call_count)
             self.assertEqual(
                 actions, list(mock.call_args_list[0][1]['actions'])
@@ -253,6 +259,7 @@ class DocTypeTestCase(TestCase):
             class Meta:
                 model = Car
                 queryset_pagination = 2
+
         doc = CarDocument()
         car1 = Car()
         car2 = Car()

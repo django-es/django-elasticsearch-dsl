@@ -3,12 +3,13 @@ from django_elasticsearch_dsl import DocType, Index, fields
 
 from .models import Ad, Category, Car, Manufacturer
 
+index_settings = {
+    'number_of_shards': 1,
+    'number_of_replicas': 0,
+}
 
-car_index = Index('test_cars')
-car_index.settings(
-    number_of_shards=1,
-    number_of_replicas=0
-)
+
+car_index = Index('test_cars').settings(**index_settings)
 
 
 html_strip = analyzer(
@@ -50,6 +51,7 @@ class CarDocument(DocType):
             'launched',
             'type',
         ]
+        doc_type = 'car_document'
 
     def get_queryset(self):
         return super(CarDocument, self).get_queryset().select_related(
@@ -63,7 +65,10 @@ class CarDocument(DocType):
         return related_instance.car_set.all()
 
 
-@car_index.doc_type
+manufacturer_index = Index('test_manufacturers').settings(**index_settings)
+
+
+@manufacturer_index.doc_type
 class ManufacturerDocument(DocType):
     country = fields.StringField()
 
@@ -75,20 +80,17 @@ class ManufacturerDocument(DocType):
             'country_code',
             'logo',
         ]
+        doc_type = 'manufacturer_document'
 
 
-ad_index = Index('test_ads')
-ad_index.settings(
-    number_of_shards=1,
-    number_of_replicas=0
-)
+ad_index = Index('test_ads').settings(**index_settings)
 
 
 @ad_index.doc_type
 class AdDocument(DocType):
-    description = fields.StringField(
+    description = fields.TextField(
         analyzer=html_strip,
-        fields={'raw': fields.StringField(index='not_analyzed')}
+        fields={'raw': fields.KeywordField()}
     )
 
     class Meta:
@@ -99,6 +101,7 @@ class AdDocument(DocType):
             'modified',
             'url',
         ]
+        doc_type = 'ad_document'
 
 
 class PaginatedAdDocument(DocType):
@@ -112,6 +115,7 @@ class PaginatedAdDocument(DocType):
             'modified',
             'url',
         ]
+        doc_type = 'paginated_ad_document'
 
     def get_queryset(self):
         return Ad.objects.all().order_by('-id')

@@ -26,7 +26,7 @@ Features
 - Requirements
    - Django >= 1.8
    - Python 2.7, 3.4, 3.5, 3.6
-   - Elasticsearch >= 2.0 < 6.0
+   - Elasticsearch >= 2.0 < 7.0
 
 .. _Search: http://elasticsearch-dsl.readthedocs.io/en/stable/search_dsl.html
 
@@ -36,6 +36,9 @@ Quickstart
 Install Django Elasticsearch DSL::
 
     pip install django-elasticsearch-dsl
+
+    # Elasticsearch 6.x
+    pip install 'elasticsearch-dsl>=6.0,<7.0'
 
     # Elasticsearch 5.x
     pip install 'elasticsearch-dsl>=5.0,<6.0'
