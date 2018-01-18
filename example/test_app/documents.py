@@ -61,7 +61,7 @@ class CarDocument(DocType):
 
 @car.doc_type
 class ManufacturerDocument(DocType):
-    country = fields.StringField()
+    country = fields.TextField()
 
     class Meta:
         model = Manufacturer
@@ -74,9 +74,9 @@ class ManufacturerDocument(DocType):
 
 
 class AdDocument(DocType):
-    description = fields.StringField(
+    description = fields.TextField(
         analyzer=html_strip,
-        fields={'raw': fields.StringField(index='not_analyzed')}
+        fields={'raw': fields.KeywordField()}
     )
 
     class Meta:
