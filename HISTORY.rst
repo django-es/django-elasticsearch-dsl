@@ -3,6 +3,10 @@
 History
 -------
 
+0.4.5 (XXXX-XX-XX)
+~~~~~~~~~~~~~~~~~~
+Update elasticsearch-dsl minimum version
+
 0.4.4 (2017-12-13)
 ~~~~~~~~~~~~~~~~~~
 Fix to_queryset with es 5.0/5.1
