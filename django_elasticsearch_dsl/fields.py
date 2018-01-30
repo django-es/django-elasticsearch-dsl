@@ -1,6 +1,7 @@
 import collections
 from types import MethodType
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.fields.files import FieldFile
 from django.utils.encoding import force_text
@@ -56,6 +57,8 @@ class DEDField(Field):
             ):
                 try:
                     instance = getattr(instance, attr)
+                except ObjectDoesNotExist:
+                    return None
                 except (TypeError, AttributeError):
                     try:
                         instance = instance[int(attr)]
