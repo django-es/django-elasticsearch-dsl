@@ -128,6 +128,8 @@ def ListField(field):
     original_get_value_from_instance = field.get_value_from_instance
 
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
+        if not original_get_value_from_instance(instance):
+            return []
         return [value for value in original_get_value_from_instance(instance)]
 
     field.get_value_from_instance = MethodType(get_value_from_instance, field)
