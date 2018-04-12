@@ -71,7 +71,7 @@ class DEDField(Field):
                             "{!r}".format(attr, instance)
                         )
 
-            if (isinstance(instance, models.manager.Manager)):
+            if isinstance(instance, models.manager.Manager):
                 instance = instance.all()
             elif callable(instance):
                 instance = instance()

@@ -1,13 +1,13 @@
 from unittest import TestCase
-from mock import patch
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from elasticsearch_dsl import GeoPoint
+from mock import patch
 
-from django_elasticsearch_dsl.documents import DocType
 from django_elasticsearch_dsl import fields
+from django_elasticsearch_dsl.documents import DocType
 from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
                                                  RedeclaredFieldError)
 
@@ -64,6 +64,7 @@ class DocTypeTestCase(TestCase):
             class Meta:
                 model = Car
                 ignore_signals = True
+
         self.assertTrue(CarDocument2._doc_type.ignore_signals)
 
     def test_auto_refresh_added(self):
@@ -71,6 +72,7 @@ class DocTypeTestCase(TestCase):
             class Meta:
                 model = Car
                 auto_refresh = False
+
         self.assertFalse(CarDocument2._doc_type.auto_refresh)
 
     def test_queryset_pagination_added(self):
@@ -78,6 +80,7 @@ class DocTypeTestCase(TestCase):
             class Meta:
                 model = Car
                 queryset_pagination = 120
+
         self.assertIsNone(CarDocument._doc_type.queryset_pagination)
         self.assertEqual(CarDocument2._doc_type.queryset_pagination, 120)
 
@@ -179,16 +182,16 @@ class DocTypeTestCase(TestCase):
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
             doc.update(car)
             actions = [{
-                    '_id': car.pk,
-                    '_op_type': 'index',
-                    '_source': {
-                        'name': car.name,
-                        'price': car.price,
-                        'type': car.type(),
-                        'color': doc.prepare_color(None),
-                    },
-                    '_index': 'car_index',
-                    '_type': 'car_document'
+                '_id': car.pk,
+                '_op_type': 'index',
+                '_source': {
+                    'name': car.name,
+                    'price': car.price,
+                    'type': car.type(),
+                    'color': doc.prepare_color(None),
+                },
+                '_index': 'car_index',
+                '_type': 'car_document'
             }]
             self.assertEqual(1, mock.call_count)
             self.assertEqual(
@@ -253,6 +256,7 @@ class DocTypeTestCase(TestCase):
             class Meta:
                 model = Car
                 queryset_pagination = 2
+
         doc = CarDocument()
         car1 = Car()
         car2 = Car()

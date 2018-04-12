@@ -3,12 +3,13 @@ from django_elasticsearch_dsl import DocType, Index, fields
 
 from .models import Ad, Category, Car, Manufacturer
 
+index_settings = {
+    'number_of_shards': 1,
+    'number_of_replicas': 0,
+}
 
-car_index = Index('test_cars')
-car_index.settings(
-    number_of_shards=1,
-    number_of_replicas=0
-)
+
+car_index = Index('test_cars').settings(**index_settings)
 
 
 html_strip = analyzer(
@@ -77,11 +78,7 @@ class ManufacturerDocument(DocType):
         ]
 
 
-ad_index = Index('test_ads')
-ad_index.settings(
-    number_of_shards=1,
-    number_of_replicas=0
-)
+ad_index = Index('test_ads').settings(**index_settings)
 
 
 @ad_index.doc_type
