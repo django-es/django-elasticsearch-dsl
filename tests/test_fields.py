@@ -6,10 +6,12 @@ from django.utils.translation import ugettext_lazy as _
 from mock import Mock, NonCallableMock
 
 from django_elasticsearch_dsl.exceptions import VariableLookupError
-from django_elasticsearch_dsl.fields import (AttachmentField, BooleanField, ByteField, CompletionField, DEDField,
-                                             DateField, DoubleField, FileField, FloatField, GeoPointField,
-                                             GeoShapeField, IntegerField, IpField, KeywordField, ListField, LongField,
-                                             NestedField, ObjectField, ShortField, StringField, TextField)
+from django_elasticsearch_dsl.fields import (
+    AttachmentField, BooleanField, ByteField, CompletionField, DEDField,
+    DateField, DoubleField, FileField, FloatField, GeoPointField,
+    GeoShapeField, IntegerField, IpField, KeywordField, ListField, LongField,
+    NestedField, ObjectField, ShortField, StringField, TextField
+)
 from tests import ES_MAJOR_VERSION
 
 
