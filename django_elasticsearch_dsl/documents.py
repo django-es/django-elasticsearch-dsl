@@ -151,13 +151,20 @@ class DocType(DSLDocType):
             if field._path == []:
                 field._path = [name]
 
-            prep_func = getattr(self, 'prepare_%s' % name, None)
+            prep_func = getattr(self, 'prepare_%s_with_related' % name, None)
             if prep_func:
-                field_value = prep_func(instance)
-            else:
-                field_value = field.get_value_from_instance(
-                    instance, self._related_instance_to_ignore
+                field_value = prep_func(
+                    instance,
+                    related_to_ignore=self._related_instance_to_ignore
                 )
+            else:
+                prep_func = getattr(self, 'prepare_%s' % name, None)
+                if prep_func:
+                    field_value = prep_func(instance)
+                else:
+                    field_value = field.get_value_from_instance(
+                        instance, self._related_instance_to_ignore
+                    )
 
             data[name] = field_value
 

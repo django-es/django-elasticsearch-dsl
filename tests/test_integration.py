@@ -14,6 +14,7 @@ from .documents import (
     AdDocument,
     car_index,
     CarDocument,
+    CarWithPrepareDocument,
     PaginatedAdDocument
 )
 from .models import Car, Manufacturer, Ad, Category, COUNTRIES
@@ -172,6 +173,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
         })
 
     def test_index_to_dict(self):
+        self.maxDiff = None
         index_dict = car_index.to_dict()
         self.assertEqual(index_dict['settings'], {
             'number_of_shards': 1,
@@ -230,7 +232,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
                     'launched': {'type': 'date'},
                     'type': {'type': 'string'},
                 }
-            }
+            },
         })
 
     def test_related_docs_are_updated(self):
@@ -283,6 +285,21 @@ class IntegrationTestCase(ESTestCase, TestCase):
         car2_doc = s.execute()[0]
         self.assertEqual(len(car2_doc.categories), 0)
 
+    def test_related_docs_with_prepare_are_updated(self):
+        s = CarWithPrepareDocument.search().query("match", name=self.car2.name)
+        self.assertEqual(s.execute()[0].manufacturer.name, 'Peugeot')
+        self.assertEqual(s.execute()[0].manufacturer_short.name, 'Peugeot')
+
+        self.manufacturer.name = 'Citroen'
+        self.manufacturer.save()
+        s = CarWithPrepareDocument.search().query("match", name=self.car2.name)
+        self.assertEqual(s.execute()[0].manufacturer.name, 'Citroen')
+        self.assertEqual(s.execute()[0].manufacturer_short.name, 'Citroen')
+
+        self.manufacturer.delete()
+        s = CarWithPrepareDocument.search().query("match", name=self.car2.name)
+        self.assertEqual(s.execute()[0].manufacturer, {})
+
     def test_delete_create_populate_commands(self):
         out = StringIO()
         self.assertTrue(ad_index.exists())
@@ -296,8 +313,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
         call_command('search_index', action='create',
                      models=['tests.ad'], stdout=out)
         self.assertTrue(ad_index.exists())
-        result = AdDocument().search().execute()
-        self.assertEqual(len(result), 0)
         call_command('search_index', action='populate',
                      models=['tests.ad'], stdout=out)
         result = AdDocument().search().execute()
