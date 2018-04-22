@@ -115,14 +115,7 @@ class CarWithPrepareDocument(DocType):
         return {}
 
     def get_instances_from_related(self, related_instance):
-        if isinstance(related_instance, Manufacturer):
-            return related_instance.car_set.all()
-
-    # FIXME the prepare function used with a related list can't correctly
-    # handle the delete operation if used in related_models.
-    # So don't use it.
-    # def prepare_ads(self, ads):
-    #     pass
+        return related_instance.car_set.all()
 
 
 

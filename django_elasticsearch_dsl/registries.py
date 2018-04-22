@@ -32,7 +32,8 @@ class DocumentRegistry(object):
     def _get_related_doc(self, instance):
         for model in self._related_models.get(instance.__class__, []):
             for doc in self._models[model]:
-                yield doc
+                if instance.__class__ in doc._doc_type.related_models:
+                    yield doc
 
     def update_related(self, instance, **kwargs):
         """
