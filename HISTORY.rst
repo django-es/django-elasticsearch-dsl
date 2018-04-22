@@ -3,6 +3,17 @@
 History
 -------
 
+0.5.0 (2018-04-22)
+~~~~~~~~~~~~~~~~~~
+* Add Support for Elasticsearch 6 thanks to HansAdema
+
+Breaking Change:
+~~~~~~~~~~~~~~~~
+Django string fields now point to ES text field by default.
+Nothing should change for ES 2.X but if you are using ES 5.X,
+you may need to rebuild and/or update some of your documents.
+
+
 0.4.5 (2018-04-22)
 ~~~~~~~~~~~~~~~~~~
 * Fix prepare with related models when deleted (See PR #99)

@@ -207,7 +207,7 @@ class FileFieldMixin(object):
 
         if isinstance(_file, FieldFile):
             return _file.url if _file else ''
-        return _file
+        return _file if _file else ''
 
 
 # ES5+ has text types Keyword and Text, ES2 has type String.
