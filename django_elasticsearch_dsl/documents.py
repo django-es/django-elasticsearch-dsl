@@ -17,9 +17,10 @@ from .fields import (
     DoubleField,
     FileField,
     IntegerField,
+    KeywordField,
     LongField,
     ShortField,
-    StringField,
+    TextField,
 )
 from .indices import Index
 from .registries import registry
@@ -29,23 +30,23 @@ model_field_class_to_field_class = {
     models.AutoField: IntegerField,
     models.BigIntegerField: LongField,
     models.BooleanField: BooleanField,
-    models.CharField: StringField,
+    models.CharField: TextField,
     models.DateField: DateField,
     models.DateTimeField: DateField,
-    models.EmailField: StringField,
+    models.EmailField: TextField,
     models.FileField: FileField,
-    models.FilePathField: StringField,
+    models.FilePathField: KeywordField,
     models.FloatField: DoubleField,
     models.ImageField: FileField,
     models.IntegerField: IntegerField,
     models.NullBooleanField: BooleanField,
     models.PositiveIntegerField: IntegerField,
     models.PositiveSmallIntegerField: ShortField,
-    models.SlugField: StringField,
+    models.SlugField: KeywordField,
     models.SmallIntegerField: ShortField,
-    models.TextField: StringField,
+    models.TextField: TextField,
     models.TimeField: LongField,
-    models.URLField: StringField,
+    models.URLField: TextField,
 }
 
 
