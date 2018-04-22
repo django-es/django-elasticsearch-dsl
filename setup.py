@@ -8,7 +8,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-version = '0.4.5'
+version = '0.5.0'
 
 if sys.argv[-1] == 'publish':
     try:
