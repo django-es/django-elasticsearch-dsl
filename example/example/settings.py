@@ -22,7 +22,7 @@ SECRET_KEY = '%b&p!s^@301dc=@y^*x92ff*hzelqm0)m0vy29-dwexs=e1w+t'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -84,7 +84,7 @@ DATABASES = {
 
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': '192.168.99.100:9200'
+        'hosts': 'localhost:9200'
     },
 }
 

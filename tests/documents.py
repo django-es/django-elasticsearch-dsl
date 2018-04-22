@@ -123,7 +123,6 @@ class CarWithPrepareDocument(DocType):
         return related_instance.car_set.all()
 
 
-
 ad_index = Index('test_ads').settings(**index_settings)
 
 

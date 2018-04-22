@@ -220,7 +220,7 @@ like this:
     class CarDocument(DocType):
         # add a string field to the Elasticsearch mapping called type, the
         # value of which is derived from the model's type_to_string attribute
-        type = fields.StringField(attr="type_to_string")
+        type = fields.TextField(attr="type_to_string")
 
         class Meta:
             model = Car
@@ -252,7 +252,7 @@ needs to be saved.
     class CarDocument(DocType):
         # ... #
 
-        foo = StringField()
+        foo = TextField()
 
         def prepare_foo(self, instance):
             return " ".join(instance.foos)
@@ -304,12 +304,12 @@ You can use an ObjectField or a NestedField.
     @car.doc_type
     class CarDocument(DocType):
         manufacturer = fields.ObjectField(properties={
-            'name': fields.StringField(),
-            'country_code': fields.StringField(),
+            'name': fields.TextField(),
+            'country_code': fields.TextField(),
         })
         ads = fields.NestedField(properties={
-            'description': fields.StringField(analyzer=html_strip),
-            'title': fields.StringField(),
+            'description': fields.TextField(analyzer=html_strip),
+            'title': fields.TextField(),
             'pk': fields.IntegerField(),
         })
 
@@ -368,9 +368,9 @@ So for example you can use a custom analyzer_:
 
     @car.doc_type
     class CarDocument(DocType):
-        description = fields.StringField(
+        description = fields.TextField(
             analyzer=html_strip,
-            fields={'raw': fields.StringField(index='not_analyzed')}
+            fields={'raw': fields.KeywordField()}
         )
 
         class Meta:
@@ -405,7 +405,7 @@ Available Fields
     - ObjectField(properties, attr=None, \*\*elasticsearch_properties)
     - NestedField(properties, attr=None, \*\*elasticsearch_properties)
 
-- Elasticsearch 5 Fields
+- Elasticsearch >=5 Fields
 
     - TextField(attr=None, \*\*elasticsearch_properties)
     - KeywordField(attr=None, \*\*elasticsearch_properties)
@@ -457,7 +457,7 @@ want to put in this Elasticsearch index.
             fields = [
                 'name', # If a field as the same name in multiple DocType of
                         # the same Index, the field type must be identical
-                        # (here fields.StringField)
+                        # (here fields.TextField)
                 'country_code',
             ]
 
