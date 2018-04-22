@@ -1,9 +1,10 @@
 from collections import defaultdict
 from itertools import chain
 
+from django.db.models.base import ModelBase
 from django.utils.six import itervalues, iterkeys, iteritems
 
-from .apps import DEDConfig
+from .actions import ActionBuffer
 
 
 class DocumentRegistry(object):
@@ -29,55 +30,23 @@ class DocumentRegistry(object):
 
         self._indices[index].add(doc_class)
 
-    def _get_related_doc(self, instance):
-        for model in self._related_models.get(instance.__class__, []):
-            for doc in self._models[model]:
-                if instance.__class__ in doc._doc_type.related_models:
+    def get_related_doc(self, model):
+        for related_model in self._related_models.get(model, []):
+            for doc in self._models[related_model]:
+                if model in doc._doc_type.related_models:
                     yield doc
 
-    def update_related(self, instance, **kwargs):
+    def update(self, instance, action='index', **kwargs):
         """
-        Update docs that have related_models.
+        Update all the Elasticsearch documents attached to this model.
         """
-        if not DEDConfig.autosync_enabled():
-            return
-
-        for doc in self._get_related_doc(instance):
-            doc_instance = doc()
-            related = doc_instance.get_instances_from_related(instance)
-            if related is not None:
-                doc_instance.update(related, **kwargs)
-
-    def delete_related(self, instance, **kwargs):
-        """
-        Remove `instance` from related models.
-        """
-        if not DEDConfig.autosync_enabled():
-            return
-
-        for doc in self._get_related_doc(instance):
-            doc_instance = doc(related_instance_to_ignore=instance)
-            related = doc_instance.get_instances_from_related(instance)
-            if related is not None:
-                doc_instance.update(related, **kwargs)
-
-    def update(self, instance, **kwargs):
-        """
-        Update all the elasticsearch documents attached to this model (if their
-        ignore_signals flag allows it)
-        """
-        if not DEDConfig.autosync_enabled():
-            return
-
-        if instance.__class__ in self._models:
-            for doc in self._models[instance.__class__]:
-                if not doc._doc_type.ignore_signals:
-                    doc().update(instance, **kwargs)
+        actions = ActionBuffer(registry=self)
+        actions.add_model_actions(instance, action)
+        return actions.execute(**kwargs)
 
     def delete(self, instance, **kwargs):
         """
-        Delete all the elasticsearch documents attached to this model (if their
-        ignore_signals flag allows it)
+        Delete all the Elasticsearch documents attached to this model.
         """
         self.update(instance, action="delete", **kwargs)
 
@@ -85,10 +54,13 @@ class DocumentRegistry(object):
         """
         Get all documents in the registry or the documents for a list of models
         """
-        if models is not None:
+        if models is None:
+            return set(chain(*itervalues(self._indices)))
+        elif isinstance(models, ModelBase):
+            return set(self._models.get(models, {}))
+        else:
             return set(chain(*(self._models[model] for model in models
                                if model in self._models)))
-        return set(chain(*itervalues(self._indices)))
 
     def get_models(self):
         """

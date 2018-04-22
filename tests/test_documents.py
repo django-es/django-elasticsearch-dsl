@@ -1,9 +1,9 @@
 from unittest import TestCase
+from mock import patch, Mock
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl import GeoPoint
-from mock import patch
 
 from django_elasticsearch_dsl import fields
 from django_elasticsearch_dsl.documents import DocType
@@ -50,6 +50,16 @@ class CarDocument(DocType):
 
 
 class DocTypeTestCase(TestCase):
+
+    def setUp(self):
+        self.buffer_patcher = patch(
+            'django_elasticsearch_dsl.documents.ActionBuffer')
+        self.action_buffer = self.buffer_patcher.start()
+        self.action_buffer().add_doc_actions = Mock()
+        self.action_buffer().execute = Mock()
+
+    def tearDown(self):
+        self.buffer_patcher.stop()
 
     def test_model_class_added(self):
         self.assertEqual(CarDocument._doc_type.model, Car)
@@ -182,28 +192,27 @@ class DocTypeTestCase(TestCase):
         doc = CarDocument()
         car = Car(name="Type 57", price=5400000.0,
                   not_indexed="not_indexex", pk=51)
-        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update(car)
-            actions = [{
-                '_id': car.pk,
-                '_op_type': 'index',
-                '_source': {
-                    'name': car.name,
-                    'price': car.price,
-                    'type': car.type(),
-                    'color': doc.prepare_color(None),
-                },
-                '_index': 'car_index',
-                '_type': 'car_document'
-            }]
-            self.assertEqual(1, mock.call_count)
-            self.assertEqual(
-                actions, list(mock.call_args_list[0][1]['actions'])
-            )
-            self.assertTrue(mock.call_args_list[0][1]['refresh'])
-            self.assertEqual(
-                doc.connection, mock.call_args_list[0][1]['client']
-            )
+        doc.update(car)
+
+        self.action_buffer().add_doc_actions.assert_called_with(
+            doc, car, 'index',
+        )
+        self.action_buffer().execute.assert_called_with(
+            doc.connection, refresh=True,
+        )
+
+    def test_model_instance_delete(self):
+        doc = CarDocument()
+        car = Car(name="Type 57", price=5400000.0,
+                  not_indexed="not_indexex", pk=51)
+        doc.delete(car)
+
+        self.action_buffer().add_doc_actions.assert_called_with(
+            doc, car, 'delete',
+        )
+        self.action_buffer().execute.assert_called_with(
+            doc.connection, refresh=True,
+        )
 
     def test_model_instance_iterable_update(self):
         doc = CarDocument()
@@ -211,61 +220,24 @@ class DocTypeTestCase(TestCase):
                   not_indexed="not_indexex", pk=51)
         car2 = Car(name=_("Type 42"), price=50000.0,
                    not_indexed="not_indexex", pk=31)
-        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update([car, car2], action='update')
-            actions = [{
-                '_id': car.pk,
-                '_op_type': 'update',
-                '_source': {
-                    'name': car.name,
-                    'price': car.price,
-                    'type': car.type(),
-                    'color': doc.prepare_color(None),
-                },
-                '_index': 'car_index',
-                '_type': 'car_document'
-            },
-                {
-                    '_id': car2.pk,
-                    '_op_type': 'update',
-                    '_source': {
-                        'name': car2.name,
-                        'price': car2.price,
-                        'type': car2.type(),
-                        'color': doc.prepare_color(None),
-                    },
-                    '_index': 'car_index',
-                    '_type': 'car_document'
-                }]
-            self.assertEqual(1, mock.call_count)
-            self.assertEqual(
-                actions, list(mock.call_args_list[0][1]['actions'])
-            )
-            self.assertTrue(mock.call_args_list[0][1]['refresh'])
-            self.assertEqual(
-                doc.connection, mock.call_args_list[0][1]['client']
-            )
+        doc.update([car, car2], action='update')
+
+        self.action_buffer().add_doc_actions.assert_called_with(
+            doc, [car, car2], 'update',
+        )
+        self.action_buffer().execute.assert_called_with(
+            doc.connection, refresh=True,
+        )
 
     def test_model_instance_update_no_refresh(self):
         doc = CarDocument()
         doc._doc_type.auto_refresh = False
         car = Car()
-        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update(car)
-            self.assertNotIn('refresh', mock.call_args_list[0][1])
+        doc.update(car)
 
-    def test_model_instance_iterable_update_with_pagination(self):
-        class CarDocument2(DocType):
-            class Meta:
-                model = Car
-                queryset_pagination = 2
-
-        doc = CarDocument()
-        car1 = Car()
-        car2 = Car()
-        car3 = Car()
-        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update([car1, car2, car3])
-            self.assertEqual(
-                3, len(list(mock.call_args_list[0][1]['actions']))
-            )
+        self.action_buffer().add_doc_actions.assert_called_with(
+            doc, car, 'index',
+        )
+        self.action_buffer().execute.assert_called_with(
+            doc.connection
+        )
