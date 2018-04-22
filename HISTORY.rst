@@ -3,13 +3,17 @@
 History
 -------
 
-0.4.5 (XXXX-XX-XX)
+0.4.5 (2018-04-22)
 ~~~~~~~~~~~~~~~~~~
-Update elasticsearch-dsl minimum version
+* Fix prepare with related models when deleted (See PR #99)
+* Fix unwanted calls to get_instances_from_related
+* Fix for empty ArrayField (CBinyenya)
+* Fix nested OneToOneField when related object doesn't exist (CBinyenya)
+* Update elasticsearch-dsl minimal version
 
 0.4.4 (2017-12-13)
 ~~~~~~~~~~~~~~~~~~
-Fix to_queryset with es 5.0/5.1
+* Fix to_queryset with es 5.0/5.1
 
 0.4.3 (2017-12-12)
 ~~~~~~~~~~~~~~~~~~
