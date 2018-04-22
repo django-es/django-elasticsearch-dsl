@@ -325,7 +325,10 @@ You can use an ObjectField or a NestedField.
             )
 
         def get_instances_from_related(self, related_instance):
-            """If related_models is set, define how to retrieve the Car instance(s) from the related model."""
+            """If related_models is set, define how to retrieve the Car instance(s) from the related model.
+            The related_models option should be used with caution because it can lead in the index
+            to the updating of a lot of items.
+            """
             if isinstance(related_instance, Manufacturer):
                 return related_instance.car_set.all()
             elif isinstance(related_instance, Ad):
