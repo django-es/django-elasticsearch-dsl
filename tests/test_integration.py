@@ -1,27 +1,20 @@
-from datetime import datetime
 import os
 import unittest
+from datetime import datetime
 
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils.six import StringIO
 from django.utils.translation import ugettext_lazy as _
 
-from elasticsearch_dsl import Index as DSLIndex
 from django_elasticsearch_dsl.test import ESTestCase
+from elasticsearch_dsl import Index as DSLIndex
 from tests import ES_MAJOR_VERSION
 
-from .documents import (
-    ad_index,
-    AdDocument,
-    car_index,
-    CarDocument,
-    CarWithPrepareDocument,
-    PaginatedAdDocument,
-    ManufacturerDocument,
-    index_settings
-)
-from .models import Car, Manufacturer, Ad, Category, COUNTRIES
+from .documents import (AdDocument, CarDocument, CarWithPrepareDocument,
+                        ManufacturerDocument, PaginatedAdDocument, ad_index,
+                        car_index, index_settings)
+from .models import COUNTRIES, Ad, Car, Category, Manufacturer
 
 
 @unittest.skipUnless(
@@ -29,6 +22,7 @@ from .models import Car, Manufacturer, Ad, Category, COUNTRIES
     "--elasticsearch not set"
 )
 class IntegrationTestCase(ESTestCase, TestCase):
+
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
         self.manufacturer = Manufacturer(
@@ -243,6 +237,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
                     'name': {'type': text_type},
                     'launched': {'type': 'date'},
                     'type': {'type': text_type},
+                    'price': {'type': 'double'},
                 }
             },
         })
@@ -350,17 +345,26 @@ class IntegrationTestCase(ESTestCase, TestCase):
         self.assertEqual(list(qs), [self.ad2, self.ad1])
 
     def test_queryset_pagination(self):
-        ad3 = Ad(title="Ad 3",  car=self.car1)
-        ad3.save()
+        ad_previously_on_db = Ad.objects.count()
+        count = 5
+
+        Ad.objects.bulk_create([
+            Ad(title="Ad %s" % i,  car=self.car1)
+            for i in range(count)
+        ])
+
         with self.assertNumQueries(1):
             AdDocument().update(Ad.objects.all())
 
         doc = PaginatedAdDocument()
 
-        with self.assertNumQueries(3):
+        q, r = divmod(Ad.objects.count(), doc._doc_type.queryset_pagination)
+        with self.assertNumQueries(q + r + 2):
             doc.update(Ad.objects.all().order_by('-id'))
-            self.assertEqual(
-                set(int(instance.meta.id) for instance in
-                    doc.search().query('match', title="Ad")),
-                set([ad3.pk, self.ad1.pk, self.ad2.pk])
-            )
+
+        s = doc.search().query('match', title="Ad")
+        self.assertEqual(s.count(), count + ad_previously_on_db)
+        self.assertEqual(
+            set([int(result.meta.id) for result in s.execute()]),
+            set(list(Ad.objects.values_list('pk', flat=True)))
+        )

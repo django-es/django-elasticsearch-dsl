@@ -544,7 +544,7 @@ Testing
 -------
 
 You can run the tests by creating a Python virtual environment, installing
-the requirements from ``requirements_test.txt`` (``pip install -r requirements_test``)::
+the requirements from ``requirements_test.txt`` (``pip install -r requirements_test.txt``)::
 
     $ python runtests.py
 

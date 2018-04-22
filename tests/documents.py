@@ -50,6 +50,7 @@ class CarDocument(DocType):
             'name',
             'launched',
             'type',
+            'price',
         ]
         doc_type = 'car_document'
 

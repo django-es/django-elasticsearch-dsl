@@ -7,11 +7,16 @@ from django.utils.translation import ugettext_lazy as _
 
 @python_2_unicode_compatible
 class Car(models.Model):
+    TYPE_SEDAN = 'se'
+    TYPE_BREAK = 'br'
+    TYPE_4X4 = '4x'
+    TYPE_COUPE = 'co'
+
     TYPE_CHOICES = (
-        ('se', "Sedan"),
-        ('br', "Break"),
-        ('4x', "4x4"),
-        ('co', "Coupé"),
+        (TYPE_SEDAN, "Sedan"),
+        (TYPE_BREAK, "Break"),
+        (TYPE_4X4, "4x4"),
+        (TYPE_COUPE, "Coupé"),
     )
 
     name = models.CharField(max_length=255)
@@ -25,6 +30,7 @@ class Car(models.Model):
         'Manufacturer', null=True, on_delete=models.SET_NULL
     )
     categories = models.ManyToManyField('Category')
+    price = models.FloatField(null=True)
 
     class Meta:
         app_label = 'tests'

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-from django.db import models
 from django.core.paginator import Paginator
+from django.db import models
 from django.utils.six import add_metaclass, iteritems
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl import DocType as DSLDocType
@@ -25,6 +25,7 @@ from .fields import (
 from .indices import Index
 from .registries import registry
 from .search import Search
+from .utils import batch_iterate
 
 model_field_class_to_field_class = {
     models.AutoField: IntegerField,
@@ -202,13 +203,17 @@ class DocType(DSLDocType):
         }
 
     def _get_actions(self, object_list, action):
-        if self._doc_type.queryset_pagination is not None:
-            paginator = Paginator(
-                object_list, self._doc_type.queryset_pagination
-            )
-            for page in paginator.page_range:
-                for object_instance in paginator.page(page).object_list:
-                    yield self._prepare_action(object_instance, action)
+        qs_pagination = self._doc_type.queryset_pagination
+        if qs_pagination is not None:
+            if isinstance(object_list, models.QuerySet):
+                for ranged_qs in batch_iterate(object_list, qs_pagination):
+                    for object_instance in ranged_qs:
+                        yield self._prepare_action(object_instance, action)
+            else:
+                paginator = Paginator(object_list, qs_pagination)
+                for page in paginator.page_range:
+                    for object_instance in paginator.page(page).object_list:
+                        yield self._prepare_action(object_instance, action)
         else:
             for object_instance in object_list:
                 yield self._prepare_action(object_instance, action)

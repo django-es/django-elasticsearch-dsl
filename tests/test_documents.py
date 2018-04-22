@@ -1,7 +1,7 @@
-from unittest import TestCase
+import datetime
 
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.test import TestCase
 from elasticsearch_dsl import GeoPoint
 from mock import patch
 
@@ -11,45 +11,26 @@ from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
                                                  RedeclaredFieldError)
 from tests import ES_MAJOR_VERSION
 
-
-class Car(models.Model):
-    name = models.CharField(max_length=255)
-    price = models.FloatField()
-    not_indexed = models.TextField()
-    manufacturer = models.ForeignKey(
-        'Manufacturer', null=True, on_delete=models.SET_NULL
-    )
-
-    class Meta:
-        app_label = 'car'
-
-    def type(self):
-        return "break"
-
-
-class Manufacturer(models.Model):
-    name = models.CharField(max_length=255)
-
-    class Meta:
-        app_label = 'car'
-
-
-class CarDocument(DocType):
-    color = fields.TextField()
-    type = fields.StringField()
-
-    def prepare_color(self, instance):
-        return "blue"
-
-    class Meta:
-        fields = ['name', 'price']
-        model = Car
-        index = 'car_index'
-        related_models = [Manufacturer]
-        doc_type = 'car_document'
+from .documents import CarDocument
+from .models import Ad, Car, Category, Manufacturer
 
 
 class DocTypeTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.break_car = Car(
+            name="Type 51",
+            type=Car.TYPE_BREAK,
+            launched=datetime.date.today(),
+            pk=51,
+        )
+        cls.coupe_car = Car(
+            name="Type 52",
+            type=Car.TYPE_COUPE,
+            launched=datetime.date.today() - datetime.timedelta(days=50),
+            pk=52,
+        )
 
     def test_model_class_added(self):
         self.assertEqual(CarDocument._doc_type.model, Car)
@@ -89,12 +70,12 @@ class DocTypeTestCase(TestCase):
         mapping = CarDocument._doc_type.mapping
         self.assertEqual(
             set(mapping.properties.properties.to_dict().keys()),
-            set(['color', 'name', 'price', 'type'])
+            set(['price', 'manufacturer', 'categories', 'name', 'type', 'ads', 'launched'])
         )
 
     def test_related_models_added(self):
         related_models = CarDocument._doc_type.related_models
-        self.assertEqual([Manufacturer], related_models)
+        self.assertEqual([Ad, Manufacturer, Category], related_models)
 
     def test_duplicate_field_names_not_allowed(self):
         with self.assertRaises(RedeclaredFieldError):
@@ -119,26 +100,38 @@ class DocTypeTestCase(TestCase):
 
     def test_mapping(self):
         text_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
-
-        self.assertEqual(
-            CarDocument._doc_type.mapping.to_dict(), {
-                'car_document': {
-                    'properties': {
-                        'name': {
-                            'type': text_type
-                        },
-                        'color': {
-                            'type': text_type
-                        },
-                        'type': {
-                            'type': text_type
-                        },
-                        'price': {
-                            'type': 'double'
-                        }
-                    }
+        expected = {
+            'ads': {
+                'type': 'nested',
+                'properties': {
+                    'pk': {'type': 'integer'},
+                    'title': {'type': text_type},
+                    'description': {'analyzer': 'html_strip', 'type': text_type}
                 }
-            }
+            },
+            'name': {'type': text_type},
+            'categories': {
+                'type': 'nested',
+                'properties': {
+                    'icon': {'type': text_type},
+                    'slug': {'type': text_type},
+                    'title': {'type': text_type}
+                }
+            },
+            'type': {'type': text_type},
+            'manufacturer': {
+                'type': 'object',
+                'properties': {
+                    'name': {'type': text_type},
+                    'country': {'type': text_type}
+                }
+            },
+            'launched': {'type': 'date'},
+            'price': {'type': 'double'}
+        }
+        self.assertEqual(
+            CarDocument._doc_type.mapping.to_dict()['car_document']['properties'],
+            expected
         )
 
     def test_get_queryset(self):
@@ -147,17 +140,18 @@ class DocTypeTestCase(TestCase):
         self.assertEqual(qs.model, Car)
 
     def test_prepare(self):
-        car = Car(name="Type 57", price=5400000.0, not_indexed="not_indexex")
         doc = CarDocument()
-        prepared_data = doc.prepare(car)
-        self.assertEqual(
-            prepared_data, {
-                'color': doc.prepare_color(None),
-                'type': car.type(),
-                'name': car.name,
-                'price': car.price
-            }
-        )
+        prepared_data = doc.prepare(self.break_car)
+        expected = {
+            'type': self.break_car.type,
+            'launched': self.break_car.launched,
+            'ads': [],
+            'categories': [],
+            'manufacturer': {},
+            'name': self.break_car.name,
+            'price': self.break_car.price,
+        }
+        self.assertEqual(prepared_data, expected)
 
     def test_prepare_ignore_dsl_base_field(self):
         class CarDocumentDSlBaseField(DocType):
@@ -168,33 +162,32 @@ class DocTypeTestCase(TestCase):
                 index = 'car_index'
                 fields = ['name', 'price']
 
-        car = Car(name="Type 57", price=5400000.0, not_indexed="not_indexex")
         doc = CarDocumentDSlBaseField()
-        prepared_data = doc.prepare(car)
-        self.assertEqual(
-            prepared_data, {
-                'name': car.name,
-                'price': car.price
-            }
-        )
+        prepared_data = doc.prepare(self.break_car)
+        expected = {
+            'name': self.break_car.name,
+            'price': self.break_car.price
+        }
+        self.assertEqual(prepared_data, expected)
 
     def test_model_instance_update(self):
         doc = CarDocument()
-        car = Car(name="Type 57", price=5400000.0,
-                  not_indexed="not_indexex", pk=51)
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update(car)
+            doc.update(self.break_car)
             actions = [{
-                '_id': car.pk,
+                '_id': self.break_car.pk,
                 '_op_type': 'index',
                 '_source': {
-                    'name': car.name,
-                    'price': car.price,
-                    'type': car.type(),
-                    'color': doc.prepare_color(None),
+                    'ads': [],
+                    'categories': [],
+                    'manufacturer': {},
+                    'name': self.break_car.name,
+                    'type': self.break_car.type,
+                    'price': self.break_car.price,
+                    'launched': self.break_car.launched,
                 },
-                '_index': 'car_index',
-                '_type': 'car_document'
+                '_index': CarDocument._doc_type.index,
+                '_type': CarDocument._doc_type.mapping.properties._name
             }]
             self.assertEqual(1, mock.call_count)
             self.assertEqual(
@@ -207,36 +200,35 @@ class DocTypeTestCase(TestCase):
 
     def test_model_instance_iterable_update(self):
         doc = CarDocument()
-        car = Car(name="Type 57", price=5400000.0,
-                  not_indexed="not_indexex", pk=51)
-        car2 = Car(name=_("Type 42"), price=50000.0,
-                   not_indexed="not_indexex", pk=31)
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update([car, car2], action='update')
+            doc.update([self.break_car, self.coupe_car], action='update')
             actions = [{
-                '_id': car.pk,
+                '_id': self.break_car.pk,
+                '_index': 'test_cars',
                 '_op_type': 'update',
                 '_source': {
-                    'name': car.name,
-                    'price': car.price,
-                    'type': car.type(),
-                    'color': doc.prepare_color(None),
-                },
-                '_index': 'car_index',
+                    'ads': [],
+                    'categories': [],
+                    'launched': self.break_car.launched,
+                    'manufacturer': {},
+                    'name': self.break_car.name,
+                    'price': self.break_car.price,
+                    'type': self.break_car.type},
                 '_type': 'car_document'
-            },
-                {
-                    '_id': car2.pk,
-                    '_op_type': 'update',
-                    '_source': {
-                        'name': car2.name,
-                        'price': car2.price,
-                        'type': car2.type(),
-                        'color': doc.prepare_color(None),
-                    },
-                    '_index': 'car_index',
-                    '_type': 'car_document'
-                }]
+            }, {
+                '_id': self.coupe_car.pk,
+                '_index': 'test_cars',
+                '_op_type': 'update',
+                '_source': {
+                    'ads': [],
+                    'categories': [],
+                    'launched': self.coupe_car.launched,
+                    'manufacturer': {},
+                    'name': self.coupe_car.name,
+                    'price': self.coupe_car.price,
+                    'type': self.coupe_car.type},
+                '_type': 'car_document'
+            }]
             self.assertEqual(1, mock.call_count)
             self.assertEqual(
                 actions, list(mock.call_args_list[0][1]['actions'])
@@ -247,11 +239,13 @@ class DocTypeTestCase(TestCase):
             )
 
     def test_model_instance_update_no_refresh(self):
-        doc = CarDocument()
-        doc._doc_type.auto_refresh = False
-        car = Car()
+        class CarDocumentNotAutoRefresh(DocType):
+            class Meta:
+                model = Car
+                auto_refresh = False
+
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update(car)
+            CarDocumentNotAutoRefresh().update(self.break_car)
             self.assertNotIn('refresh', mock.call_args_list[0][1])
 
     def test_model_instance_iterable_update_with_pagination(self):
@@ -260,7 +254,7 @@ class DocTypeTestCase(TestCase):
                 model = Car
                 queryset_pagination = 2
 
-        doc = CarDocument()
+        doc = CarDocument2()
         car1 = Car()
         car2 = Car()
         car3 = Car()
@@ -269,3 +263,24 @@ class DocTypeTestCase(TestCase):
             self.assertEqual(
                 3, len(list(mock.call_args_list[0][1]['actions']))
             )
+
+    def test_queryset_update_with_pagination(self):
+        class CarDocument2(DocType):
+            class Meta:
+                model = Car
+                queryset_pagination = 6
+
+        doc = CarDocument2()
+        count = 10
+        cars = [
+            Car(launched=datetime.date.today(), price=12000)
+            for i in range(count)
+        ]
+
+        Car.objects.bulk_create(cars)  # bypass django signal
+        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
+            # force querying in disorder
+            cars_from_db = Car.objects.all().order_by('?')
+            doc.update(cars_from_db)
+            pks = set(r['_id'] for r in mock.call_args_list[0][1]['actions'])
+            self.assertEqual(count, len(pks))

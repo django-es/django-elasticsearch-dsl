@@ -104,7 +104,9 @@ before_script:
   - sleep 10
 
 # command to run tests using coverage, e.g. python setup.py test
-script: tox -e $TOX_ENV -- --elasticsearch
+script:
+  - flake8
+  - tox -e $TOX_ENV -- --elasticsearch
 
 after_success:
   - codecov -e $TOX_ENV
