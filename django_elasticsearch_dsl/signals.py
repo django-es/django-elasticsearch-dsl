@@ -6,6 +6,7 @@ cause things to index.
 
 from __future__ import absolute_import
 
+from celery.exceptions import ImproperlyConfigured
 from django.db import models
 from django.apps import apps
 
@@ -73,13 +74,10 @@ class BaseSignalProcessor(object):
         registry.delete(instance, raise_on_error=False)
 
 
-class RealTimeSignalProcessor(BaseSignalProcessor):
-    """Real-time signal processor.
-
-    Allows for observing when saves/deletes fire and automatically updates the
-    search engine appropriately.
+class DjangoSignalsMixin(object):
     """
-
+    Enable Django signals integration
+    """
     def setup(self):
         # Listen to all model saves.
         models.signals.post_save.connect(self.handle_save)
@@ -96,12 +94,21 @@ class RealTimeSignalProcessor(BaseSignalProcessor):
         models.signals.m2m_changed.disconnect(self.handle_m2m_changed)
         models.signals.pre_delete.disconnect(self.handle_pre_delete)
 
+
+class RealTimeSignalProcessor(DjangoSignalsMixin, BaseSignalProcessor):
+    """Real-time signal processor.
+
+    Allows for observing when saves/deletes fire and automatically updates the
+    search engine appropriately.
+    """
+    pass
+
 try:
     from celery import shared_task
 except ImportError:
     pass
 else:
-    class CelerySignalProcessor(RealTimeSignalProcessor):
+    class CelerySignalProcessor(DjangoSignalsMixin, BaseSignalProcessor):
         """Celery signal processor.
 
         Allows automatic updates on the index as delayed background tasks using
@@ -122,10 +129,11 @@ else:
             """
             pk = instance.pk
             app_label = instance._meta.app_label
-            model_name = instance.__class__.__name__
+            model_name = instance._meta.concrete_model.__name__
 
-            self.registry_update_task.delay(pk, app_label, model_name)
-            self.registry_update_related_task.delay(pk, app_label, model_name)
+            if instance._meta.concrete_model not in registry:
+                self.registry_update_task.delay(pk, app_label, model_name)
+                self.registry_update_related_task.delay(pk, app_label, model_name)
 
         @shared_task()
         def registry_update_task(pk, app_label, model_name):

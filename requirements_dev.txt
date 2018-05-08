@@ -2,4 +2,4 @@ bumpversion==0.5.3
 wheel==0.29.0
 django>=2.0,<2.1
 elasticsearch-dsl>=2.1.0,<6.0.0
-
+celery==4.1.0

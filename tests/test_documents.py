@@ -1,4 +1,6 @@
-from unittest import TestCase
+from unittest import SkipTest
+
+from django.test import override_settings, TestCase
 from mock import patch
 
 from django.db import models
@@ -48,9 +50,22 @@ class CarDocument(DocType):
         related_models = [Manufacturer]
 
 
-class DocTypeTestCase(TestCase):
+class BaseDocTypeTestCase(object):
+    TARGET_PROCESSOR = None
+
+    @classmethod
+    def setUpClass(cls):
+        from django.conf import settings
+        if cls.TARGET_PROCESSOR != settings.ELASTICSEARCH_DSL_SIGNAL_PROCESSOR:
+            raise SkipTest(
+                "Skipped because {} is required, not {}".format(
+                    cls.TARGET_PROCESSOR, settings.ELASTICSEARCH_DSL_SIGNAL_PROCESSOR
+                )
+            )
+        super().setUpClass()
 
     def test_model_class_added(self):
+        from django.conf import settings
         self.assertEqual(CarDocument._doc_type.model, Car)
 
     def test_ignore_signal_default(self):
@@ -243,10 +258,13 @@ class DocTypeTestCase(TestCase):
     def test_model_instance_update_no_refresh(self):
         doc = CarDocument()
         doc._doc_type.auto_refresh = False
-        car = Car()
-        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update(car)
-            self.assertNotIn('refresh', mock.call_args_list[0][1])
+        try:
+            car = Car()
+            with patch('django_elasticsearch_dsl.documents.bulk') as mock:
+                doc.update(car)
+                self.assertNotIn('refresh', mock.call_args_list[0][1])
+        finally:
+            doc._doc_type.auto_refresh = True
 
     def test_model_instance_iterable_update_with_pagination(self):
         class CarDocument2(DocType):
@@ -262,3 +280,11 @@ class DocTypeTestCase(TestCase):
             self.assertEqual(
                 3, len(list(mock.call_args_list[0][1]['actions']))
             )
+
+
+class RealTimeDocTypeTestCase(BaseDocTypeTestCase, TestCase):
+    TARGET_PROCESSOR = 'django_elasticsearch_dsl.signals.RealTimeSignalProcessor'
+
+
+class CeleryDocTypeTestCase(BaseDocTypeTestCase, TestCase):
+    TARGET_PROCESSOR = 'django_elasticsearch_dsl.signals.CelerySignalProcessor'
