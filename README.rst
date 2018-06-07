@@ -508,6 +508,13 @@ Default: ``True``
 
 Set to ``False`` to globally disable auto-syncing.
 
+ELASTICSEARCH_DSL_AUTOSYNC_LOGERRORS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``False``
+
+Set to ``True`` to log (but not raise) errors during auto-syncing. Deletion never raises (but this option controls the logging of deletion errors). Note that you should periodically rebuild your index to resolve drift. Note also that it is important to ensure errors are visible (i.e. Sentry) so that you can correct indexing issues.
+
 ELASTICSEARCH_DSL_INDEX_SETTINGS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
