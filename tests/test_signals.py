@@ -71,6 +71,7 @@ class LogErrorsTestCase(TestCase):
         rtsp.handle_delete(None, None)
         self.assertFalse(m_logger.exception.called)
 
+        # All other methods raise exceptions when LOG_ERRORS is disabled.
         m_registry.delete_related.side_effect = ElasticsearchException()
         with self.assertRaises(ElasticsearchException):
             rtsp.handle_pre_delete(None, None)
