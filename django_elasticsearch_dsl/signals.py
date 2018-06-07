@@ -11,13 +11,16 @@ import logging
 from django.db import models
 from django.conf import settings
 
+from elasticsearch.exceptions import ElasticsearchException
+from elasticsearch_dsl.exceptions import ElasticsearchDslException
+
 from .registries import registry
 
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
-LOG_ERRORS = getattr(settings, 'ELASTICSEARCH_DSL_AUTOSYNC_LOGERRORS', False)
+LOG_ERRORS = getattr(settings, 'ELASTICSEARCH_DSL_AUTOSYNC_LOG_ERRORS', False)
 
 
 class BaseSignalProcessor(object):
@@ -58,7 +61,7 @@ class BaseSignalProcessor(object):
             elif action in ('pre_remove', 'pre_clear'):
                 self.handle_pre_delete(sender, instance)
 
-        except:
+        except (ElasticsearchException, ElasticsearchDslException):
             if not LOG_ERRORS:
                 raise
             LOGGER.exception('Error during auto-sync %s, continuing', action)
@@ -73,7 +76,7 @@ class BaseSignalProcessor(object):
             registry.update(instance)
             registry.update_related(instance)
 
-        except:
+        except (ElasticsearchException, ElasticsearchDslException):
             if not LOG_ERRORS:
                 raise
             LOGGER.exception('Error during auto-sync save, continuing')
@@ -86,7 +89,7 @@ class BaseSignalProcessor(object):
         try:
             registry.delete_related(instance)
 
-        except:
+        except (ElasticsearchException, ElasticsearchDslException):
             if not LOG_ERRORS:
                 raise
             LOGGER.exception('Error during auto-sync pre-delete, continuing')
@@ -99,7 +102,7 @@ class BaseSignalProcessor(object):
         try:
             registry.delete(instance)
 
-        except:
+        except (ElasticsearchException, ElasticsearchDslException):
             if not LOG_ERRORS:
                 # Preserve functionality, don't ever raise during deletion, but
                 # optionally log.

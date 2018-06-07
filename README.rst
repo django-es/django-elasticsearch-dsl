@@ -508,7 +508,7 @@ Default: ``True``
 
 Set to ``False`` to globally disable auto-syncing.
 
-ELASTICSEARCH_DSL_AUTOSYNC_LOGERRORS
+ELASTICSEARCH_DSL_AUTOSYNC_LOG_ERRORS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Default: ``False``
