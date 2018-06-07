@@ -55,16 +55,10 @@ class BaseSignalProcessor(object):
         # Do nothing.
 
     def handle_m2m_changed(self, sender, instance, action, **kwargs):
-        try:
-            if action in ('post_add', 'post_remove', 'post_clear'):
-                self.handle_save(sender, instance)
-            elif action in ('pre_remove', 'pre_clear'):
-                self.handle_pre_delete(sender, instance)
-
-        except (ElasticsearchException, ElasticsearchDslException):
-            if not LOG_ERRORS:
-                raise
-            LOGGER.exception('Error during auto-sync %s, continuing', action)
+        if action in ('post_add', 'post_remove', 'post_clear'):
+            self.handle_save(sender, instance)
+        elif action in ('pre_remove', 'pre_clear'):
+            self.handle_pre_delete(sender, instance)
 
     def handle_save(self, sender, instance, **kwargs):
         """Handle save.
@@ -102,7 +96,7 @@ class BaseSignalProcessor(object):
         try:
             registry.delete(instance)
 
-        except (ElasticsearchException, ElasticsearchDslException):
+        except Exception:
             if not LOG_ERRORS:
                 # Preserve functionality, don't ever raise during deletion, but
                 # optionally log.
