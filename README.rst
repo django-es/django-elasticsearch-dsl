@@ -75,10 +75,10 @@ Here is an example of a more fully filled out ``ELASTICSEARCH_DSL``:
             'hosts': 'https://admin:password@localhost:9200'
             'use_ssl': True,
 
-            # only if using localhost above! ssl certs generally are associated with a full domain eg: example.com
+            # only if using localhost above! ssl certs generally are associated with a full domain eg: example.com or www.example.com
             'ssl_assert_hostname': False,
 
-            # if you are using a self-signed or unrecognized certificate:
+            # if you are using a self-signed or unrecognized certificate authority:
             'ca_certs': <../../certificate-authority.crt>,
 
             # ssl connections with Elasticsearch are more prone to timing out, default is 10 seconds without any retries
@@ -88,9 +88,9 @@ Here is an example of a more fully filled out ``ELASTICSEARCH_DSL``:
         },
     }
 
-For all possible configuration options see the (elasticsearch-py docs here_).
+For all possible connection configuration options see the elasticsearch-py docs_.
 
-.. _here: https://elasticsearch-py.readthedocs.io/en/master/connection.html
+.. _docs: https://elasticsearch-py.readthedocs.io/en/master/connection.html
 
 Then for a model:
 
