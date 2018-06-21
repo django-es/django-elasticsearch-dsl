@@ -50,7 +50,7 @@ Then add ``django_elasticsearch_dsl`` to the INSTALLED_APPS
 
 You must define ``ELASTICSEARCH_DSL`` in your django settings.
 
-For example:
+A simple example for development:
 
 .. code-block:: python
 
@@ -63,6 +63,34 @@ For example:
 ``ELASTICSEARCH_DSL`` is then passed to ``elasticsearch-dsl-py.connections.configure`` (see here_).
 
 .. _here: http://elasticsearch-dsl.readthedocs.io/en/stable/configuration.html#multiple-clusters
+
+In production you will want to use TLS for your Elasticsearch connection.
+
+Here is an example of a more fully filled out ``ELASTICSEARCH_DSL``:
+
+.. code-block:: python
+
+    ELASTICSEARCH_DSL={
+        'default': {
+            'hosts': 'https://admin:password@localhost:9200'
+            'use_ssl': True,
+
+            # only if using localhost above! ssl certs generally are associated with a full domain eg: example.com
+            'ssl_assert_hostname': False,
+
+            # if you are using a self-signed or unrecognized certificate:
+            'ca_certs': <../../certificate-authority.crt>,
+
+            # ssl connections with Elasticsearch are more prone to timing out, default is 10 seconds without any retries
+            'timeout': 60,
+            'retry_on_timeout': True,
+            'max_retries': 2,
+        },
+    }
+
+For all possible configuration options see the (elasticsearch-py docs here_).
+
+.. _here: https://elasticsearch-py.readthedocs.io/en/master/connection.html
 
 Then for a model:
 
