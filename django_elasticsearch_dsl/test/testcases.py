@@ -5,19 +5,21 @@ from ..registries import registry
 class ESTestCase(object):
     _index_suffixe = '_ded_test'
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         for doc in registry.get_documents():
-            doc._doc_type.index += self._index_suffixe
+            doc._doc_type.index += cls._index_suffixe
 
         for index in registry.get_indices():
-            index._name += self._index_suffixe
+            index._name += cls._index_suffixe
             index.delete(ignore=[404, 400])
             index.create()
 
-        super(ESTestCase, self).setUp()
+        super().setUpClass()
 
-    def tearDown(self):
-        pattern = re.compile(self._index_suffixe + '$')
+    @classmethod
+    def tearDownClass(cls):
+        pattern = re.compile(cls._index_suffixe + '$')
 
         for doc in registry.get_documents():
             doc._doc_type.index = pattern.sub('', doc._doc_type.index)
@@ -26,4 +28,4 @@ class ESTestCase(object):
             index.delete(ignore=[404, 400])
             index._name = pattern.sub('', index._name)
 
-        super(ESTestCase, self).tearDown()
+        super().tearDownClass()
