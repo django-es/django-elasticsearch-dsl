@@ -29,6 +29,10 @@ from .exceptions import VariableLookupError
 
 
 class DEDField(Field):
+    """
+    Document field types must subclass this
+    """
+
     def __init__(self, attr=None, **kwargs):
         super(DEDField, self).__init__(**kwargs)
         self._path = attr.split('.') if attr else []
@@ -88,6 +92,10 @@ class DEDField(Field):
 
 
 class ObjectField(DEDField, Object):
+    """
+    Used to wrap object type fields for indexing. Will serialise any internal
+    objects
+    """
     def _get_inner_field_data(self, obj, field_value_to_ignore=None):
         data = {}
 

@@ -54,7 +54,7 @@ class DocTypeMeta(DSLDocTypeMeta):
     def __new__(cls, name, bases, attrs):
         """
         Subclass default DocTypeMeta to generate ES fields from django
-        models fields
+        models fields. Initialises an ES index.
         """
         super_new = super(DocTypeMeta, cls).__new__
 
@@ -114,6 +114,10 @@ class DocTypeMeta(DSLDocTypeMeta):
 
 @add_metaclass(DocTypeMeta)
 class DocType(DSLDocType):
+    """
+    Documents class must subclass this to define a search index for a model.
+    """
+
     def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(DocType, self).__init__(**kwargs)
         self._related_instance_to_ignore = related_instance_to_ignore
@@ -126,6 +130,9 @@ class DocType(DSLDocType):
 
     @classmethod
     def search(cls, using=None, index=None):
+        """
+        Perform search
+        """
         return Search(
             using=using or cls._doc_type.using,
             index=index or cls._doc_type.index,
@@ -188,6 +195,9 @@ class DocType(DSLDocType):
             )
 
     def bulk(self, actions, **kwargs):
+        """
+        Perform an ES bulk query
+        """
         return bulk(client=self.connection, actions=actions, **kwargs)
 
     def _prepare_action(self, object_instance, action):
@@ -202,6 +212,9 @@ class DocType(DSLDocType):
         }
 
     def _get_actions(self, object_list, action):
+        """
+        Prepare the bulk query
+        """
         if self._doc_type.queryset_pagination is not None:
             paginator = Paginator(
                 object_list, self._doc_type.queryset_pagination

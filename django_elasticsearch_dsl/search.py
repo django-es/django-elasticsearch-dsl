@@ -4,6 +4,7 @@ from elasticsearch_dsl import Search as DSLSearch
 
 
 class Search(DSLSearch):
+
     def __init__(self, **kwargs):
         self._model = kwargs.pop('model', None)
         super(Search, self).__init__(**kwargs)

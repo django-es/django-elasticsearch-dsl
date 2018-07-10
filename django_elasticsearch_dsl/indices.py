@@ -9,6 +9,10 @@ from .registries import registry
 
 @python_2_unicode_compatible
 class Index(DSLIndex):
+    """
+    Instantiates an ElasticSearch index
+    """
+
     def __init__(self, name, using='default'):
         super(Index, self).__init__(name, using)
         self._settings = deepcopy(DEDConfig.default_index_settings())

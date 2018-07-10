@@ -8,6 +8,9 @@ __version__ = '0.5.0'
 
 
 def autodiscover():
+    """
+    Auto-discover any search indexes from 'documents.py' files
+    """
     autodiscover_modules('documents')
 
 
