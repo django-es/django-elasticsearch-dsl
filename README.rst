@@ -396,7 +396,7 @@ Available Fields
     - IntegerField(attr=None, \*\*elasticsearch_properties)
     - IpField(attr=None, \*\*elasticsearch_properties)
     - GeoPointField(attr=None, \*\*elasticsearch_properties)
-    - GeoShapField(attr=None, \*\*elasticsearch_properties)
+    - GeoShapeField(attr=None, \*\*elasticsearch_properties)
     - ShortField(attr=None, \*\*elasticsearch_properties)
     - StringField(attr=None, \*\*elasticsearch_properties)
 
