@@ -291,8 +291,8 @@ You can use an ObjectField or a NestedField.
 
     # documents.py
 
-    from django_elasticsearch_dsl import DocType, Index
-    from .models import Car
+    from django_elasticsearch_dsl import DocType, Index, fields
+    from .models import Car, Manufacturer, Ad
 
     car = Index('cars')
     car.settings(
