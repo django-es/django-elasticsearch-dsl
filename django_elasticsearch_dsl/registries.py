@@ -75,6 +75,10 @@ class DocumentRegistry(object):
         # Add django attribute in the document class with all the django attribute
         setattr(document, 'django', django_attr)
 
+        # Set the fields of the mappings
+        fields = document._doc_type.mapping.properties.properties.to_dict()
+        setattr(document, '_fields', fields)
+
         # Register the document and index class to our registry
         self.register(index=document._index, doc_class=document)
 

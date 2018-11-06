@@ -3,6 +3,7 @@ from mock import Mock
 from django.db import models
 
 from django_elasticsearch_dsl.documents import DocType
+from django_elasticsearch_dsl.registries import registry
 
 
 class WithFixturesMixin(object):
@@ -31,14 +32,15 @@ class WithFixturesMixin(object):
     ):
         _index = index
 
+        @registry.register_document
         class Doc(DocType):
-            class Meta:
-                index = _index
-                ignore_signals = _ignore_signals
+            class Index:
+                name = _index
 
             class Django:
                 model = _model
                 related_models = _related_models if _related_models is not None else []
+                ignore_signals = _ignore_signals
 
 
         Doc.update = Mock()
@@ -46,7 +48,5 @@ class WithFixturesMixin(object):
             Doc.get_queryset = Mock(return_value=mock_qs)
         if _related_models:
             Doc.get_instances_from_related = Mock()
-
-        self.registry.register_document(document=Doc)
 
         return Doc

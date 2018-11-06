@@ -83,7 +83,7 @@ class DocType(DSLDocument):
         based on the fields defined on this DocType subclass
         """
         data = {}
-        for name, field in iteritems(instance._doc_type.mapping):
+        for name, field in iteritems(self._fields):
             if not isinstance(field, DEDField):
                 continue
 

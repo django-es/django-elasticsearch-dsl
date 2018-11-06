@@ -68,6 +68,8 @@ class DocTypeTestCase(TestCase):
         self.assertTrue(CarDocument.django.auto_refresh)
 
     def test_ignore_signal_added(self):
+
+        @registry.register_document
         class CarDocument2(DocType):
             class Django:
                 model = Car
@@ -76,14 +78,16 @@ class DocTypeTestCase(TestCase):
         self.assertTrue(CarDocument2.django.ignore_signals)
 
     def test_auto_refresh_added(self):
+        @registry.register_document
         class CarDocument2(DocType):
             class Django:
                 model = Car
                 auto_refresh = False
 
-        self.assertFalse(CarDocument2._doc_type.auto_refresh)
+        self.assertFalse(CarDocument2.django.auto_refresh)
 
     def test_queryset_pagination_added(self):
+        @registry.register_document
         class CarDocument2(DocType):
             class Django:
                 model = Car
@@ -105,11 +109,12 @@ class DocTypeTestCase(TestCase):
 
     def test_duplicate_field_names_not_allowed(self):
         with self.assertRaises(RedeclaredFieldError):
+            @registry.register_document
             class CarDocument(DocType):
                 color = fields.StringField()
                 name = fields.StringField()
 
-                class Meta:
+                class Django:
                     fields = ['name']
                     model = Car
 
@@ -128,7 +133,7 @@ class DocTypeTestCase(TestCase):
         text_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
 
         self.assertEqual(
-            CarDocument.meta.mapping.to_dict(), {
+            CarDocument._doc_type.mapping.to_dict(), {
                 'car_document': {
                     'properties': {
                         'name': {
@@ -167,13 +172,16 @@ class DocTypeTestCase(TestCase):
         )
 
     def test_prepare_ignore_dsl_base_field(self):
+        @registry.register_document
         class CarDocumentDSlBaseField(DocType):
             position = GeoPoint()
 
-            class Meta:
+            class Django:
                 model = Car
-                index = 'car_index'
                 fields = ['name', 'price']
+
+            class Index:
+                name = 'car_index'
 
         car = Car(name="Type 57", price=5400000.0, not_indexed="not_indexex")
         doc = CarDocumentDSlBaseField()
