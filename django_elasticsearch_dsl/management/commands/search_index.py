@@ -87,7 +87,7 @@ class Command(BaseCommand):
         for doc in registry.get_documents(models):
             qs = doc().get_queryset()
             self.stdout.write("Indexing {} '{}' objects".format(
-                qs.count(), doc._doc_type.model.__name__)
+                qs.count(), doc.django.model.__name__)
             )
             doc().update(qs)
 

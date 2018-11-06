@@ -6,3 +6,4 @@ Pillow==4.2.1
 
 
 # Additional test requirements go here
+https://github.com/elastic/elasticsearch-dsl-py/archive/master.tar.gz

@@ -9,8 +9,8 @@ from .registries import registry
 
 @python_2_unicode_compatible
 class Index(DSLIndex):
-    def __init__(self, name, using='default'):
-        super(Index, self).__init__(name, using)
+    def __init__(self, *args, **kwargs):
+        super(Index, self).__init__(*args, **kwargs)
         self._settings = deepcopy(DEDConfig.default_index_settings())
 
     def doc_type(self, doc_type, *args, **kwargs):

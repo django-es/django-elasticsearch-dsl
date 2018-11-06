@@ -29,12 +29,17 @@ class WithFixturesMixin(object):
         self, _model, index=None, mock_qs=None,
         _ignore_signals=False, _related_models=None
     ):
+        _index = index
+
         class Doc(DocType):
             class Meta:
-                model = _model
+                index = _index
                 ignore_signals = _ignore_signals
-                related_models = _related_models if (
-                    _related_models) is not None else []
+
+            class Django:
+                model = _model
+                related_models = _related_models if _related_models is not None else []
+
 
         Doc.update = Mock()
         if mock_qs:
@@ -42,7 +47,6 @@ class WithFixturesMixin(object):
         if _related_models:
             Doc.get_instances_from_related = Mock()
 
-        if index:
-            self.registry.register(index, Doc)
+        self.registry.register_document(document=Doc)
 
         return Doc

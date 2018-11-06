@@ -2,8 +2,11 @@ from collections import defaultdict
 from itertools import chain
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.six import itervalues, iterkeys, iteritems
+from elasticsearch_dsl import Field, AttrDict
 
+from django_elasticsearch_dsl.exceptions import RedeclaredFieldError
 from .apps import DEDConfig
 
 
@@ -18,10 +21,10 @@ class DocumentRegistry(object):
 
     def register(self, index, doc_class):
         """Register the model with the registry"""
-        self._models[doc_class._doc_type.model].add(doc_class)
+        self._models[doc_class.django.model].add(doc_class)
 
-        for related in doc_class._doc_type.related_models:
-            self._related_models[related].add(doc_class._doc_type.model)
+        for related in doc_class.django.related_models:
+            self._related_models[related].add(doc_class.django.model)
 
         for idx, docs in iteritems(self._indices):
             if index._name == idx._name:
@@ -30,10 +33,57 @@ class DocumentRegistry(object):
 
         self._indices[index].add(doc_class)
 
+    def register_document(self, document):
+        django_meta = getattr(document, 'Django')
+        # Raise error if Django class can not be found
+        if not django_meta:
+            message = "You must declare the Django class inside {}".format(document.__name__)
+            raise ImproperlyConfigured(message)
+
+        # Keep all django related attribute in a django_attr AttrDict
+        data = {'model': getattr(document.Django, 'model')}
+        django_attr = AttrDict(data)
+
+        if not django_attr.model:
+            raise ImproperlyConfigured("You must specify the django model")
+
+        # Add The model fields into elasticsearch mapping field
+        model_field_names = getattr(document.Django, "fields", [])
+        class_fields = set(
+            name for name, field in document.__dict__.items()
+            if isinstance(field, Field)
+        )
+
+        for field_name in model_field_names:
+            if field_name in class_fields:
+                raise RedeclaredFieldError(
+                    "You cannot redeclare the field named '{}' on {}"
+                    .format(field_name, document.__name__)
+                )
+
+            django_field = django_attr.model._meta.get_field(field_name)
+
+            field_instance = document.to_field(field_name, django_field)
+            document._doc_type.mapping.field(field_name, field_instance)
+
+        django_attr.ignore_signals = getattr(django_meta, "ignore_signals", False)
+        django_attr.auto_refresh = getattr(django_meta,
+                                           "auto_refresh", DEDConfig.auto_refresh_enabled())
+        django_attr.related_models = getattr(django_meta, "related_models", [])
+        django_attr.queryset_pagination = getattr(django_meta, "queryset_pagination", None)
+
+        # Add django attribute in the document class with all the django attribute
+        setattr(document, 'django', django_attr)
+
+        # Register the document and index class to our registry
+        self.register(index=document._index, doc_class=document)
+
+        return document
+
     def _get_related_doc(self, instance):
         for model in self._related_models.get(instance.__class__, []):
             for doc in self._models[model]:
-                if instance.__class__ in doc._doc_type.related_models:
+                if instance.__class__ in doc.django.related_models:
                     yield doc
 
     def update_related(self, instance, **kwargs):
@@ -80,7 +130,7 @@ class DocumentRegistry(object):
 
         if instance.__class__ in self._models:
             for doc in self._models[instance.__class__]:
-                if not doc._doc_type.ignore_signals:
+                if not doc.django.ignore_signals:
                     doc().update(instance, **kwargs)
 
     def delete(self, instance, **kwargs):
@@ -112,7 +162,7 @@ class DocumentRegistry(object):
         if models is not None:
             return set(
                 indice for indice, docs in iteritems(self._indices)
-                for doc in docs if doc._doc_type.model in models
+                for doc in docs if doc.django.model in models
             )
 
         return set(iterkeys(self._indices))

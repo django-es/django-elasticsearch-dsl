@@ -16,6 +16,7 @@ class IndexTestCase(WithFixturesMixin, TestCase):
             index = Index('test')
             doc_a1 = self._generate_doc_mock(self.ModelA)
             doc_a2 = self._generate_doc_mock(self.ModelA)
+            print(index._mapping)
             index.doc_type(doc_a1)
             docs = list(registry.get_documents())
             self.assertEqual(len(docs), 1)
