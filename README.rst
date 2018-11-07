@@ -24,9 +24,10 @@ Features
 - Elasticsearch auto mapping from django models fields.
 - Complex field type support (ObjectField, NestedField).
 - Requirements
-   - Django >= 1.8
-   - Python 2.7, 3.4, 3.5, 3.6
-   - Elasticsearch >= 2.0 < 7.0
+
+  - Django >= 1.8
+  - Python 2.7, 3.4, 3.5, 3.6
+  - Elasticsearch >= 2.0 < 7.0
 
 .. _Search: http://elasticsearch-dsl.readthedocs.io/en/stable/search_dsl.html
 
@@ -386,29 +387,29 @@ Available Fields
 
 - Simple Fields
 
-    - BooleanField(attr=None, \*\*elasticsearch_properties)
-    - ByteField(attr=None, \*\*elasticsearch_properties)
-    - CompletionField(attr=None, \*\*elasticsearch_properties)
-    - DateField(attr=None, \*\*elasticsearch_properties)
-    - DoubleField(attr=None, \*\*elasticsearch_properties)
-    - FileField(attr=None, \*\*elasticsearch_properties)
-    - FloatField(attr=None, \*\*elasticsearch_properties)
-    - IntegerField(attr=None, \*\*elasticsearch_properties)
-    - IpField(attr=None, \*\*elasticsearch_properties)
-    - GeoPointField(attr=None, \*\*elasticsearch_properties)
-    - GeoShapeField(attr=None, \*\*elasticsearch_properties)
-    - ShortField(attr=None, \*\*elasticsearch_properties)
-    - StringField(attr=None, \*\*elasticsearch_properties)
+  - BooleanField(attr=None, \*\*elasticsearch_properties)
+  - ByteField(attr=None, \*\*elasticsearch_properties)
+  - CompletionField(attr=None, \*\*elasticsearch_properties)
+  - DateField(attr=None, \*\*elasticsearch_properties)
+  - DoubleField(attr=None, \*\*elasticsearch_properties)
+  - FileField(attr=None, \*\*elasticsearch_properties)
+  - FloatField(attr=None, \*\*elasticsearch_properties)
+  - IntegerField(attr=None, \*\*elasticsearch_properties)
+  - IpField(attr=None, \*\*elasticsearch_properties)
+  - GeoPointField(attr=None, \*\*elasticsearch_properties)
+  - GeoShapField(attr=None, \*\*elasticsearch_properties)
+  - ShortField(attr=None, \*\*elasticsearch_properties)
+  - StringField(attr=None, \*\*elasticsearch_properties)
 
 - Complex Fields
 
-    - ObjectField(properties, attr=None, \*\*elasticsearch_properties)
-    - NestedField(properties, attr=None, \*\*elasticsearch_properties)
+  - ObjectField(properties, attr=None, \*\*elasticsearch_properties)
+  - NestedField(properties, attr=None, \*\*elasticsearch_properties)
 
 - Elasticsearch >=5 Fields
 
-    - TextField(attr=None, \*\*elasticsearch_properties)
-    - KeywordField(attr=None, \*\*elasticsearch_properties)
+  - TextField(attr=None, \*\*elasticsearch_properties)
+  - KeywordField(attr=None, \*\*elasticsearch_properties)
 
 ``properties`` is a dict where the key is a field name, and the value is a field
 instance.
