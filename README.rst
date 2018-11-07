@@ -38,7 +38,7 @@ Install Django Elasticsearch DSL::
     pip install django-elasticsearch-dsl
 
     # Elasticsearch 6.x
-    pip install 'elasticsearch-dsl>=6.0,<7.0'
+    pip install 'elasticsearch-dsl>=6.0,<6.2'
 
     # Elasticsearch 5.x
     pip install 'elasticsearch-dsl>=5.0,<6.0'
