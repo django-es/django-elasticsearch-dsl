@@ -25,9 +25,9 @@ Features
 - Complex field type support (ObjectField, NestedField).
 - Requirements
 
-  - Django >= 1.8
-  - Python 2.7, 3.4, 3.5, 3.6
-  - Elasticsearch >= 2.0 < 7.0
+   - Django >= 1.10
+   - Python 2.7, 3.5, 3.6, 3.7
+   - Elasticsearch >= 2.0 < 7.0
 
 .. _Search: http://elasticsearch-dsl.readthedocs.io/en/stable/search_dsl.html
 
