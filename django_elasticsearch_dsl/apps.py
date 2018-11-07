@@ -1,9 +1,8 @@
 from django.apps import AppConfig
 from django.conf import settings
+from django.utils.module_loading import import_string
 
 from elasticsearch_dsl.connections import connections
-
-from .utils import import_class
 
 
 class DEDConfig(AppConfig):
@@ -21,7 +20,7 @@ class DEDConfig(AppConfig):
                 'ELASTICSEARCH_DSL_SIGNAL_PROCESSOR',
                 'django_elasticsearch_dsl.signals.RealTimeSignalProcessor'
             )
-            signal_processor_class = import_class(signal_processor_path)
+            signal_processor_class = import_string(signal_processor_path)
             self.signal_processor = signal_processor_class(connections)
 
     @classmethod
