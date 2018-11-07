@@ -3,6 +3,10 @@
 History
 -------
 
+0.5.1 (2018-11-07)
+~~~~~~~~~~~~~~~~~~
+* Limit elastsearch-dsl to supported versions
+
 0.5.0 (2018-04-22)
 ~~~~~~~~~~~~~~~~~~
 * Add Support for Elasticsearch 6 thanks to HansAdema
