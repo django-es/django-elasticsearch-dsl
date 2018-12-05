@@ -93,7 +93,6 @@ class PagingQuerysetProxy(object):
             # to values above; this optimises the query for Postgres as not to
             # devolve into multi-second run time at large offsets.
             if self.chunk_size:
-                print("chunk", last_max_pk)
                 if last_max_pk is not None:
                     current_qs = small_cache_qs.filter(pk__gt=last_max_pk)[:self.chunk_size]
                 else:
