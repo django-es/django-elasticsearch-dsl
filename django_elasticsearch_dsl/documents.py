@@ -1,12 +1,15 @@
 from __future__ import unicode_literals
 
+from collections import deque
+
 from django.db import models
-from django.core.paginator import Paginator
 from django.utils.six import add_metaclass, iteritems
-from elasticsearch.helpers import bulk
+
+from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import DocType as DSLDocType
 from elasticsearch_dsl.document import DocTypeMeta as DSLDocTypeMeta
 from elasticsearch_dsl.field import Field
+
 
 from .apps import DEDConfig
 from .exceptions import ModelFieldNotMappedError, RedeclaredFieldError
@@ -254,6 +257,10 @@ class DocType(DSLDocType):
     def bulk(self, actions, **kwargs):
         return bulk(client=self.connection, actions=actions, **kwargs)
 
+    def parallel_bulk(self, actions, **kwargs):
+        deque(parallel_bulk(client=self.connection, actions=actions, **kwargs), maxlen=0)
+        return (1, [])  # Fake return value to emulate bulk(), not used upstream
+
     def _prepare_action(self, object_instance, action):
         return {
             '_op_type': action,
@@ -283,6 +290,6 @@ class DocType(DSLDocType):
         else:
             object_list = thing
 
-        return self.bulk(
+        return self.parallel_bulk(
             self._get_actions(object_list, action), **kwargs
         )
