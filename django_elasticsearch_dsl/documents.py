@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from collections import deque
+from functools import partial
 
 from django.db import models
 from django.utils.six import add_metaclass, iteritems
@@ -200,42 +201,53 @@ class DocType(DSLDocType):
 
     def get_indexing_queryset(self):
         qs = self.get_queryset()
-        # Note: PagingQuerysetProxy handles no chunking, but some tests
-        # check for the qs, so don't interfere.
+        # Note: PagingQuerysetProxy handles the "no chunking" case,
+        #  but some tests check for the mock qs, so don't interfere.
+        #  We could remove this check/branch if the tests are adapted.
         if self._doc_type.queryset_pagination is not None:
             return PagingQuerysetProxy(qs, chunk_size=self._doc_type.queryset_pagination)
         return qs
+
+    def init_prepare(self):
+        """
+        Initialise the data model preparers once here. Extracts the preparers
+        from the model and generate a list of callables to avoid doing that
+        work on every object instance over.
+        """
+        fields = []
+        for name, field in self._doc_type._fields().items():
+            if not isinstance(field, DEDField):
+                continue
+
+            if not field._path:
+                field._path = [name]
+
+            prep_func = getattr(self, 'prepare_%s_with_related' % name, None)
+            if prep_func:
+                fn = partial(prep_func, related_to_ignore=self._related_instance_to_ignore)
+            else:
+                prep_func = getattr(self, 'prepare_%s' % name, None)
+                if prep_func:
+                    fn = prep_func
+                else:
+                    fn = partial(field.get_value_from_instance, field_value_to_ignore=self._related_instance_to_ignore)
+
+            fields.append((name, field, fn))
+
+        self._doc_type._prepared_fields = fields
 
     def prepare(self, instance):
         """
         Take a model instance, and turn it into a dict that can be serialized
         based on the fields defined on this DocType subclass
         """
-        data = {}
-        for name, field in iteritems(self._doc_type._fields()):
-            if not isinstance(field, DEDField):
-                continue
+        if getattr(self._doc_type, '_prepared_fields', None) is None:
+            self.init_prepare()
 
-            if field._path == []:
-                field._path = [name]
-
-            prep_func = getattr(self, 'prepare_%s_with_related' % name, None)
-            if prep_func:
-                field_value = prep_func(
-                    instance,
-                    related_to_ignore=self._related_instance_to_ignore
-                )
-            else:
-                prep_func = getattr(self, 'prepare_%s' % name, None)
-                if prep_func:
-                    field_value = prep_func(instance)
-                else:
-                    field_value = field.get_value_from_instance(
-                        instance, self._related_instance_to_ignore
-                    )
-
-            data[name] = field_value
-
+        data = {
+            name: prep_func(instance)
+                for name, field, prep_func in self._doc_type._prepared_fields
+            }
         return data
 
     @classmethod
