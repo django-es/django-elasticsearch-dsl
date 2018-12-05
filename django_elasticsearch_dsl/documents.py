@@ -49,6 +49,64 @@ model_field_class_to_field_class = {
     models.URLField: TextField,
 }
 
+class PagingQuerysetProxy(object):
+    """
+    I am a tiny standin for Django Querysets that implements enough of
+    the protocol (namely count() and __iter__) to be useful for indexing
+    large data sets.
+
+    When iterated over, I will:
+        - use qs.iterator() to disable result set caching in queryset.
+        - chunk fetching the results so that caching in database driver
+            (especially psycopg2) is kept to a minimum, and database
+            drivers that do not support streaming (eg. mysql) do not
+            need to load the whole dataset at once.
+    """
+    def __init__(self, qs, chunk_size=10000):
+        self.qs = qs
+        self.chunk_size = chunk_size
+
+    def count(self):
+        """Pass through to underlying queryset"""
+        return self.qs.count()
+
+    def __iter__(self):
+        """Iterate over result set. Internally uses iterator() as not
+        to cache in the queryset; also supports chunking fetching data
+        in smaller sets so that databases that do not use server side
+        cursors (django docs say only postgres and oracle do) or other
+        optimisations keep memory consumption manageable."""
+
+        last_max_pk = None
+
+        # Get a clone of the QuerySet so that the cache doesn't bloat up
+        # in memory. Useful when reindexing large amounts of data.
+        small_cache_qs = self.qs.order_by('pk')
+
+        once = no_data = False
+        while not no_data and not once:
+            # If we got the max seen PK from last batch, use it to restrict the qs
+            # to values above; this optimises the query for Postgres as not to
+            # devolve into multi-second run time at large offsets.
+            if self.chunk_size:
+                print("chunk", last_max_pk)
+                if last_max_pk is not None:
+                    current_qs = small_cache_qs.filter(pk__gt=last_max_pk)[:self.chunk_size]
+                else:
+                    current_qs = small_cache_qs[:self.chunk_size]
+            else: # Handle "no chunking"
+                current_qs = small_cache_qs
+                once = True	 # force loop exit after fetching all data
+
+            no_data = True
+            for obj in current_qs.iterator():
+                # Remember maximum PK seen so far
+                last_max_pk = obj.pk
+                no_data = False
+                yield obj
+
+            current_qs = None  # I'm free!
+
 
 class DocTypeMeta(DSLDocTypeMeta):
     def __new__(cls, name, bases, attrs):
@@ -70,9 +128,7 @@ class DocTypeMeta(DSLDocTypeMeta):
         )
         model_field_names = getattr(attrs['Meta'], "fields", [])
         related_models = getattr(attrs['Meta'], "related_models", [])
-        queryset_pagination = getattr(
-            attrs['Meta'], "queryset_pagination", None
-        )
+        queryset_pagination = getattr(attrs['Meta'], "queryset_pagination", None)
 
         class_fields = set(
             name for name, field in iteritems(attrs)
@@ -139,6 +195,14 @@ class DocType(DSLDocType):
         """
         return self._doc_type.model._default_manager.all()
 
+    def get_indexing_queryset(self):
+        qs = self.get_queryset()
+        # Note: PagingQuerysetProxy handles no chunking, but some tests
+        # check for the qs, so don't interfere.
+        if self._doc_type.queryset_pagination is not None:
+            return PagingQuerysetProxy(qs, chunk_size=self._doc_type.queryset_pagination)
+        return qs
+
     def prepare(self, instance):
         """
         Take a model instance, and turn it into a dict that can be serialized
@@ -202,16 +266,8 @@ class DocType(DSLDocType):
         }
 
     def _get_actions(self, object_list, action):
-        if self._doc_type.queryset_pagination is not None:
-            paginator = Paginator(
-                object_list, self._doc_type.queryset_pagination
-            )
-            for page in paginator.page_range:
-                for object_instance in paginator.page(page).object_list:
-                    yield self._prepare_action(object_instance, action)
-        else:
-            for object_instance in object_list:
-                yield self._prepare_action(object_instance, action)
+        for object_instance in object_list:
+            yield self._prepare_action(object_instance, action)
 
     def update(self, thing, refresh=None, action='index', **kwargs):
         """

@@ -85,7 +85,7 @@ class Command(BaseCommand):
 
     def _populate(self, models, options):
         for doc in registry.get_documents(models):
-            qs = doc().get_queryset()
+            qs = doc().get_indexing_queryset()
             self.stdout.write("Indexing {} '{}' objects".format(
                 qs.count(), doc._doc_type.model.__name__)
             )
