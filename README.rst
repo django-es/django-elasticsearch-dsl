@@ -117,11 +117,19 @@ defined in a ``documents.py`` file.
             # Ignore auto updating of Elasticsearch when a model is saved
             # or deleted:
             # ignore_signals = True
+
             # Don't perform an index refresh after every update (overrides global setting):
             # auto_refresh = False
+
             # Paginate the django queryset used to populate the index with the specified size
             # (by default there is no pagination)
             # queryset_pagination = 5000
+
+            # Do indexing in parallel (using ES parallel_bulk)
+            # Note that some databases (eg. sqlite) do not play well with this option
+            # (defaults to False):
+            # parallel_indexing = True
+
 
 
 To create and populate the Elasticsearch index and mapping use the search_index command::

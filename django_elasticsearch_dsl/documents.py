@@ -131,6 +131,7 @@ class DocTypeMeta(DSLDocTypeMeta):
         model_field_names = getattr(meta, "fields", [])
         related_models = getattr(meta, "related_models", [])
         queryset_pagination = getattr(meta, "queryset_pagination", None)
+        parallel_indexing = getattr(meta, "parallel_indexing", False)
 
         class_fields = set(
             name for name, field in iteritems(attrs)
@@ -145,6 +146,7 @@ class DocTypeMeta(DSLDocTypeMeta):
         doc_type.auto_refresh = auto_refresh
         doc_type.related_models = related_models
         doc_type.queryset_pagination = queryset_pagination
+        doc_type.parallel_indexing = parallel_indexing
 
         fields = model._meta.get_fields()
         fields_lookup = dict((field.name, field) for field in fields)
@@ -272,6 +274,13 @@ class DocType(DSLDocType):
         deque(parallel_bulk(client=self.connection, actions=actions, **kwargs), maxlen=0)
         return (1, [])  # Fake return value to emulate bulk(), not used upstream
 
+    def _bulk(self, *args, parallel=False, **kwargs):
+        """Helper for switching between normal and parallel bulk operation"""
+        if parallel:
+            return self.parallel_bulk(*args, **kwargs)
+        else:
+            return self.bulk(*args, **kwargs)
+
     def _prepare_action(self, object_instance, action):
         return {
             '_op_type': action,
@@ -301,6 +310,6 @@ class DocType(DSLDocType):
         else:
             object_list = thing
 
-        return self.parallel_bulk(
-            self._get_actions(object_list, action), **kwargs
+        return self._bulk(self._get_actions(object_list, action),
+            parallel=self._doc_type.parallel_indexing, **kwargs
         )
