@@ -274,8 +274,9 @@ class DocType(DSLDocType):
         deque(parallel_bulk(client=self.connection, actions=actions, **kwargs), maxlen=0)
         return (1, [])  # Fake return value to emulate bulk(), not used upstream
 
-    def _bulk(self, *args, parallel=False, **kwargs):
+    def _bulk(self, *args, **kwargs):
         """Helper for switching between normal and parallel bulk operation"""
+        parallel = kwargs.pop('parallel', False)
         if parallel:
             return self.parallel_bulk(*args, **kwargs)
         else:
