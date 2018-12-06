@@ -123,15 +123,14 @@ class DocTypeMeta(DSLDocTypeMeta):
         if not parents:
             return super_new(cls, name, bases, attrs)
 
-        model = attrs['Meta'].model
+        meta = attrs['Meta']
+        model = meta.model
 
-        ignore_signals = getattr(attrs['Meta'], "ignore_signals", False)
-        auto_refresh = getattr(
-            attrs['Meta'], 'auto_refresh', DEDConfig.auto_refresh_enabled()
-        )
-        model_field_names = getattr(attrs['Meta'], "fields", [])
-        related_models = getattr(attrs['Meta'], "related_models", [])
-        queryset_pagination = getattr(attrs['Meta'], "queryset_pagination", None)
+        ignore_signals = getattr(meta, "ignore_signals", False)
+        auto_refresh = getattr(meta, 'auto_refresh', DEDConfig.auto_refresh_enabled())
+        model_field_names = getattr(meta, "fields", [])
+        related_models = getattr(meta, "related_models", [])
+        queryset_pagination = getattr(meta, "queryset_pagination", None)
 
         class_fields = set(
             name for name, field in iteritems(attrs)
@@ -140,11 +139,12 @@ class DocTypeMeta(DSLDocTypeMeta):
 
         cls = super_new(cls, name, bases, attrs)
 
-        cls._doc_type.model = model
-        cls._doc_type.ignore_signals = ignore_signals
-        cls._doc_type.auto_refresh = auto_refresh
-        cls._doc_type.related_models = related_models
-        cls._doc_type.queryset_pagination = queryset_pagination
+        doc_type = cls._doc_type
+        doc_type.model = model
+        doc_type.ignore_signals = ignore_signals
+        doc_type.auto_refresh = auto_refresh
+        doc_type.related_models = related_models
+        doc_type.queryset_pagination = queryset_pagination
 
         fields = model._meta.get_fields()
         fields_lookup = dict((field.name, field) for field in fields)
@@ -158,13 +158,13 @@ class DocTypeMeta(DSLDocTypeMeta):
 
             field_instance = cls.to_field(field_name,
                                           fields_lookup[field_name])
-            cls._doc_type.mapping.field(field_name, field_instance)
+            doc_type.mapping.field(field_name, field_instance)
 
-        cls._doc_type._fields = (
-            lambda: cls._doc_type.mapping.properties.properties.to_dict())
+        doc_type._fields = (
+            lambda: doc_type.mapping.properties.properties.to_dict())
 
-        if getattr(cls._doc_type, 'index'):
-            index = Index(cls._doc_type.index)
+        if getattr(doc_type, 'index'):
+            index = Index(doc_type.index)
             index.doc_type(cls)
             registry.register(index, cls)
 
