@@ -33,6 +33,7 @@ model_field_class_to_field_class = {
     models.CharField: TextField,
     models.DateField: DateField,
     models.DateTimeField: DateField,
+    models.DecimalField: DoubleField,
     models.EmailField: TextField,
     models.FileField: FileField,
     models.FilePathField: KeywordField,
