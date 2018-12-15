@@ -12,3 +12,7 @@ class RedeclaredFieldError(DjangoElasticsearchDslError):
 
 class ModelFieldNotMappedError(DjangoElasticsearchDslError):
     pass
+
+
+class InvalidModelSettingsError(DjangoElasticsearchDslError):
+    pass

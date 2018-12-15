@@ -9,7 +9,7 @@ from elasticsearch_dsl.document import DocTypeMeta as DSLDocTypeMeta
 from elasticsearch_dsl.field import Field
 
 from .apps import DEDConfig
-from .exceptions import ModelFieldNotMappedError, RedeclaredFieldError
+from .exceptions import ModelFieldNotMappedError, RedeclaredFieldError, InvalidModelSettingsError
 from .fields import (
     BooleanField,
     DateField,
@@ -21,6 +21,8 @@ from .fields import (
     LongField,
     ShortField,
     TextField,
+    ObjectField,
+    NestedField,
 )
 from .indices import Index
 from .registries import registry
@@ -73,11 +75,67 @@ class DocTypeMeta(DSLDocTypeMeta):
         queryset_pagination = getattr(
             attrs['Meta'], "queryset_pagination", None
         )
+        fields = model._meta.get_fields()
+        fields_lookup = dict((field.name, field) for field in fields)
 
         class_fields = set(
             name for name, field in iteritems(attrs)
             if isinstance(field, Field)
         )
+
+        related_model_settings = getattr(
+            attrs['Meta'], 'related_model_settings', {}
+        )
+
+        related_fields = [field for field in fields
+            if field.is_relation and related_model_settings.get(field.related_model, None)]
+        for related_field in related_fields:
+            related_model = related_field.related_model
+            # Currently preventing sub-nested fields.
+            related_model_field_lookup = dict((field.name, field)
+                for field in related_model._meta.get_fields() if not field.is_relation)
+
+            conf = related_model_settings.get(related_model)
+            settings = {}
+            # Get analyzer for the model
+            analyzer = conf.get('analyzer', None)
+            # Filter out list of fields to generate based on user specification
+            fields_to_include = conf.get('include', None)
+            fields_to_exclude = conf.get('exclude', None)
+            if fields_to_exclude and fields_to_include:
+                raise InvalidModelSettingsError(
+                    "Cannot define include and exclude on same model"
+                )
+            if fields_to_include:
+                for field_name in fields_to_include:
+                    if field_name not in related_model_field_lookup.keys():
+                        raise InvalidModelSettingsError(
+                            "Cannot find field {} in model {}".format(field_name, related_model.__name__)
+                        )
+                related_model_field_lookup = { field_name: related_model_field_lookup[field_name]
+                    for field_name in fields_to_include}
+            if fields_to_exclude:
+                for field_name in fields_to_exclude:
+                    if field_name not in related_model_field_lookup.keys():
+                        raise InvalidModelSettingsError(
+                            "Cannot find field {} in model {}".format(field_name, related_model.__name__)
+                        )
+                related_model_field_lookup = { field_name: related_model_field_lookup[field_name]
+                    for field_name in related_model_field_lookup.keys() if field_name not in fields_to_exclude}
+            # Prioritize user defined fields
+            override_fields = conf.get('fields', {})
+
+            # Construct fields
+            for field_name, field in related_model_field_lookup.items():
+                new_field = model_field_class_to_field_class[type(field)]()
+                if analyzer:
+                    new_field._setattr('analyzer', analyzer)
+                settings[field_name] = new_field
+            settings.update(override_fields)
+
+            object_type = conf.get('type', NestedField)
+            object_name = conf.get('name', related_field.name)
+            attrs[object_name] = object_type(properties=settings)
 
         cls = super_new(cls, name, bases, attrs)
 
@@ -86,9 +144,6 @@ class DocTypeMeta(DSLDocTypeMeta):
         cls._doc_type.auto_refresh = auto_refresh
         cls._doc_type.related_models = related_models
         cls._doc_type.queryset_pagination = queryset_pagination
-
-        fields = model._meta.get_fields()
-        fields_lookup = dict((field.name, field) for field in fields)
 
         for field_name in model_field_names:
             if field_name in class_fields:
