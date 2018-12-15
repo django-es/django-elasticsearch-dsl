@@ -140,8 +140,10 @@ class DocTypeTestCase(TestCase):
                 }
             }
         )
+
     def test_mapping_with_related_model_settings(self):
         from .models import Car, Manufacturer, Ad, Category
+
         class CarDocumentWithout(DocType):
             manufacturer = fields.ObjectField(properties={
                 'name': fields.TextField(),
@@ -192,8 +194,10 @@ class DocTypeTestCase(TestCase):
                 }
                 fields = ['name', 'launched', 'type']
 
-        self.assertEqual(CarDocumentWith._doc_type.mapping.to_dict(),
-        CarDocumentWithout._doc_type.mapping.to_dict())
+        self.assertEqual(
+            CarDocumentWith._doc_type.mapping.to_dict(),
+            CarDocumentWithout._doc_type.mapping.to_dict()
+        )
 
     def test_get_queryset(self):
         qs = CarDocument().get_queryset()

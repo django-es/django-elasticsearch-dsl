@@ -9,7 +9,11 @@ from elasticsearch_dsl.document import DocTypeMeta as DSLDocTypeMeta
 from elasticsearch_dsl.field import Field
 
 from .apps import DEDConfig
-from .exceptions import ModelFieldNotMappedError, RedeclaredFieldError, InvalidModelSettingsError
+from .exceptions import (
+    ModelFieldNotMappedError,
+    RedeclaredFieldError,
+    InvalidModelSettingsError
+)
 from .fields import (
     BooleanField,
     DateField,
@@ -21,7 +25,6 @@ from .fields import (
     LongField,
     ShortField,
     TextField,
-    ObjectField,
     NestedField,
 )
 from .indices import Index
@@ -87,13 +90,18 @@ class DocTypeMeta(DSLDocTypeMeta):
             attrs['Meta'], 'related_model_settings', {}
         )
 
-        related_fields = [field for field in fields
-            if field.is_relation and related_model_settings.get(field.related_model, None)]
+        related_fields = [
+            field for field in fields
+            if field.is_relation and
+            related_model_settings.get(
+                                field.related_model, None)]
         for related_field in related_fields:
             related_model = related_field.related_model
             # Currently preventing sub-nested fields.
-            related_model_field_lookup = dict((field.name, field)
-                for field in related_model._meta.get_fields() if not field.is_relation)
+            related_model_field_lookup = dict(
+                (field.name, field)
+                for field in related_model._meta.get_fields()
+                if not field.is_relation)
 
             conf = related_model_settings.get(related_model)
             settings = {}
@@ -110,18 +118,28 @@ class DocTypeMeta(DSLDocTypeMeta):
                 for field_name in fields_to_include:
                     if field_name not in related_model_field_lookup.keys():
                         raise InvalidModelSettingsError(
-                            "Cannot find field {} in model {}".format(field_name, related_model.__name__)
+                            "Cannot find field {} in model {}".format(
+                                field_name,
+                                related_model.__name__
+                            )
                         )
-                related_model_field_lookup = { field_name: related_model_field_lookup[field_name]
+                related_model_field_lookup = {
+                    field_name: related_model_field_lookup[field_name]
                     for field_name in fields_to_include}
             if fields_to_exclude:
                 for field_name in fields_to_exclude:
                     if field_name not in related_model_field_lookup.keys():
                         raise InvalidModelSettingsError(
-                            "Cannot find field {} in model {}".format(field_name, related_model.__name__)
+                            "Cannot find field {} in model {}".format(
+                                field_name,
+                                related_model.__name__
+                            )
                         )
-                related_model_field_lookup = { field_name: related_model_field_lookup[field_name]
-                    for field_name in related_model_field_lookup.keys() if field_name not in fields_to_exclude}
+                related_model_field_lookup = {
+                    field_name: related_model_field_lookup[field_name]
+                    for field_name in related_model_field_lookup.keys()
+                    if field_name not in fields_to_exclude
+                }
             # Prioritize user defined fields
             override_fields = conf.get('fields', {})
 
