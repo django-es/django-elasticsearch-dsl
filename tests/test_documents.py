@@ -140,6 +140,60 @@ class DocTypeTestCase(TestCase):
                 }
             }
         )
+    def test_mapping_with_related_model_settings(self):
+        from .models import Car, Manufacturer, Ad, Category
+        class CarDocumentWithout(DocType):
+            manufacturer = fields.ObjectField(properties={
+                'name': fields.TextField(),
+                'country_code': fields.TextField(),
+                'created': fields.DateField(),
+                'logo': fields.FileField()
+            })
+            ads = fields.NestedField(properties={
+                'description': fields.TextField(),
+                'title': fields.TextField(),
+                'created': fields.DateField(),
+                'modified': fields.DateField(),
+                'url': fields.TextField(),
+            })
+            categories = fields.NestedField(properties={
+                'title': fields.TextField(),
+                'slug': fields.TextField(),
+                'icon': fields.FileField()
+            })
+
+            class Meta:
+                fields = ['name', 'launched', 'type']
+                model = Car
+                index = 'car_index'
+                related_models = [Manufacturer, Ad, Category]
+                doc_type = 'car_document'
+
+        class CarDocumentWith(DocType):
+            class Meta:
+                model = Car
+                index = 'car_index'
+                related_models = [Manufacturer, Ad]
+                doc_type = 'car_document'
+                related_model_settings = {
+                    Ad: {
+                        'name': 'ads',
+                        'exclude': ['id'],
+                    },
+                    Manufacturer: {
+                        'name': 'manufacturer',
+                        'type': fields.ObjectField,
+                        'exclude': ['id'],
+                    },
+                    Category: {
+                        'name': 'categories',
+                        'exclude': ['id'],
+                    }
+                }
+                fields = ['name', 'launched', 'type']
+
+        self.assertEqual(CarDocumentWith._doc_type.mapping.to_dict(),
+        CarDocumentWithout._doc_type.mapping.to_dict())
 
     def test_get_queryset(self):
         qs = CarDocument().get_queryset()

@@ -338,6 +338,78 @@ You can use an ObjectField or a NestedField.
             elif isinstance(related_instance, Ad):
                 return related_instance.car
 
+A simpler alternative to auto generate nested fields is using the ```related_model_settings``` parameter. This automatically generates the required fields. Below is an example of how you can use the ```related_model_settings``` parameter to auto generate your Object / Nested fields.
+
+.. code-block:: python
+
+    # documents.py
+
+
+    class CarDocumentWithout(DocType):
+        manufacturer = fields.ObjectField(properties={
+            'name': fields.TextField(),
+            'country_code': fields.TextField(),
+            'created': fields.DateField(),
+            'logo': fields.FileField()
+        })
+        ads = fields.NestedField(properties={
+            'description': fields.TextField(),
+            'title': fields.TextField(),
+            'created': fields.DateField(),
+            'modified': fields.DateField(),
+            'url': fields.TextField(),
+        })
+        categories = fields.NestedField(properties={
+            'title': fields.TextField(),
+            'slug': fields.TextField(),
+            'icon': fields.FileField()
+        })
+
+        class Meta:
+            fields = ['name', 'launched', 'type']
+            model = Car
+            index = 'car_index'
+            related_models = [Manufacturer, Ad, Category]
+            doc_type = 'car_document'
+
+    class CarDocumentWith(DocType):
+        class Meta:
+            model = Car
+            index = 'car_index'
+            related_models = [Manufacturer, Ad]
+            doc_type = 'car_document'
+            related_model_settings = {
+                Ad: {
+                    'name': 'ads',
+                    'exclude': ['id'],
+                },
+                Manufacturer: {
+                    'name': 'manufacturer',
+                    'type': fields.ObjectField,
+                    'exclude': ['id'],
+                },
+                Category: {
+                    'name': 'categories',
+                    'exclude': ['id'],
+                }
+            }
+            fields = ['name', 'launched', 'type']
+
+        #   related_model_settings = {
+        #        Model: {
+        #            'name': Name of the nested attribute // default(field name in Model)
+        #            'type': fields.Nested or fields.Object // default(Nested)
+        #            'include': fields to include // default(All Fields)
+        #            'exclude': fields to exclude // default(No Field)
+        #            'fields': { // Used to override generated fields
+        #                'field_name': fields.TextField(attr='', analyzer=...)
+        #            }
+        #            'analyzer': analyzer object // Given to all generated fields
+        #        }
+        #}
+
+In the above example, both of the documents generate an equivalent mapping.
+
 
 Field Classes
 ~~~~~~~~~~~~~
@@ -565,6 +637,6 @@ TODO
 - Add support for --using (use another Elasticsearch cluster) in management commands.
 - Add management commands for mapping level operations (like update_mapping....).
 - Dedicated documentation.
-- Generate ObjectField/NestField properties from a DocType class.
 - More examples.
 - Better ``ESTestCase`` and documentation for testing
+- Support sub-nested fields. Currently only non-relation fields are auto-generated
