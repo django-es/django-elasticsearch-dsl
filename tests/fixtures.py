@@ -3,7 +3,6 @@ from mock import Mock
 from django.db import models
 
 from django_elasticsearch_dsl.documents import DocType
-from django_elasticsearch_dsl.registries import registry
 
 
 class WithFixturesMixin(object):
@@ -26,13 +25,11 @@ class WithFixturesMixin(object):
     class ModelE(models.Model):
         pass
 
-    def _generate_doc_mock(
-        self, _model, index=None, mock_qs=None,
-        _ignore_signals=False, _related_models=None
-    ):
+    def _generate_doc_mock(self, _model, index=None, mock_qs=None,
+                           _ignore_signals=False, _related_models=None):
         _index = index
 
-        @registry.register_document
+        @self.registry.register_document
         class Doc(DocType):
             class Index:
                 name = _index

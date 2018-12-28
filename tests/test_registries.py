@@ -3,6 +3,7 @@ from unittest import TestCase
 
 from django.conf import settings
 
+from django_elasticsearch_dsl import Index
 from django_elasticsearch_dsl.registries import DocumentRegistry
 
 from .fixtures import WithFixturesMixin
@@ -11,8 +12,8 @@ from .fixtures import WithFixturesMixin
 class DocumentRegistryTestCase(WithFixturesMixin, TestCase):
     def setUp(self):
         self.registry = DocumentRegistry()
-        self.index_1 = Mock()
-        self.index_2 = Mock()
+        self.index_1 = Index(name='index_1')
+        self.index_2 = Index(name='index_2')
 
         self.doc_a1 = self._generate_doc_mock(self.ModelA, self.index_1)
         self.doc_a2 = self._generate_doc_mock(self.ModelA, self.index_1)
@@ -111,9 +112,8 @@ class DocumentRegistryTestCase(WithFixturesMixin, TestCase):
         doc_d2.update.assert_not_called()
 
     def test_update_related_instances_not_defined(self):
-        doc_d1 = self._generate_doc_mock(
-            self.ModelD, self.index_1, _related_models=[self.ModelE]
-        )
+        doc_d1 = self._generate_doc_mock(_model=self.ModelD, index=self.index_1,
+                                         _related_models=[self.ModelE])
 
         instance = self.ModelE()
 

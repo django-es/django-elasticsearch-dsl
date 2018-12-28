@@ -27,9 +27,13 @@ class DocumentRegistry(object):
             self._related_models[related].add(doc_class.django.model)
 
         for idx, docs in iteritems(self._indices):
+            # import pdb
+            # pdb.set_trace()
             if index._name == idx._name:
                 docs.add(doc_class)
                 return
+
+        print(self._indices, index)
 
         self._indices[index].add(doc_class)
 
@@ -96,6 +100,11 @@ class DocumentRegistry(object):
         """
         if not DEDConfig.autosync_enabled():
             return
+
+        # print(list(self._get_related_doc(instance)))
+        # import pdb
+        # pdb.set_trace()
+        print(instance.__class__, "ffff")
 
         for doc in self._get_related_doc(instance):
             doc_instance = doc()
