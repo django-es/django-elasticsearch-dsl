@@ -14,6 +14,7 @@ class DocumentRegistryTestCase(fixtures.WithFixturesMixin, TestCase):
         self.registry.register(self.index_2, fixtures.DocB1)
         self.registry.register(self.index_1, fixtures.DocC1)
         self.registry.register(self.index_1, fixtures.DocD1)
+        self.registry.register(self.index_1, fixtures.DocD2)
 
         self.buffer_patcher = patch(
             'django_elasticsearch_dsl.registries.ActionBuffer')
@@ -41,7 +42,8 @@ class DocumentRegistryTestCase(fixtures.WithFixturesMixin, TestCase):
 
         self.assertEqual(
             self.registry._indices[self.index_1],
-            {fixtures.DocA1, fixtures.DocA2, fixtures.DocC1, fixtures.DocD1}
+            {fixtures.DocA1, fixtures.DocA2, fixtures.DocC1, fixtures.DocD1,
+             fixtures.DocD2}
         )
         self.assertEqual(
             self.registry._indices[self.index_2],
@@ -51,14 +53,15 @@ class DocumentRegistryTestCase(fixtures.WithFixturesMixin, TestCase):
     def test_get_models(self):
         self.assertEqual(
             self.registry.get_models(),
-            {fixtures.ModelA, fixtures.ModelB, fixtures.ModelC, fixtures.ModelD}
+            {fixtures.ModelA, fixtures.ModelB, fixtures.ModelC,
+             fixtures.ModelD}
         )
 
     def test_get_documents(self):
         self.assertEqual(
             self.registry.get_documents(),
             {fixtures.DocA1, fixtures.DocA2, fixtures.DocB1,
-             fixtures.DocC1, fixtures.DocD1}
+             fixtures.DocC1, fixtures.DocD1, fixtures.DocD2}
         )
 
     def test_get_documents_by_model(self):
@@ -109,7 +112,7 @@ class DocumentRegistryTestCase(fixtures.WithFixturesMixin, TestCase):
 
     def test_get_related_doc(self):
         results = list(self.registry.get_related_doc(fixtures.ModelE))
-        self.assertEqual([fixtures.DocD1], results)
+        self.assertEqual([fixtures.DocD1, fixtures.DocD2], results)
 
     def test_delete_instance(self):
         instance = fixtures.ModelB()

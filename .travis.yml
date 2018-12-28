@@ -1,60 +1,92 @@
 # Config file for automatic testing at travis-ci.org
 
 language: python
-python: 3.6
+python: 3.7
 
 dist: trusty # default "precise" distro doesn't include Java 8 for Elasticsearch 5
 
 matrix:
   include:
-    - env: TOX_ENV=py35-django-18-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
-      python: 3.5
-    - env: TOX_ENV=py35-django-18-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
-      python: 3.5
-    - env:  TOX_ENV=py27-django-18-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
-      python: 2.7
-    - env: TOX_ENV=py27-django-18-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
-      python: 2.7
-    - env: TOX_ENV=py35-django-19-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
-      python: 3.5
-    - env: TOX_ENV=py35-django-19-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
-      python: 3.5
-    - env: TOX_ENV=py27-django-19-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
-      python: 2.7
-    - env: TOX_ENV=py27-django-19-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
-      python: 2.7
     - env: TOX_ENV=py36-django-110-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
       python: 3.6
     - env: TOX_ENV=py36-django-110-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
       python: 3.6
-    - env: TOX_ENV=py35-django-110-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
-      python: 3.5
-    - env: TOX_ENV=py35-django-110-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
-      python: 3.5
+    - env: TOX_ENV=py36-django-110-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.6
+    - env: TOX_ENV=py37-django-110-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
+      python: 3.7
+      sudo: true
+      dist: xenial
+    - env: TOX_ENV=py37-django-110-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
+      python: 3.7
+      sudo: true
+      dist: xenial
+    - env: TOX_ENV=py37-django-110-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.7
+      sudo: true
+      dist: xenial
     - env: TOX_ENV=py27-django-110-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
       python: 2.7
     - env: TOX_ENV=py27-django-110-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
+      python: 2.7
+    - env: TOX_ENV=py27-django-110-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 2.7
     - env: TOX_ENV=py36-django-111-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
       python: 3.6
     - env: TOX_ENV=py36-django-111-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
       python: 3.6
-    - env: TOX_ENV=py35-django-111-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
-      python: 3.5
-    - env: TOX_ENV=py35-django-111-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
-      python: 3.5
+    - env: TOX_ENV=py36-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.6
+    - env: TOX_ENV=py37-django-111-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
+      python: 3.7
+      sudo: true
+      dist: xenial
+    - env: TOX_ENV=py37-django-111-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
+      python: 3.7
+      sudo: true
+      dist: xenial
+    - env: TOX_ENV=py37-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.7
+      sudo: true
+      dist: xenial
     - env: TOX_ENV=py27-django-111-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
       python: 2.7
     - env: TOX_ENV=py27-django-111-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
+      python: 2.7
+    - env: TOX_ENV=py27-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 2.7
     - env: TOX_ENV=py36-django-2-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
       python: 3.6
     - env: TOX_ENV=py36-django-2-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
       python: 3.6
-    - env: TOX_ENV=py35-django-2-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
-      python: 3.5
-    - env: TOX_ENV=py35-django-2-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
-      python: 3.5
+    - env: TOX_ENV=py36-django-2-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.6
+    - env: TOX_ENV=py37-django-2-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
+      python: 3.7
+      sudo: true
+      dist: xenial
+    - env: TOX_ENV=py37-django-2-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
+      python: 3.7
+      sudo: true
+      dist: xenial
+    - env: TOX_ENV=py37-django-2-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.7
+      sudo: true
+      dist: xenial
+    - env: TOX_ENV=py37-django-21-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.7
+      dist: xenial
+      sudo: true
+    - env: TOX_ENV=py37-django-21-es5 ES_APT_URL=https://artifacts.elastic.co/packages/5.x/apt
+      python: 3.7
+      dist: xenial
+      sudo: true
+    - env: TOX_ENV=py37-django-21-es2 ES_APT_URL=https://packages.elastic.co/elasticsearch/2.x/debian
+      python: 3.7
+      dist: xenial
+      sudo: true
+
+cache: pip
 
 before_install:
   # work around https://github.com/travis-ci/travis-ci/issues/8363

@@ -24,9 +24,10 @@ Features
 - Elasticsearch auto mapping from django models fields.
 - Complex field type support (ObjectField, NestedField).
 - Requirements
-   - Django >= 1.8
-   - Python 2.7, 3.4, 3.5, 3.6
-   - Elasticsearch >= 2.0 < 6.0
+
+   - Django >= 1.10
+   - Python 2.7, 3.5, 3.6, 3.7
+   - Elasticsearch >= 2.0 < 7.0
 
 .. _Search: http://elasticsearch-dsl.readthedocs.io/en/stable/search_dsl.html
 
@@ -37,11 +38,14 @@ Install Django Elasticsearch DSL::
 
     pip install django-elasticsearch-dsl
 
+    # Elasticsearch 6.x
+    pip install 'elasticsearch-dsl>=6.0,<6.2'
+
     # Elasticsearch 5.x
     pip install 'elasticsearch-dsl>=5.0,<6.0'
 
     # Elasticsearch 2.x
-    pip install 'elasticsearch-dsl>=2.0,<3.0'
+    pip install 'elasticsearch-dsl>=2.1,<3.0'
 
 Then add ``django_elasticsearch_dsl`` to the INSTALLED_APPS
 
@@ -217,7 +221,7 @@ like this:
     class CarDocument(DocType):
         # add a string field to the Elasticsearch mapping called type, the
         # value of which is derived from the model's type_to_string attribute
-        type = fields.StringField(attr="type_to_string")
+        type = fields.TextField(attr="type_to_string")
 
         class Meta:
             model = Car
@@ -249,7 +253,7 @@ needs to be saved.
     class CarDocument(DocType):
         # ... #
 
-        foo = StringField()
+        foo = TextField()
 
         def prepare_foo(self, instance):
             return " ".join(instance.foos)
@@ -288,8 +292,8 @@ You can use an ObjectField or a NestedField.
 
     # documents.py
 
-    from django_elasticsearch_dsl import DocType, Index
-    from .models import Car
+    from django_elasticsearch_dsl import DocType, Index, fields
+    from .models import Car, Manufacturer, Ad
 
     car = Index('cars')
     car.settings(
@@ -301,12 +305,12 @@ You can use an ObjectField or a NestedField.
     @car.doc_type
     class CarDocument(DocType):
         manufacturer = fields.ObjectField(properties={
-            'name': fields.StringField(),
-            'country_code': fields.StringField(),
+            'name': fields.TextField(),
+            'country_code': fields.TextField(),
         })
         ads = fields.NestedField(properties={
-            'description': fields.StringField(analyzer=html_strip),
-            'title': fields.StringField(),
+            'description': fields.TextField(analyzer=html_strip),
+            'title': fields.TextField(),
             'pk': fields.IntegerField(),
         })
 
@@ -325,7 +329,10 @@ You can use an ObjectField or a NestedField.
             )
 
         def get_instances_from_related(self, related_instance):
-            """If related_models is set, define how to retrieve the Car instance(s) from the related model."""
+            """If related_models is set, define how to retrieve the Car instance(s) from the related model.
+            The related_models option should be used with caution because it can lead in the index
+            to the updating of a lot of items.
+            """
             if isinstance(related_instance, Manufacturer):
                 return related_instance.car_set.all()
             elif isinstance(related_instance, Ad):
@@ -362,9 +369,9 @@ So for example you can use a custom analyzer_:
 
     @car.doc_type
     class CarDocument(DocType):
-        description = fields.StringField(
+        description = fields.TextField(
             analyzer=html_strip,
-            fields={'raw': fields.StringField(index='not_analyzed')}
+            fields={'raw': fields.KeywordField()}
         )
 
         class Meta:
@@ -380,29 +387,29 @@ Available Fields
 
 - Simple Fields
 
-    - BooleanField(attr=None, \*\*elasticsearch_properties)
-    - ByteField(attr=None, \*\*elasticsearch_properties)
-    - CompletionField(attr=None, \*\*elasticsearch_properties)
-    - DateField(attr=None, \*\*elasticsearch_properties)
-    - DoubleField(attr=None, \*\*elasticsearch_properties)
-    - FileField(attr=None, \*\*elasticsearch_properties)
-    - FloatField(attr=None, \*\*elasticsearch_properties)
-    - IntegerField(attr=None, \*\*elasticsearch_properties)
-    - IpField(attr=None, \*\*elasticsearch_properties)
-    - GeoPointField(attr=None, \*\*elasticsearch_properties)
-    - GeoShapField(attr=None, \*\*elasticsearch_properties)
-    - ShortField(attr=None, \*\*elasticsearch_properties)
-    - StringField(attr=None, \*\*elasticsearch_properties)
+  - BooleanField(attr=None, \*\*elasticsearch_properties)
+  - ByteField(attr=None, \*\*elasticsearch_properties)
+  - CompletionField(attr=None, \*\*elasticsearch_properties)
+  - DateField(attr=None, \*\*elasticsearch_properties)
+  - DoubleField(attr=None, \*\*elasticsearch_properties)
+  - FileField(attr=None, \*\*elasticsearch_properties)
+  - FloatField(attr=None, \*\*elasticsearch_properties)
+  - IntegerField(attr=None, \*\*elasticsearch_properties)
+  - IpField(attr=None, \*\*elasticsearch_properties)
+  - GeoPointField(attr=None, \*\*elasticsearch_properties)
+  - GeoShapField(attr=None, \*\*elasticsearch_properties)
+  - ShortField(attr=None, \*\*elasticsearch_properties)
+  - StringField(attr=None, \*\*elasticsearch_properties)
 
 - Complex Fields
 
-    - ObjectField(properties, attr=None, \*\*elasticsearch_properties)
-    - NestedField(properties, attr=None, \*\*elasticsearch_properties)
+  - ObjectField(properties, attr=None, \*\*elasticsearch_properties)
+  - NestedField(properties, attr=None, \*\*elasticsearch_properties)
 
-- Elasticsearch 5 Fields
+- Elasticsearch >=5 Fields
 
-    - TextField(attr=None, \*\*elasticsearch_properties)
-    - KeywordField(attr=None, \*\*elasticsearch_properties)
+  - TextField(attr=None, \*\*elasticsearch_properties)
+  - KeywordField(attr=None, \*\*elasticsearch_properties)
 
 ``properties`` is a dict where the key is a field name, and the value is a field
 instance.
@@ -451,7 +458,7 @@ want to put in this Elasticsearch index.
             fields = [
                 'name', # If a field as the same name in multiple DocType of
                         # the same Index, the field type must be identical
-                        # (here fields.StringField)
+                        # (here fields.TextField)
                 'country_code',
             ]
 

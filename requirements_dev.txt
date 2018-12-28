@@ -1,5 +1,6 @@
 bumpversion==0.5.3
-wheel==0.29.0
-django>=2.0,<2.1
-elasticsearch-dsl>=2.0.0,<6.0.0
-
+wheel==0.32.2
+django>=2.0,<2.2
+elasticsearch-dsl>=2.1.0,<6.2.0
+twine
+-e .

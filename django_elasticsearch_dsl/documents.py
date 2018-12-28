@@ -16,9 +16,10 @@ from .fields import (
     DoubleField,
     FileField,
     IntegerField,
+    KeywordField,
     LongField,
     ShortField,
-    StringField,
+    TextField,
 )
 from .indices import Index
 from .registries import registry
@@ -28,23 +29,23 @@ model_field_class_to_field_class = {
     models.AutoField: IntegerField,
     models.BigIntegerField: LongField,
     models.BooleanField: BooleanField,
-    models.CharField: StringField,
+    models.CharField: TextField,
     models.DateField: DateField,
     models.DateTimeField: DateField,
-    models.EmailField: StringField,
+    models.EmailField: TextField,
     models.FileField: FileField,
-    models.FilePathField: StringField,
+    models.FilePathField: KeywordField,
     models.FloatField: DoubleField,
     models.ImageField: FileField,
     models.IntegerField: IntegerField,
     models.NullBooleanField: BooleanField,
     models.PositiveIntegerField: IntegerField,
     models.PositiveSmallIntegerField: ShortField,
-    models.SlugField: StringField,
+    models.SlugField: KeywordField,
     models.SmallIntegerField: ShortField,
-    models.TextField: StringField,
+    models.TextField: TextField,
     models.TimeField: LongField,
-    models.URLField: StringField,
+    models.URLField: TextField,
 }
 
 
@@ -150,13 +151,20 @@ class DocType(DSLDocType):
             if field._path == []:
                 field._path = [name]
 
-            prep_func = getattr(self, 'prepare_%s' % name, None)
+            prep_func = getattr(self, 'prepare_%s_with_related' % name, None)
             if prep_func:
-                field_value = prep_func(instance)
-            else:
-                field_value = field.get_value_from_instance(
-                    instance, self._related_instance_to_ignore
+                field_value = prep_func(
+                    instance,
+                    related_to_ignore=self._related_instance_to_ignore
                 )
+            else:
+                prep_func = getattr(self, 'prepare_%s' % name, None)
+                if prep_func:
+                    field_value = prep_func(instance)
+                else:
+                    field_value = field.get_value_from_instance(
+                        instance, self._related_instance_to_ignore
+                    )
 
             data[name] = field_value
 

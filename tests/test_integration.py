@@ -7,14 +7,19 @@ from django.test import TestCase
 from django.utils.six import StringIO
 from django.utils.translation import ugettext_lazy as _
 
+from elasticsearch_dsl import Index as DSLIndex
 from django_elasticsearch_dsl.test import ESTestCase
+from tests import ES_MAJOR_VERSION
 
 from .documents import (
     ad_index,
     AdDocument,
     car_index,
     CarDocument,
-    PaginatedAdDocument
+    CarWithPrepareDocument,
+    PaginatedAdDocument,
+    ManufacturerDocument,
+    index_settings
 )
 from .models import Car, Manufacturer, Ad, Category, COUNTRIES
 
@@ -172,7 +177,16 @@ class IntegrationTestCase(ESTestCase, TestCase):
         })
 
     def test_index_to_dict(self):
+        self.maxDiff = None
         index_dict = car_index.to_dict()
+        text_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
+
+        test_index = DSLIndex('test_index').settings(**index_settings)
+        test_index.doc_type(CarDocument)
+        test_index.doc_type(ManufacturerDocument)
+
+        index_dict = test_index.to_dict()
+
         self.assertEqual(index_dict['settings'], {
             'number_of_shards': 1,
             'number_of_replicas': 0,
@@ -192,10 +206,10 @@ class IntegrationTestCase(ESTestCase, TestCase):
             'manufacturer_document': {
                 'properties': {
                     'created': {'type': 'date'},
-                    'name': {'type': 'string'},
-                    'country': {'type': 'string'},
-                    'country_code': {'type': 'string'},
-                    'logo': {'type': 'string'},
+                    'name': {'type': text_type},
+                    'country': {'type': text_type},
+                    'country_code': {'type': text_type},
+                    'logo': {'type': text_type},
                 }
             },
             'car_document': {
@@ -204,33 +218,33 @@ class IntegrationTestCase(ESTestCase, TestCase):
                         'type': 'nested',
                         'properties': {
                             'description': {
-                                'type': 'string', 'analyzer':
+                                'type': text_type, 'analyzer':
                                 'html_strip'
                             },
                             'pk': {'type': 'integer'},
-                            'title': {'type': 'string'},
+                            'title': {'type': text_type},
                         },
                     },
                     'categories': {
                         'type': 'nested',
                         'properties': {
-                            'title': {'type': 'string'},
-                            'slug': {'type': 'string'},
-                            'icon': {'type': 'string'},
+                            'title': {'type': text_type},
+                            'slug': {'type': text_type},
+                            'icon': {'type': text_type},
                         },
                     },
                     'manufacturer': {
                         'type': 'object',
                         'properties': {
-                            'country': {'type': 'string'},
-                            'name': {'type': 'string'},
+                            'country': {'type': text_type},
+                            'name': {'type': text_type},
                         },
                     },
-                    'name': {'type': 'string'},
+                    'name': {'type': text_type},
                     'launched': {'type': 'date'},
-                    'type': {'type': 'string'},
+                    'type': {'type': text_type},
                 }
-            }
+            },
         })
 
     def test_related_docs_are_updated(self):
@@ -283,6 +297,21 @@ class IntegrationTestCase(ESTestCase, TestCase):
         car2_doc = s.execute()[0]
         self.assertEqual(len(car2_doc.categories), 0)
 
+    def test_related_docs_with_prepare_are_updated(self):
+        s = CarWithPrepareDocument.search().query("match", name=self.car2.name)
+        self.assertEqual(s.execute()[0].manufacturer.name, 'Peugeot')
+        self.assertEqual(s.execute()[0].manufacturer_short.name, 'Peugeot')
+
+        self.manufacturer.name = 'Citroen'
+        self.manufacturer.save()
+        s = CarWithPrepareDocument.search().query("match", name=self.car2.name)
+        self.assertEqual(s.execute()[0].manufacturer.name, 'Citroen')
+        self.assertEqual(s.execute()[0].manufacturer_short.name, 'Citroen')
+
+        self.manufacturer.delete()
+        s = CarWithPrepareDocument.search().query("match", name=self.car2.name)
+        self.assertEqual(s.execute()[0].manufacturer, {})
+
     def test_delete_create_populate_commands(self):
         out = StringIO()
         self.assertTrue(ad_index.exists())
@@ -296,8 +325,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
         call_command('search_index', action='create',
                      models=['tests.ad'], stdout=out)
         self.assertTrue(ad_index.exists())
-        result = AdDocument().search().execute()
-        self.assertEqual(len(result), 0)
         call_command('search_index', action='populate',
                      models=['tests.ad'], stdout=out)
         result = AdDocument().search().execute()

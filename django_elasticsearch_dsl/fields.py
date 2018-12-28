@@ -1,13 +1,14 @@
 import collections
 from types import MethodType
+import warnings
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.fields.files import FieldFile
 from django.utils.encoding import force_text
 from django.utils.functional import Promise
 
 from elasticsearch_dsl.field import (
-    Attachment,
     Boolean,
     Byte,
     Completion,
@@ -23,7 +24,6 @@ from elasticsearch_dsl.field import (
     Nested,
     Object,
     Short,
-    String,
 )
 from .exceptions import VariableLookupError
 
@@ -56,6 +56,8 @@ class DEDField(Field):
             ):
                 try:
                     instance = getattr(instance, attr)
+                except ObjectDoesNotExist:
+                    return None
                 except (TypeError, AttributeError):
                     try:
                         instance = instance[int(attr)]
@@ -68,7 +70,7 @@ class DEDField(Field):
                             "{!r}".format(attr, instance)
                         )
 
-            if (isinstance(instance, models.manager.Manager)):
+            if isinstance(instance, models.manager.Manager):
                 instance = instance.all()
             elif callable(instance):
                 instance = instance()
@@ -88,16 +90,29 @@ class DEDField(Field):
 class ObjectField(DEDField, Object):
     def _get_inner_field_data(self, obj, field_value_to_ignore=None):
         data = {}
-        for name, field in self.properties.to_dict().items():
-            if not isinstance(field, DEDField):
-                continue
 
-            if field._path == []:
-                field._path = [name]
+        if hasattr(self, 'properties'):
+            for name, field in self.properties.to_dict().items():
+                if not isinstance(field, DEDField):
+                    continue
 
-            data[name] = field.get_value_from_instance(
-                obj, field_value_to_ignore
-            )
+                if field._path == []:
+                    field._path = [name]
+
+                data[name] = field.get_value_from_instance(
+                    obj, field_value_to_ignore
+                )
+        else:
+            for name, field in self._doc_class._doc_type.mapping.properties._params.get('properties', {}).items(): # noqa
+                if not isinstance(field, DEDField):
+                    continue
+
+                if field._path == []:
+                    field._path = [name]
+
+                data[name] = field.get_value_from_instance(
+                    obj, field_value_to_ignore
+                )
 
         return data
 
@@ -125,14 +140,12 @@ def ListField(field):
     original_get_value_from_instance = field.get_value_from_instance
 
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
+        if not original_get_value_from_instance(instance):
+            return []
         return [value for value in original_get_value_from_instance(instance)]
 
     field.get_value_from_instance = MethodType(get_value_from_instance, field)
     return field
-
-
-class AttachmentField(DEDField, Attachment):
-    pass
 
 
 class BooleanField(DEDField, Boolean):
@@ -187,31 +200,71 @@ class ShortField(DEDField, Short):
     pass
 
 
-class StringField(DEDField, String):
-    pass
-
-
-class FileField(DEDField, String):
+class FileFieldMixin(object):
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
-        _file = super(FileField, self).get_value_from_instance(
+        _file = super(FileFieldMixin, self).get_value_from_instance(
             instance, field_value_to_ignore)
 
         if isinstance(_file, FieldFile):
             return _file.url if _file else ''
-        return _file
+        return _file if _file else ''
 
 
-# ES5 specific fields
+# ES5+ has text types Keyword and Text, ES2 has type String.
 try:
-    from elasticsearch_dsl.field import (
-        Keyword,
-        Text,
-    )
+    from elasticsearch_dsl.field import Keyword, Text
 
     class KeywordField(DEDField, Keyword):
         pass
 
     class TextField(DEDField, Text):
         pass
+
+    class StringField(DEDField, Text):
+        warnings.warn(
+            'StringField is deprecated in Elasticsearch 5 and removed in '
+            'Elasticsearch 6. Please use TextField and KeywordField instead.',
+            DeprecationWarning
+        )
+
+    class FileField(FileFieldMixin, DEDField, Text):
+        pass
+
+
 except ImportError:
-    pass
+    from elasticsearch_dsl.field import String
+
+    class KeywordField(DEDField, String):
+        def __init__(self, **kwargs):
+            if 'index' not in kwargs or kwargs['index'] is True:
+                # Unless a custom 'index' setting was provided, create the
+                # Keyword field as a "not_analyzed" field.
+                kwargs['index'] = 'not_analyzed'
+            super(KeywordField, self).__init__(**kwargs)
+
+    class TextField(DEDField, String):
+        pass
+
+    class StringField(DEDField, String):
+        pass
+
+    class FileField(FileFieldMixin, DEDField, String):
+        pass
+
+
+# Elasticsearch 2 and 5 have an Attachment field, ES 6 doesn't.
+try:
+    from elasticsearch_dsl.field import Attachment
+
+    class AttachmentField(DEDField, Attachment):
+        pass
+except ImportError:
+    from elasticsearch_dsl.field import Text
+
+    class AttachmentField(DEDField, Text):
+        name = 'attachment'
+        warnings.warn(
+            'AttachmentField is deprecated in Elasticsearch 5 and removed in '
+            'Elasticsearch 6.',
+            DeprecationWarning
+        )

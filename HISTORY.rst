@@ -3,9 +3,32 @@
 History
 -------
 
+0.5.1 (2018-11-07)
+~~~~~~~~~~~~~~~~~~
+* Limit elastsearch-dsl to supported versions
+
+0.5.0 (2018-04-22)
+~~~~~~~~~~~~~~~~~~
+* Add Support for Elasticsearch 6 thanks to HansAdema
+
+Breaking Change:
+~~~~~~~~~~~~~~~~
+Django string fields now point to ES text field by default.
+Nothing should change for ES 2.X but if you are using ES 5.X,
+you may need to rebuild and/or update some of your documents.
+
+
+0.4.5 (2018-04-22)
+~~~~~~~~~~~~~~~~~~
+* Fix prepare with related models when deleted (See PR #99)
+* Fix unwanted calls to get_instances_from_related
+* Fix for empty ArrayField (CBinyenya)
+* Fix nested OneToOneField when related object doesn't exist (CBinyenya)
+* Update elasticsearch-dsl minimal version
+
 0.4.4 (2017-12-13)
 ~~~~~~~~~~~~~~~~~~
-Fix to_queryset with es 5.0/5.1
+* Fix to_queryset with es 5.0/5.1
 
 0.4.3 (2017-12-12)
 ~~~~~~~~~~~~~~~~~~
