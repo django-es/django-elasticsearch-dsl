@@ -30,9 +30,8 @@ class WithFixturesMixin(object):
         _index = index
 
         @self.registry.register_document
+        @_index.document
         class Doc(DocType):
-            class Index:
-                name = _index
 
             class Django:
                 model = _model
