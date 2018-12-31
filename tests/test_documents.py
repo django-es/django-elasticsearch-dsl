@@ -44,7 +44,7 @@ class CarDocument(DocType):
         return "blue"
 
     class Meta:
-        doc_type = MetaField('car_document')
+        doc_type = 'car_document'
 
     class Django:
         fields = ['name', 'price']
@@ -217,7 +217,7 @@ class DocTypeTestCase(TestCase):
             )
             self.assertTrue(mock.call_args_list[0][1]['refresh'])
             self.assertEqual(
-                doc.connection, mock.call_args_list[0][1]['client']
+                doc._index.connection, mock.call_args_list[0][1]['client']()
             )
 
     def test_model_instance_iterable_update(self):
@@ -258,7 +258,7 @@ class DocTypeTestCase(TestCase):
             )
             self.assertTrue(mock.call_args_list[0][1]['refresh'])
             self.assertEqual(
-                doc.connection, mock.call_args_list[0][1]['client']
+                doc._index.connection, mock.call_args_list[0][1]['client']()
             )
 
     def test_model_instance_update_no_refresh(self):

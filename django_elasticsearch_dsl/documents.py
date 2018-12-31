@@ -131,8 +131,8 @@ class DocType(DSLDocument):
     def _prepare_action(self, object_instance, action):
         return {
             '_op_type': action,
-            '_index': str(self._index),
-            '_type': self._doc_type.mapping.doc_type,
+            '_index': self._index._name,
+            '_type': self._doc_type.name,
             '_id': object_instance.pk,
             '_source': (
                 self.prepare(object_instance) if action != 'delete' else None
