@@ -148,6 +148,17 @@ class DocType(DSLDocument):
         return data
 
     @classmethod
+    def get_model_field_class_to_field_class(cls):
+        """
+        Returns dict of relationship from model field class to elasticsearch
+        field class
+
+        You may want to override this if you have model field class not included
+        in model_field_class_to_field_class.
+        """
+        return model_field_class_to_field_class
+
+    @classmethod
     def to_field(cls, field_name, model_field):
         """
         Returns the elasticsearch field instance appropriate for the model
@@ -155,7 +166,7 @@ class DocType(DSLDocument):
         model field to ES field logic
         """
         try:
-            return model_field_class_to_field_class[
+            return cls.get_model_field_class_to_field_class()[
                 model_field.__class__](attr=field_name)
         except KeyError:
             raise ModelFieldNotMappedError(
