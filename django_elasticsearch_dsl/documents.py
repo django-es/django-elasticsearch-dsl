@@ -37,6 +37,7 @@ model_field_class_to_field_class = {
     models.FileField: FileField,
     models.FilePathField: KeywordField,
     models.FloatField: DoubleField,
+    models.DecimalField: DoubleField,
     models.ImageField: FileField,
     models.IntegerField: IntegerField,
     models.NullBooleanField: BooleanField,
