@@ -104,8 +104,8 @@ class DocTypeMeta(DSLDocTypeMeta):
         cls._doc_type._fields = (
             lambda: cls._doc_type.mapping.properties.properties.to_dict())
 
-        if getattr(cls._doc_type, 'index'):
-            index = Index(cls._doc_type.index)
+        if getattr(cls._doc_type, 'index') and getattr(cls._doc_type, 'using'):
+            index = Index(cls._doc_type.index, cls._doc_type.using)
             index.doc_type(cls)
             registry.register(index, cls)
 
