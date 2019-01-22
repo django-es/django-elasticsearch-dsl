@@ -120,6 +120,9 @@ class CarWithPrepareDocument(DocType):
         return {}
 
     def get_instances_from_related(self, related_instance):
+        if isinstance(related_instance, Ad):
+            return related_instance.car
+
         return related_instance.car_set.all()
 
 

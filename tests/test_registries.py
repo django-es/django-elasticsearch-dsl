@@ -112,7 +112,7 @@ class DocumentRegistryTestCase(fixtures.WithFixturesMixin, TestCase):
 
     def test_get_related_doc(self):
         results = list(self.registry.get_related_doc(fixtures.ModelE))
-        self.assertEqual([fixtures.DocD1, fixtures.DocD2], results)
+        self.assertEqual(set([fixtures.DocD1, fixtures.DocD2]), set(results))
 
     def test_delete_instance(self):
         instance = fixtures.ModelB()
