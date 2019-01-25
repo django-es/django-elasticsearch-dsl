@@ -49,13 +49,10 @@ class DocumentRegistry(object):
 
         # Add The model fields into elasticsearch mapping field
         model_field_names = getattr(document.Django, "fields", [])
-        class_fields = set(
-            name for name, field in document.__dict__.items()
-            if isinstance(field, Field)
-        )
+        mapping_fields = document._doc_type.mapping.properties.properties.to_dict().keys()
 
         for field_name in model_field_names:
-            if field_name in class_fields:
+            if field_name in mapping_fields:
                 raise RedeclaredFieldError(
                     "You cannot redeclare the field named '{}' on {}"
                     .format(field_name, document.__name__)

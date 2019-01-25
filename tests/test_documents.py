@@ -263,7 +263,7 @@ class DocTypeTestCase(TestCase):
 
     def test_model_instance_update_no_refresh(self):
         doc = CarDocument()
-        doc._doc_type.auto_refresh = False
+        doc.django.auto_refresh = False
         car = Car()
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
             doc.update(car)

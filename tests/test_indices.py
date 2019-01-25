@@ -10,13 +10,15 @@ from .fixtures import WithFixturesMixin
 
 
 class IndexTestCase(WithFixturesMixin, TestCase):
+    def setUp(self):
+        self.registry = DocumentRegistry()
+
     def test_documents_add_to_register(self):
-        registry = DocumentRegistry()
+        registry = self.registry
         with patch('django_elasticsearch_dsl.indices.registry', new=registry):
             index = Index('test')
-            doc_a1 = self._generate_doc_mock(self.ModelA)
-            doc_a2 = self._generate_doc_mock(self.ModelA)
-            print(index._mapping)
+            doc_a1 = self._generate_doc_mock(self.ModelA, index)
+            doc_a2 = self._generate_doc_mock(self.ModelA, index)
             index.doc_type(doc_a1)
             docs = list(registry.get_documents())
             self.assertEqual(len(docs), 1)
