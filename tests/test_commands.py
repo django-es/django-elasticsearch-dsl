@@ -58,27 +58,22 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
 
     def test_get_models(self):
         cmd = Command()
-        with patch(
-            'django_elasticsearch_dsl.management.commands.'
-            'search_index.registry',
-            self.registry
-        ):
-            self.assertEqual(
-                cmd._get_models(['foo']),
-                set([self.ModelA, self.ModelB])
-            )
+        self.assertEqual(
+            cmd._get_models(['foo']),
+            set([self.ModelA, self.ModelB])
+        )
 
-            self.assertEqual(
-                cmd._get_models(['foo', 'bar.ModelC']),
-                set([self.ModelA, self.ModelB, self.ModelC])
-            )
+        self.assertEqual(
+            cmd._get_models(['foo', 'bar.ModelC']),
+            set([self.ModelA, self.ModelB, self.ModelC])
+        )
 
-            self.assertEqual(
-                cmd._get_models([]),
-                set([self.ModelA, self.ModelB, self.ModelC])
-            )
-            with self.assertRaises(CommandError):
-                cmd._get_models(['unknown'])
+        self.assertEqual(
+            cmd._get_models([]),
+            set([self.ModelA, self.ModelB, self.ModelC])
+        )
+        with self.assertRaises(CommandError):
+            cmd._get_models(['unknown'])
 
     def test_no_action_error(self):
         cmd = Command()
@@ -88,68 +83,43 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
     def test_delete_foo_index(self):
 
         with patch(
-            'django_elasticsearch_dsl.management.commands.'
-            'search_index.registry',
-            self.registry
+            'django_elasticsearch_dsl.management.commands.search_index.input',
+            Mock(return_value="y")
         ):
-            with patch(
-                'django_elasticsearch_dsl.management.commands.'
-                'search_index.input',
-                Mock(return_value="y")
-            ):
-                call_command('search_index', stdout=self.out,
-                             action='delete', models=['foo'])
-                self.index_a.delete.assert_called_once()
-                self.assertFalse(self.index_b.delete.called)
+            call_command('search_index', stdout=self.out,
+                         action='delete', models=['foo'])
+            self.index_a.delete.assert_called_once()
+            self.assertFalse(self.index_b.delete.called)
 
     def test_force_delete_all_indices(self):
 
-        with patch(
-            'django_elasticsearch_dsl.management.commands.'
-            'search_index.registry',
-            self.registry
-        ):
-            call_command('search_index', stdout=self.out,
-                         action='delete', force=True)
-            self.index_a.delete.assert_called_once()
-            self.index_b.delete.assert_called_once()
+        call_command('search_index', stdout=self.out,
+                     action='delete', force=True)
+        self.index_a.delete.assert_called_once()
+        self.index_b.delete.assert_called_once()
 
     def test_force_delete_bar_model_c_index(self):
-        with patch.object(self.index_b, 'delete'):
-            call_command('search_index', stdout=self.out,
-                         models=[self.ModelC._meta.label],
-                         action='delete', force=True)
-            print(dir(self.index_b.delete))
-            self.index_b.delete.assert_called_once()
-            self.assertFalse(self.index_a.delete.called)
+        call_command('search_index', stdout=self.out,
+                     models=[self.ModelC._meta.label],
+                     action='delete', force=True)
+        self.index_b.delete.assert_called_once()
+        self.assertFalse(self.index_a.delete.called)
 
     def test_create_all_indices(self):
-
-        with patch(
-            'django_elasticsearch_dsl.management.commands.'
-            'search_index.registry',
-            self.registry
-        ):
-            call_command('search_index', stdout=self.out, action='create')
-            self.index_a.create.assert_called_once()
-            self.index_b.create.assert_called_once()
+        call_command('search_index', stdout=self.out, action='create')
+        self.index_a.create.assert_called_once()
+        self.index_b.create.assert_called_once()
 
     def test_populate_all_doc_type(self):
-
-        with patch(
-            'django_elasticsearch_dsl.management.commands.'
-            'search_index.registry',
-            self.registry
-        ):
-            call_command('search_index', stdout=self.out, action='populate')
-            self.doc_a1.get_queryset.assert_called_once()
-            self.doc_a1.update.assert_called_once_with(self.doc_a1_qs)
-            self.doc_a2.get_queryset.assert_called_once()
-            self.doc_a2.update.assert_called_once_with(self.doc_a2_qs)
-            self.doc_b1.get_queryset.assert_called_once()
-            self.doc_b1.update.assert_called_once_with(self.doc_b1_qs)
-            self.doc_c1.get_queryset.assert_called_once()
-            self.doc_c1.update.assert_called_once_with(self.doc_c1_qs)
+        call_command('search_index', stdout=self.out, action='populate')
+        self.doc_a1.get_queryset.assert_called_once()
+        self.doc_a1.update.assert_called_once_with(self.doc_a1_qs)
+        self.doc_a2.get_queryset.assert_called_once()
+        self.doc_a2.update.assert_called_once_with(self.doc_a2_qs)
+        self.doc_b1.get_queryset.assert_called_once()
+        self.doc_b1.update.assert_called_once_with(self.doc_b1_qs)
+        self.doc_c1.get_queryset.assert_called_once()
+        self.doc_c1.update.assert_called_once_with(self.doc_c1_qs)
 
     def test_rebuild_indices(self):
 

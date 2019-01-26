@@ -81,7 +81,6 @@ class DocumentRegistry(object):
         # Update settings of the document index
         default_index_settings = deepcopy(DEDConfig.default_index_settings())
         document._index.settings(**default_index_settings)
-        print(type(document._index))
 
         # Register the document and index class to our registry
         self.register(index=document._index, doc_class=document)
@@ -100,11 +99,6 @@ class DocumentRegistry(object):
         """
         if not DEDConfig.autosync_enabled():
             return
-
-        # print(list(self._get_related_doc(instance)))
-        # import pdb
-        # pdb.set_trace()
-        print(instance.__class__, "ffff")
 
         for doc in self._get_related_doc(instance):
             doc_instance = doc()

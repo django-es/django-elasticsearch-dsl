@@ -59,7 +59,6 @@ class Command(BaseCommand):
             for arg in args:
                 arg = arg.lower()
                 match_found = False
-                print(registry.get_models())
 
                 for model in registry.get_models():
                     if model._meta.app_label == arg:
