@@ -1,4 +1,6 @@
 from collections import defaultdict
+from copy import deepcopy
+
 from itertools import chain
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -75,6 +77,11 @@ class DocumentRegistry(object):
         # Set the fields of the mappings
         fields = document._doc_type.mapping.properties.properties.to_dict()
         setattr(document, '_fields', fields)
+
+        # Update settings of the document index
+        default_index_settings = deepcopy(DEDConfig.default_index_settings())
+        document._index.settings(**default_index_settings)
+        print(type(document._index))
 
         # Register the document and index class to our registry
         self.register(index=document._index, doc_class=document)

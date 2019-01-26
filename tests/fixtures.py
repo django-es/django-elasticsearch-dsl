@@ -29,8 +29,6 @@ class WithFixturesMixin(object):
                            _ignore_signals=False, _related_models=None):
         _index = index
 
-        @self.registry.register_document
-        @_index.document
         class Doc(DocType):
 
             class Django:
@@ -38,6 +36,9 @@ class WithFixturesMixin(object):
                 related_models = _related_models if _related_models is not None else []
                 ignore_signals = _ignore_signals
 
+        if _index:
+            _index.document(Doc)
+            self.registry.register_document(Doc)
 
         Doc.update = Mock()
         if mock_qs:

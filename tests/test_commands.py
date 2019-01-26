@@ -5,6 +5,7 @@ from django.core.management.base import CommandError
 from django.core.management import call_command
 from django.utils.six import StringIO
 
+from django_elasticsearch_dsl import Index
 from django_elasticsearch_dsl.management.commands.search_index import Command
 from django_elasticsearch_dsl.registries import DocumentRegistry
 
@@ -12,11 +13,26 @@ from .fixtures import WithFixturesMixin
 
 
 class SearchIndexTestCase(WithFixturesMixin, TestCase):
+    def _mock_setup(self):
+        # Mock Patch object
+        patch_registry = patch(
+            'django_elasticsearch_dsl.management.commands.search_index.registry', self.registry)
+
+        patch_registry.start()
+
+        methods = ['delete', 'create']
+        for index in [self.index_a, self.index_b]:
+            for method in methods:
+                obj_patch = patch.object(index, method)
+                obj_patch.start()
+
+        self.addCleanup(patch.stopall)
+
     def setUp(self):
         self.out = StringIO()
         self.registry = DocumentRegistry()
-        self.index_a = Mock()
-        self.index_b = Mock()
+        self.index_a = Index('foo')
+        self.index_b = Index('bar')
 
         self.doc_a1_qs = Mock()
         self.doc_a1 = self._generate_doc_mock(
@@ -37,6 +53,8 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
         self.doc_c1 = self._generate_doc_mock(
             self.ModelC, self.index_b, self.doc_c1_qs
         )
+
+        self._mock_setup()
 
     def test_get_models(self):
         cmd = Command()
@@ -97,15 +115,11 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
             self.index_b.delete.assert_called_once()
 
     def test_force_delete_bar_model_c_index(self):
-
-        with patch(
-            'django_elasticsearch_dsl.management.commands.'
-            'search_index.registry',
-            self.registry
-        ):
+        with patch.object(self.index_b, 'delete'):
             call_command('search_index', stdout=self.out,
-                         models=['bar.ModelC'],
+                         models=[self.ModelC._meta.label],
                          action='delete', force=True)
+            print(dir(self.index_b.delete))
             self.index_b.delete.assert_called_once()
             self.assertFalse(self.index_a.delete.called)
 

@@ -11,15 +11,18 @@ from .registries import registry
 class Index(DSLIndex):
     def __init__(self, *args, **kwargs):
         super(Index, self).__init__(*args, **kwargs)
-        self._settings = deepcopy(DEDConfig.default_index_settings())
+        default_index_settings = deepcopy(DEDConfig.default_index_settings())
+        self.settings(**default_index_settings)
 
-    def doc_type(self, doc_type, *args, **kwargs):
+    def document(self, document):
         """
-        Extend to register the doc_type in the global document registry
+        Extend to register the document in the global document registry
         """
-        doc_type = super(Index, self).doc_type(doc_type, *args, **kwargs)
-        registry.register(self, doc_type)
-        return doc_type
+        document = super(Index, self).document(document)
+        registry.register_document(document)
+        return document
+
+    doc_type = document
 
     def __str__(self):
         return self._name
