@@ -7,7 +7,7 @@ class ESTestCase(object):
 
     def setUp(self):
         for doc in registry.get_documents():
-            doc._doc_type.index += self._index_suffixe
+            doc._index._name += self._index_suffixe
 
         for index in registry.get_indices():
             index._name += self._index_suffixe
@@ -20,7 +20,7 @@ class ESTestCase(object):
         pattern = re.compile(self._index_suffixe + '$')
 
         for doc in registry.get_documents():
-            doc._doc_type.index = pattern.sub('', doc._doc_type.index)
+            doc._index._name = pattern.sub('', doc._index._name)
 
         for index in registry.get_indices():
             index.delete(ignore=[404, 400])
