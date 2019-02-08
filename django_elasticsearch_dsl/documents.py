@@ -65,8 +65,8 @@ class DocType(DSLDocument):
     @classmethod
     def search(cls, using=None, index=None):
         return Search(
-            using=using or cls._doc_type.using,
-            index=index or cls._doc_type.index,
+            using=cls._get_using(using),
+            index=cls._default_index(index),
             doc_type=[cls],
             model=cls.django.model
         )
