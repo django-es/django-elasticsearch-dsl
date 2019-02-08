@@ -27,7 +27,7 @@ Features
 
    - Django >= 1.10
    - Python 2.7, 3.5, 3.6, 3.7
-   - Elasticsearch >= 2.0 < 7.0
+   - Elasticsearch >= 6.0 < 7.0
 
 .. _Search: http://elasticsearch-dsl.readthedocs.io/en/stable/search_dsl.html
 
@@ -39,13 +39,8 @@ Install Django Elasticsearch DSL::
     pip install django-elasticsearch-dsl
 
     # Elasticsearch 6.x
-    pip install 'elasticsearch-dsl>=6.0,<6.2'
+    pip install 'elasticsearch-dsl>=6.3.0,<7.0'
 
-    # Elasticsearch 5.x
-    pip install 'elasticsearch-dsl>=5.0,<6.0'
-
-    # Elasticsearch 2.x
-    pip install 'elasticsearch-dsl>=2.1,<3.0'
 
 Then add ``django_elasticsearch_dsl`` to the INSTALLED_APPS
 
@@ -89,7 +84,7 @@ defined in a ``documents.py`` file.
 
     # documents.py
 
-    from django_elasticsearch_dsl import DocType, Index
+    from django_elasticsearch_dsl import Document, Index
     from .models import Car
 
     # Name of the Elasticsearch index
@@ -101,9 +96,9 @@ defined in a ``documents.py`` file.
     )
 
 
-    @car.doc_type
-    class CarDocument(DocType):
-        class Meta:
+    @car.document
+    class CarDocument(Document):
+        class Django:
             model = Car # The model associated with this DocType
 
             # The fields of the model you want to be indexed in Elasticsearch
