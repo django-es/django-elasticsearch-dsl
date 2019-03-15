@@ -211,8 +211,6 @@ class DocType(DSLDocType):
             current_page = 0
             for page in paginator.page_range:
                 current_page += 1
-                print("NUMBER OF PAGES: " + str(number_of_pages))
-                print("CURRENT PAGE: " + str(current_page))
                 for object_instance in paginator.page(page).object_list:
                     yield self._prepare_action(object_instance, action)
         else:
