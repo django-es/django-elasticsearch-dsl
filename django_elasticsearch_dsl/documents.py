@@ -207,10 +207,7 @@ class DocType(DSLDocType):
             paginator = Paginator(
                 object_list, self._doc_type.queryset_pagination
             )
-            number_of_pages = len(paginator.page_range)
-            current_page = 0
             for page in paginator.page_range:
-                current_page += 1
                 for object_instance in paginator.page(page).object_list:
                     yield self._prepare_action(object_instance, action)
         else:
