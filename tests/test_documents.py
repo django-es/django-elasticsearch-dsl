@@ -3,7 +3,10 @@ from unittest import TestCase
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl import GeoPoint, MetaField
-from mock import patch, Mock, PropertyMock
+try:
+    from mock import patch, Mock, PropertyMock
+except ImportError:
+    from unittest.mock import patch Mock, PropertyMock
 
 from django_elasticsearch_dsl import fields
 from django_elasticsearch_dsl.documents import DocType

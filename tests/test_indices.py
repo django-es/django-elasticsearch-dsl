@@ -1,5 +1,8 @@
 from unittest import TestCase
-from mock import patch
+try:
+    from mock import patch
+except ImportError:
+    from unittest.mock import patch
 
 from django.conf import settings
 

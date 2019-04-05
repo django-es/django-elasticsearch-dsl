@@ -1,4 +1,8 @@
-from mock import DEFAULT, Mock, patch
+try:
+    from mock import DEFAULT, Mock, patch
+except ImportError:
+    from unittest.mock import DEFAULT, Mock, patch
+
 from unittest import TestCase
 
 from django.core.management.base import CommandError

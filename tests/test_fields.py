@@ -2,7 +2,10 @@ from unittest import TestCase
 
 from django.db.models.fields.files import FieldFile
 from django.utils.translation import ugettext_lazy as _
-from mock import Mock, NonCallableMock
+try:
+    from mock import Mock, NonCallableMock
+except ImportError:
+    from unittest.mock import Mock, NonCallableMock
 from six import string_types
 
 from django_elasticsearch_dsl.exceptions import VariableLookupError
