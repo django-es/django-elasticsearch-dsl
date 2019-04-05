@@ -144,7 +144,7 @@ class Command(BaseCommand):
             self.stdout.write(*args, **kwargs)
 
     def handle(self, *args, **options):
-        self.verbosity = int(options['verbosity'])
+        self.verbosity = int(options.get('verbosity', 1))
         if not options['action']:
             raise CommandError(
                 "No action specified. Must be one of"
