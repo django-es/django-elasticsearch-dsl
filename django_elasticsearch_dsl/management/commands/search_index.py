@@ -102,13 +102,13 @@ class Command(BaseCommand):
 
     def _create(self, models, options):
         for index in registry.get_indices(models):
-            self.stdout.write("Creating index '{}'".format(index._name))
+            self.verbose_write("Creating index '{}'".format(index._name))
             index.create()
 
     def _populate(self, models, options):
         parallel = options['parallel']
         for doc in registry.get_documents(models):
-            self.stdout.write("Indexing {} '{}' objects {}".format(
+            self.verbose_write("Indexing {} '{}' objects {}".format(
                 doc().get_queryset().count() if options['count'] else "all",
                 doc.django.model.__name__,
                 "(parallel)" if parallel else "")
@@ -124,11 +124,11 @@ class Command(BaseCommand):
                 "Are you sure you want to delete "
                 "the '{}' indexes? [n/Y]: ".format(", ".join(index_names)))
             if response.lower() != 'y':
-                self.stdout.write('Aborted')
+                self.verbose_write('Aborted')
                 return False
 
         for index in registry.get_indices(models):
-            self.stdout.write("Deleting index '{}'".format(index._name))
+            self.verbose_write("Deleting index '{}'".format(index._name))
             index.delete(ignore=404)
         return True
 
@@ -139,7 +139,12 @@ class Command(BaseCommand):
         self._create(models, options)
         self._populate(models, options)
 
+    def verbose_write(self, *args, **kwargs):
+        if self.verbosity > 0:
+            self.stdout.write(*args, **kwargs)
+
     def handle(self, *args, **options):
+        self.verbosity = int(options['verbosity'])
         if not options['action']:
             raise CommandError(
                 "No action specified. Must be one of"
