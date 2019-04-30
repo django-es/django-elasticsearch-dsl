@@ -1,5 +1,15 @@
 import re
+
+from django.test.utils import captured_stderr
+from elasticsearch_dsl import connections
+
 from ..registries import registry
+
+
+def is_es_online(connection_alias='default'):
+    with captured_stderr():
+        es = connections.get_connection(connection_alias)
+        return es.ping()
 
 
 class ESTestCase(object):
