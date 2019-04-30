@@ -329,6 +329,24 @@ class IntegrationTestCase(ESTestCase, TestCase):
         result = AdDocument().search().execute()
         self.assertEqual(len(result), 3)
 
+    def test_filter_queryset(self):
+        Ad(title="Nothing that match",  car=self.car1).save()
+
+        qs = AdDocument().search().query(
+            'match', title="Ad number 2").filter_queryset(Ad.objects)
+        self.assertEqual(qs.count(), 2)
+        self.assertEqual(list(qs), [self.ad2, self.ad1])
+
+        qs = AdDocument().search().query(
+            'match', title="Ad number 2"
+        ).filter_queryset(Ad.objects.filter(url="www.ad2.com"))
+        self.assertEqual(qs.count(), 1)
+        self.assertEqual(list(qs), [self.ad2])
+
+        with self.assertRaisesMessage(TypeError, 'Unexpected queryset model'):
+            AdDocument().search().query(
+                'match', title="Ad number 2").filter_queryset(Category.objects)
+
     def test_to_queryset(self):
         Ad(title="Nothing that match",  car=self.car1).save()
         qs = AdDocument().search().query(
