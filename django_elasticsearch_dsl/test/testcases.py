@@ -1,7 +1,7 @@
 import re
 
 from django.test.utils import captured_stderr
-from elasticsearch_dsl import connections
+from elasticsearch_dsl.connections import connections
 
 from ..registries import registry
 
