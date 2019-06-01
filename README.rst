@@ -36,7 +36,7 @@ Quickstart
 
 Install Django Elasticsearch DSL::
 
-    pip install django-elasticsearch-dsl
+    pip install https://github.com/sabricot/django-elasticsearch-dsl/archive/6.4.0.tar.gz
 
 
 
