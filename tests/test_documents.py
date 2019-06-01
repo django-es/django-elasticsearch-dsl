@@ -2,13 +2,14 @@ from unittest import TestCase
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from elasticsearch_dsl import GeoPoint
+from elasticsearch_dsl import GeoPoint, MetaField
 from mock import patch
 
 from django_elasticsearch_dsl import fields
 from django_elasticsearch_dsl.documents import DocType
 from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
                                                  RedeclaredFieldError)
+from django_elasticsearch_dsl.registries import registry
 from tests import ES_MAJOR_VERSION
 
 
@@ -34,6 +35,7 @@ class Manufacturer(models.Model):
         app_label = 'car'
 
 
+@registry.register_document
 class CarDocument(DocType):
     color = fields.TextField()
     type = fields.StringField()
@@ -42,48 +44,57 @@ class CarDocument(DocType):
         return "blue"
 
     class Meta:
+        doc_type = 'car_document'
+
+    class Django:
         fields = ['name', 'price']
         model = Car
-        index = 'car_index'
         related_models = [Manufacturer]
+
+    class Index:
+        name = 'car_index'
         doc_type = 'car_document'
 
 
 class DocTypeTestCase(TestCase):
 
     def test_model_class_added(self):
-        self.assertEqual(CarDocument._doc_type.model, Car)
+        self.assertEqual(CarDocument.django.model, Car)
 
     def test_ignore_signal_default(self):
-        self.assertFalse(CarDocument._doc_type.ignore_signals)
+        self.assertFalse(CarDocument.django.ignore_signals)
 
     def test_auto_refresh_default(self):
-        self.assertTrue(CarDocument._doc_type.auto_refresh)
+        self.assertTrue(CarDocument.django.auto_refresh)
 
     def test_ignore_signal_added(self):
+
+        @registry.register_document
         class CarDocument2(DocType):
-            class Meta:
+            class Django:
                 model = Car
                 ignore_signals = True
 
-        self.assertTrue(CarDocument2._doc_type.ignore_signals)
+        self.assertTrue(CarDocument2.django.ignore_signals)
 
     def test_auto_refresh_added(self):
+        @registry.register_document
         class CarDocument2(DocType):
-            class Meta:
+            class Django:
                 model = Car
                 auto_refresh = False
 
-        self.assertFalse(CarDocument2._doc_type.auto_refresh)
+        self.assertFalse(CarDocument2.django.auto_refresh)
 
     def test_queryset_pagination_added(self):
+        @registry.register_document
         class CarDocument2(DocType):
-            class Meta:
+            class Django:
                 model = Car
                 queryset_pagination = 120
 
-        self.assertIsNone(CarDocument._doc_type.queryset_pagination)
-        self.assertEqual(CarDocument2._doc_type.queryset_pagination, 120)
+        self.assertIsNone(CarDocument.django.queryset_pagination)
+        self.assertEqual(CarDocument2.django.queryset_pagination, 120)
 
     def test_fields_populated(self):
         mapping = CarDocument._doc_type.mapping
@@ -93,16 +104,17 @@ class DocTypeTestCase(TestCase):
         )
 
     def test_related_models_added(self):
-        related_models = CarDocument._doc_type.related_models
+        related_models = CarDocument.django.related_models
         self.assertEqual([Manufacturer], related_models)
 
     def test_duplicate_field_names_not_allowed(self):
         with self.assertRaises(RedeclaredFieldError):
+            @registry.register_document
             class CarDocument(DocType):
                 color = fields.StringField()
                 name = fields.StringField()
 
-                class Meta:
+                class Django:
                     fields = ['name']
                     model = Car
 
@@ -160,13 +172,16 @@ class DocTypeTestCase(TestCase):
         )
 
     def test_prepare_ignore_dsl_base_field(self):
+        @registry.register_document
         class CarDocumentDSlBaseField(DocType):
             position = GeoPoint()
 
-            class Meta:
+            class Django:
                 model = Car
-                index = 'car_index'
                 fields = ['name', 'price']
+
+            class Index:
+                name = 'car_index'
 
         car = Car(name="Type 57", price=5400000.0, not_indexed="not_indexex")
         doc = CarDocumentDSlBaseField()
@@ -202,7 +217,7 @@ class DocTypeTestCase(TestCase):
             )
             self.assertTrue(mock.call_args_list[0][1]['refresh'])
             self.assertEqual(
-                doc.connection, mock.call_args_list[0][1]['client']
+                doc._index.connection, mock.call_args_list[0][1]['client']
             )
 
     def test_model_instance_iterable_update(self):
@@ -243,12 +258,12 @@ class DocTypeTestCase(TestCase):
             )
             self.assertTrue(mock.call_args_list[0][1]['refresh'])
             self.assertEqual(
-                doc.connection, mock.call_args_list[0][1]['client']
+                doc._index.connection, mock.call_args_list[0][1]['client']
             )
 
     def test_model_instance_update_no_refresh(self):
         doc = CarDocument()
-        doc._doc_type.auto_refresh = False
+        doc.django.auto_refresh = False
         car = Car()
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
             doc.update(car)
@@ -256,7 +271,7 @@ class DocTypeTestCase(TestCase):
 
     def test_model_instance_iterable_update_with_pagination(self):
         class CarDocument2(DocType):
-            class Meta:
+            class Django:
                 model = Car
                 queryset_pagination = 2
 

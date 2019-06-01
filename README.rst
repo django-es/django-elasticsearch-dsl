@@ -27,7 +27,7 @@ Features
 
    - Django >= 1.10
    - Python 2.7, 3.5, 3.6, 3.7
-   - Elasticsearch >= 2.0 < 7.0
+   - Elasticsearch >= 6.0 < 7.0
 
 .. _Search: http://elasticsearch-dsl.readthedocs.io/en/stable/search_dsl.html
 
@@ -39,13 +39,8 @@ Install Django Elasticsearch DSL::
     pip install django-elasticsearch-dsl
 
     # Elasticsearch 6.x
-    pip install 'elasticsearch-dsl>=6.0,<6.2'
+    pip install 'elasticsearch-dsl>=6.3.0,<7.0'
 
-    # Elasticsearch 5.x
-    pip install 'elasticsearch-dsl>=5.0,<6.0'
-
-    # Elasticsearch 2.x
-    pip install 'elasticsearch-dsl>=2.1,<3.0'
 
 Then add ``django_elasticsearch_dsl`` to the INSTALLED_APPS
 
@@ -81,30 +76,31 @@ Then for a model:
             (4, "SUV"),
         ])
 
-To make this model work with Elasticsearch, create a subclass of ``django_elasticsearch_dsl.DocType``
-and create a ``django_elasticsearch_dsl.Index`` to define your Elasticsearch indices, names, and settings. This classes must be
-defined in a ``documents.py`` file.
+To make this model work with Elasticsearch, create a subclass of ``django_elasticsearch_dsl.Document``,
+create a ``class Index`` inside the ``Document`` class
+to define your Elasticsearch indices, names, settings etc and at last register the class using
+``registry.register_document`` decorator.
 
 .. code-block:: python
 
     # documents.py
 
-    from django_elasticsearch_dsl import DocType, Index
+    from django_elasticsearch_dsl import Document
+    from django_elasticsearch_dsl.registries import registry
     from .models import Car
 
-    # Name of the Elasticsearch index
-    car = Index('cars')
-    # See Elasticsearch Indices API reference for available settings
-    car.settings(
-        number_of_shards=1,
-        number_of_replicas=0
-    )
 
+    @registry.register_document
+    class CarDocument(Document):
+        class Index:
+            # Name of the Elasticsearch index
+            name = 'cars'
+            # See Elasticsearch Indices API reference for available settings
+            settings = {'number_of_shards': 1,
+                        'number_of_replicas': 0}
 
-    @car.doc_type
-    class CarDocument(DocType):
-        class Meta:
-            model = Car # The model associated with this DocType
+        class Django:
+            model = Car # The model associated with this Document
 
             # The fields of the model you want to be indexed in Elasticsearch
             fields = [
@@ -205,7 +201,7 @@ the model to a string, so we'll just add a method for it:
             else:
                 return "SUV"
 
-Now we need to tell our ``DocType`` subclass to use that method instead of just
+Now we need to tell our ``Document`` subclass to use that method instead of just
 accessing the ``type`` field on the model directly. Change the CarDocument to look
 like this:
 
@@ -213,17 +209,17 @@ like this:
 
     # documents.py
 
-    from django_elasticsearch_dsl import DocType, fields
+    from django_elasticsearch_dsl import Document, fields
 
     # ... #
 
-    @car.doc_type
-    class CarDocument(DocType):
+    @registry.register_document
+    class CarDocument(Document):
         # add a string field to the Elasticsearch mapping called type, the
         # value of which is derived from the model's type_to_string attribute
         type = fields.TextField(attr="type_to_string")
 
-        class Meta:
+        class Django:
             model = Car
             # we removed the type field from here
             fields = [
@@ -240,7 +236,7 @@ Using prepare_field
 ~~~~~~~~~~~~~~~~~~~
 
 Sometimes, you need to do some extra prepping before a field should be saved to
-Elasticsearch. You can add a ``prepare_foo(self, instance)`` method to a DocType
+Elasticsearch. You can add a ``prepare_foo(self, instance)`` method to a Document
 (where foo is the name of the field), and that will be called when the field
 needs to be saved.
 
@@ -250,7 +246,7 @@ needs to be saved.
 
     # ... #
 
-    class CarDocument(DocType):
+    class CarDocument(Document):
         # ... #
 
         foo = TextField()
@@ -292,18 +288,11 @@ You can use an ObjectField or a NestedField.
 
     # documents.py
 
-    from django_elasticsearch_dsl import DocType, Index, fields
+    from django_elasticsearch_dsl import Document, fields
     from .models import Car, Manufacturer, Ad
 
-    car = Index('cars')
-    car.settings(
-        number_of_shards=1,
-        number_of_replicas=0
-    )
-
-
-    @car.doc_type
-    class CarDocument(DocType):
+    @registry.register_document
+    class CarDocument(Document):
         manufacturer = fields.ObjectField(properties={
             'name': fields.TextField(),
             'country_code': fields.TextField(),
@@ -314,7 +303,10 @@ You can use an ObjectField or a NestedField.
             'pk': fields.IntegerField(),
         })
 
-        class Meta:
+        class Index:
+            name = 'cars'
+
+        class Django:
             model = Car
             fields = [
                 'name',
@@ -367,14 +359,14 @@ So for example you can use a custom analyzer_:
         char_filter=["html_strip"]
     )
 
-    @car.doc_type
-    class CarDocument(DocType):
+    @registry.register_document
+    class CarDocument(Document):
         description = fields.TextField(
             analyzer=html_strip,
             fields={'raw': fields.KeywordField()}
         )
 
-        class Meta:
+        class Django:
             model = Car
             fields = [
                 'name',
@@ -417,20 +409,19 @@ instance.
 
 Index
 -----
+In typical scenario using `class Index` on a `Document` class is sufficient to perform any action.
+In a few cases though it can be useful to manipulate an Index object directly.
+To define an Elasticsearch index you must instantiate a ``elasticsearch_dsl.Index`` class and set the name
+and settings of the index.
+After you instantiate your class, you need to associate it with the Document you
+want to put in this Elasticsearch index and also add the `registry.register_document` decorator.
 
-To define an Elasticsearch index you must instantiate a ``django_elasticsearch_dsl.Index`` class and set the name
-and settings of the index. This class inherits from elasticsearch-dsl-py Index_.
-After you instantiate your class, you need to associate it with the DocType you
-want to put in this Elasticsearch index.
-
-
-.. _Index: http://elasticsearch-dsl.readthedocs.io/en/stable/persistence.html#index
 
 .. code-block:: python
 
     # documents.py
-
-    from django_elasticsearch_dsl import DocType, Index
+    from elasticsearch_dsl import Index
+    from django_elasticsearch_dsl import Document
     from .models import Car, Manufacturer
 
     # The name of your index
@@ -441,24 +432,27 @@ want to put in this Elasticsearch index.
         number_of_replicas=0
     )
 
-
-    @car.doc_type
-    class CarDocument(DocType):
-        class Meta:
+    @registry.register_document
+    @car.document
+    class CarDocument(Document):
+        class Django:
             model = Car
             fields = [
                 'name',
                 'color',
             ]
 
-    @car.doc_type
-    class ManufacturerDocument(DocType):
-        class Meta:
+    @registry.register_document
+    class ManufacturerDocument(Document):
+        class Index:
+            name = 'manufacture'
+            settings = {'number_of_shards': 1,
+                        'number_of_replicas': 0}
+
+        class Django:
             model = Car
             fields = [
-                'name', # If a field as the same name in multiple DocType of
-                        # the same Index, the field type must be identical
-                        # (here fields.TextField)
+                'name',
                 'country_code',
             ]
 
@@ -466,8 +460,7 @@ When you execute the command::
 
     $ ./manage.py search_index --rebuild
 
-This will create an index named ``cars`` in Elasticsearch with two mappings:
-``manufacturer_document`` and ``car_document``.
+This will create two index named ``cars`` and ``manufacture`` in Elasticsearch with appropriate mapping.
 
 
 Management Commands
@@ -565,6 +558,6 @@ TODO
 - Add support for --using (use another Elasticsearch cluster) in management commands.
 - Add management commands for mapping level operations (like update_mapping....).
 - Dedicated documentation.
-- Generate ObjectField/NestField properties from a DocType class.
+- Generate ObjectField/NestField properties from a Document class.
 - More examples.
 - Better ``ESTestCase`` and documentation for testing

@@ -183,7 +183,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
 
         test_index = DSLIndex('test_index').settings(**index_settings)
         test_index.doc_type(CarDocument)
-        test_index.doc_type(ManufacturerDocument)
 
         index_dict = test_index.to_dict()
 
@@ -203,16 +202,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
             }
         })
         self.assertEqual(index_dict['mappings'], {
-            'manufacturer_document': {
-                'properties': {
-                    'created': {'type': 'date'},
-                    'name': {'type': text_type},
-                    'country': {'type': text_type},
-                    'country_code': {'type': text_type},
-                    'logo': {'type': text_type},
-                }
-            },
-            'car_document': {
+            'doc': {
                 'properties': {
                     'ads': {
                         'type': 'nested',
@@ -222,7 +212,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
                                 'html_strip'
                             },
                             'pk': {'type': 'integer'},
-                            'title': {'type': text_type},
+                            'title': {'type': text_type}
                         },
                     },
                     'categories': {
@@ -230,21 +220,21 @@ class IntegrationTestCase(ESTestCase, TestCase):
                         'properties': {
                             'title': {'type': text_type},
                             'slug': {'type': text_type},
-                            'icon': {'type': text_type},
+                            'icon': {'type': text_type}
                         },
                     },
                     'manufacturer': {
                         'type': 'object',
                         'properties': {
                             'country': {'type': text_type},
-                            'name': {'type': text_type},
+                            'name': {'type': text_type}
                         },
                     },
                     'name': {'type': text_type},
                     'launched': {'type': 'date'},
-                    'type': {'type': text_type},
+                    'type': {'type': text_type}
                 }
-            },
+            }
         })
 
     def test_related_docs_are_updated(self):
