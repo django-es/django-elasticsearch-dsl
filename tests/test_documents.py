@@ -207,7 +207,6 @@ class DocTypeTestCase(TestCase):
                     'color': doc.prepare_color(None),
                 },
                 '_index': 'car_index',
-                '_type': 'car_document'
             }]
             self.assertEqual(1, mock.call_count)
             self.assertEqual(

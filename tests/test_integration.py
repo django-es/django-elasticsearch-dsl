@@ -202,7 +202,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
             }
         })
         self.assertEqual(index_dict['mappings'], {
-            'doc': {
                 'properties': {
                     'ads': {
                         'type': 'nested',
@@ -234,7 +233,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
                     'launched': {'type': 'date'},
                     'type': {'type': text_type}
                 }
-            }
         })
 
     def test_related_docs_are_updated(self):
