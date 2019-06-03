@@ -193,7 +193,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
                 'analyzer': {
                     'html_strip': {
                         'tokenizer': 'standard',
-                        'filter': ['standard', 'lowercase',
+                        'filter': ['lowercase',
                                    'stop', 'snowball'],
                         'type': 'custom',
                         'char_filter': ['html_strip']
