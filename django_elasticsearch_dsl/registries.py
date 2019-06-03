@@ -70,6 +70,7 @@ class DocumentRegistry(object):
                                            "auto_refresh", DEDConfig.auto_refresh_enabled())
         django_attr.related_models = getattr(django_meta, "related_models", [])
         django_attr.queryset_pagination = getattr(django_meta, "queryset_pagination", None)
+        django_attr.parallel_indexing = getattr(django_meta, "parallel_indexing", False)
 
         # Add django attribute in the document class with all the django attribute
         setattr(document, 'django', django_attr)
