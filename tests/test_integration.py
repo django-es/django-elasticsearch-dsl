@@ -182,7 +182,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
         text_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
 
         test_index = DSLIndex('test_index').settings(**index_settings)
-        test_index.doc_type(CarDocument)
+        test_index.document(CarDocument)
 
         index_dict = test_index.to_dict()
 
