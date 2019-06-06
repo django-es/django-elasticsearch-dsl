@@ -78,6 +78,7 @@ To make this model work with Elasticsearch, create a subclass of ``django_elasti
 create a ``class Index`` inside the ``Document`` class
 to define your Elasticsearch indices, names, settings etc and at last register the class using
 ``registry.register_document`` decorator.
+It required to defined ``Document`` class in  ``documents.py`` in your app directory.
 
 .. code-block:: python
 
