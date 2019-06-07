@@ -25,6 +25,8 @@ matrix:
       python: 3.7
     - env: TOX_ENV=py37-django-21-es6
       python: 3.7
+    - env: TOX_ENV=py37-django-22-es6
+      python: 3.7
 
 cache: pip
 env:
