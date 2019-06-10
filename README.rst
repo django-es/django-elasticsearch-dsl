@@ -84,13 +84,13 @@ It required to defined ``Document`` class in  ``documents.py`` in your app direc
 
     # documents.py
 
-    from django_elasticsearch_dsl import Document
+    from django_elasticsearch_dsl import DocType
     from django_elasticsearch_dsl.registries import registry
     from .models import Car
 
 
     @registry.register_document
-    class CarDocument(Document):
+    class CarDocument(DocType):
         class Index:
             # Name of the Elasticsearch index
             name = 'cars'
@@ -213,7 +213,7 @@ like this:
     # ... #
 
     @registry.register_document
-    class CarDocument(Document):
+    class CarDocument(DocType):
         # add a string field to the Elasticsearch mapping called type, the
         # value of which is derived from the model's type_to_string attribute
         type = fields.TextField(attr="type_to_string")
@@ -245,7 +245,7 @@ needs to be saved.
 
     # ... #
 
-    class CarDocument(Document):
+    class CarDocument(DocType):
         # ... #
 
         foo = TextField()
@@ -287,11 +287,11 @@ You can use an ObjectField or a NestedField.
 
     # documents.py
 
-    from django_elasticsearch_dsl import Document, fields
+    from django_elasticsearch_dsl import DocType, fields
     from .models import Car, Manufacturer, Ad
 
     @registry.register_document
-    class CarDocument(Document):
+    class CarDocument(DocType):
         manufacturer = fields.ObjectField(properties={
             'name': fields.TextField(),
             'country_code': fields.TextField(),
@@ -359,7 +359,7 @@ So for example you can use a custom analyzer_:
     )
 
     @registry.register_document
-    class CarDocument(Document):
+    class CarDocument(DocType):
         description = fields.TextField(
             analyzer=html_strip,
             fields={'raw': fields.KeywordField()}
@@ -420,7 +420,7 @@ want to put in this Elasticsearch index and also add the `registry.register_docu
 
     # documents.py
     from elasticsearch_dsl import Index
-    from django_elasticsearch_dsl import Document
+    from django_elasticsearch_dsl import DocType
     from .models import Car, Manufacturer
 
     # The name of your index
@@ -433,7 +433,7 @@ want to put in this Elasticsearch index and also add the `registry.register_docu
 
     @registry.register_document
     @car.document
-    class CarDocument(Document):
+    class CarDocument(DocType):
         class Django:
             model = Car
             fields = [
@@ -442,7 +442,7 @@ want to put in this Elasticsearch index and also add the `registry.register_docu
             ]
 
     @registry.register_document
-    class ManufacturerDocument(Document):
+    class ManufacturerDocument(DocType):
         class Index:
             name = 'manufacture'
             settings = {'number_of_shards': 1,
