@@ -1,16 +1,12 @@
 from __future__ import unicode_literals
 
-from copy import deepcopy
-
-from django.db import models
 from django.core.paginator import Paginator
-from django.utils.six import add_metaclass, iteritems
+from django.db import models
+from django.utils.six import iteritems
 from elasticsearch.helpers import bulk
 from elasticsearch_dsl import Document as DSLDocument
-from elasticsearch_dsl.field import Field
 
-from .apps import DEDConfig
-from .exceptions import ModelFieldNotMappedError, RedeclaredFieldError
+from .exceptions import ModelFieldNotMappedError
 from .fields import (
     BooleanField,
     DateField,
@@ -23,8 +19,6 @@ from .fields import (
     ShortField,
     TextField,
 )
-from .indices import Index
-from .registries import registry
 from .search import Search
 
 model_field_class_to_field_class = {
@@ -168,3 +162,7 @@ class DocType(DSLDocument):
         return self.bulk(
             self._get_actions(object_list, action), **kwargs
         )
+
+
+# Alias of DocType. Need to remove DocType in 7.x
+Document = DocType
