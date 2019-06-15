@@ -84,7 +84,7 @@ It required to defined ``Document`` class in  ``documents.py`` in your app direc
 
     # documents.py
 
-    from django_elasticsearch_dsl import Document
+    from django_elasticsearch_dsl.documents import Document
     from django_elasticsearch_dsl.registries import registry
     from .models import Car
 
@@ -208,7 +208,8 @@ like this:
 
     # documents.py
 
-    from django_elasticsearch_dsl import Document, fields
+    from django_elasticsearch_dsl import fields
+    from django_elasticsearch_dsl.documents import Document
 
     # ... #
 
@@ -287,7 +288,8 @@ You can use an ObjectField or a NestedField.
 
     # documents.py
 
-    from django_elasticsearch_dsl import Document, fields
+    from django_elasticsearch_dsl import fields
+    from django_elasticsearch_dsl.documents import Document
     from .models import Car, Manufacturer, Ad
 
     @registry.register_document
@@ -420,7 +422,7 @@ want to put in this Elasticsearch index and also add the `registry.register_docu
 
     # documents.py
     from elasticsearch_dsl import Index
-    from django_elasticsearch_dsl import Document
+    from django_elasticsearch_dsl.documents import Document
     from .models import Car, Manufacturer
 
     # The name of your index
