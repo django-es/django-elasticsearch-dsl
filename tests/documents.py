@@ -1,5 +1,6 @@
 from elasticsearch_dsl import analyzer
-from django_elasticsearch_dsl import DocType, Index, fields
+from django_elasticsearch_dsl import Document, Index, fields
+from django_elasticsearch_dsl.registries import registry
 
 from .models import Ad, Category, Car, Manufacturer
 
@@ -7,9 +8,6 @@ index_settings = {
     'number_of_shards': 1,
     'number_of_replicas': 0,
 }
-
-
-car_index = Index('test_cars').settings(**index_settings)
 
 
 html_strip = analyzer(
@@ -20,8 +18,8 @@ html_strip = analyzer(
 )
 
 
-@car_index.doc_type
-class CarDocument(DocType):
+@registry.register_document
+class CarDocument(Document):
     # test can override __init__
     def __init__(self, *args, **kwargs):
         super(CarDocument, self).__init__(*args, **kwargs)
@@ -43,7 +41,7 @@ class CarDocument(DocType):
         'icon': fields.FileField(),
     })
 
-    class Meta:
+    class Django:
         model = Car
         related_models = [Ad, Manufacturer, Category]
         fields = [
@@ -51,7 +49,10 @@ class CarDocument(DocType):
             'launched',
             'type',
         ]
-        doc_type = 'car_document'
+
+    class Index:
+        name = 'test_cars'
+        settings = index_settings
 
     def get_queryset(self):
         return super(CarDocument, self).get_queryset().select_related(
@@ -65,14 +66,11 @@ class CarDocument(DocType):
         return related_instance.car_set.all()
 
 
-manufacturer_index = Index('test_manufacturers').settings(**index_settings)
-
-
-@manufacturer_index.doc_type
-class ManufacturerDocument(DocType):
+@registry.register_document
+class ManufacturerDocument(Document):
     country = fields.StringField()
 
-    class Meta:
+    class Django:
         model = Manufacturer
         fields = [
             'name',
@@ -80,10 +78,14 @@ class ManufacturerDocument(DocType):
             'country_code',
             'logo',
         ]
-        doc_type = 'manufacturer_document'
+
+    class Index:
+        name = 'index_settings'
+        settings = index_settings
 
 
-class CarWithPrepareDocument(DocType):
+@registry.register_document
+class CarWithPrepareDocument(Document):
     manufacturer = fields.ObjectField(properties={
         'name': fields.StringField(),
         'country': fields.StringField(),
@@ -93,15 +95,17 @@ class CarWithPrepareDocument(DocType):
         'name': fields.StringField(),
     })
 
-    class Meta:
+    class Django:
         model = Car
         related_models = [Manufacturer]
-        index = 'car_with_prepare_index'
         fields = [
             'name',
             'launched',
             'type',
         ]
+
+    class Index:
+        name = 'car_with_prepare_index'
 
     def prepare_manufacturer_with_related(self, car, related_to_ignore):
         if (car.manufacturer is not None and car.manufacturer !=
@@ -123,17 +127,14 @@ class CarWithPrepareDocument(DocType):
         return related_instance.car_set.all()
 
 
-ad_index = Index('test_ads').settings(**index_settings)
-
-
-@ad_index.doc_type
-class AdDocument(DocType):
+@registry.register_document
+class AdDocument(Document):
     description = fields.TextField(
         analyzer=html_strip,
         fields={'raw': fields.KeywordField()}
     )
 
-    class Meta:
+    class Django:
         model = Ad
         fields = [
             'title',
@@ -141,13 +142,17 @@ class AdDocument(DocType):
             'modified',
             'url',
         ]
-        doc_type = 'ad_document'
+
+    class Index:
+        name = 'test_ads'
+        settings = index_settings
 
 
-class PaginatedAdDocument(DocType):
-    class Meta:
+@registry.register_document
+class PaginatedAdDocument(Document):
+
+    class Django:
         model = Ad
-        index = 'ad_index'
         queryset_pagination = 2
         fields = [
             'title',
@@ -155,7 +160,13 @@ class PaginatedAdDocument(DocType):
             'modified',
             'url',
         ]
-        doc_type = 'paginated_ad_document'
+
+    class Index:
+        name = 'ad_index'
 
     def get_queryset(self):
         return Ad.objects.all().order_by('-id')
+
+
+ad_index = AdDocument._index
+car_index = CarDocument._index

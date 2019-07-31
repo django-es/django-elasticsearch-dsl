@@ -24,8 +24,9 @@ class Search(DSLSearch):
         if not hasattr(self, '_response'):
             # We only need the meta fields with the models ids
             s = self.source(excludes=['*'])
+            s = s.execute()
 
-        pks = [result._id for result in s]
+        pks = [result.meta.id for result in s]
 
         qs = self._model.objects.filter(pk__in=pks)
 
