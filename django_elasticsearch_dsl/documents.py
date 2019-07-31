@@ -69,7 +69,8 @@ class DocType(DSLDocument):
         """
         Return the queryset that should be indexed by this doc type.
         """
-        return self.django.model._default_manager.all()
+        primary_key_field_name = self.django.model_meta.pk.name
+        return self.django.model._default_manager.all().order_by(primary_key_field_name)
 
     def prepare(self, instance):
         """
