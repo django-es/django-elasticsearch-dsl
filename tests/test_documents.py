@@ -134,7 +134,6 @@ class DocTypeTestCase(TestCase):
 
         self.assertEqual(
             CarDocument._doc_type.mapping.to_dict(), {
-                'car_document': {
                     'properties': {
                         'name': {
                             'type': text_type
@@ -149,7 +148,6 @@ class DocTypeTestCase(TestCase):
                             'type': 'double'
                         }
                     }
-                }
             }
         )
 
@@ -209,7 +207,6 @@ class DocTypeTestCase(TestCase):
                     'color': doc.prepare_color(None),
                 },
                 '_index': 'car_index',
-                '_type': 'car_document'
             }]
             self.assertEqual(1, mock.call_count)
             self.assertEqual(
@@ -238,7 +235,6 @@ class DocTypeTestCase(TestCase):
                     'color': doc.prepare_color(None),
                 },
                 '_index': 'car_index',
-                '_type': 'car_document'
             },
                 {
                     '_id': car2.pk,
@@ -249,8 +245,7 @@ class DocTypeTestCase(TestCase):
                         'type': car2.type(),
                         'color': doc.prepare_color(None),
                     },
-                    '_index': 'car_index',
-                    '_type': 'car_document'
+                    '_index': 'car_index'
                 }]
             self.assertEqual(1, mock.call_count)
             self.assertEqual(

@@ -182,7 +182,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
         text_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
 
         test_index = DSLIndex('test_index').settings(**index_settings)
-        test_index.doc_type(CarDocument)
+        test_index.document(CarDocument)
 
         index_dict = test_index.to_dict()
 
@@ -193,7 +193,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
                 'analyzer': {
                     'html_strip': {
                         'tokenizer': 'standard',
-                        'filter': ['standard', 'lowercase',
+                        'filter': ['lowercase',
                                    'stop', 'snowball'],
                         'type': 'custom',
                         'char_filter': ['html_strip']
@@ -202,7 +202,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
             }
         })
         self.assertEqual(index_dict['mappings'], {
-            'doc': {
                 'properties': {
                     'ads': {
                         'type': 'nested',
@@ -234,7 +233,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
                     'launched': {'type': 'date'},
                     'type': {'type': text_type}
                 }
-            }
         })
 
     def test_related_docs_are_updated(self):
