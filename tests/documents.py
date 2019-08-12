@@ -1,5 +1,5 @@
 from elasticsearch_dsl import analyzer
-from django_elasticsearch_dsl import DocType, Index, fields
+from django_elasticsearch_dsl import Document, Index, fields
 from django_elasticsearch_dsl.registries import registry
 
 from .models import Ad, Category, Car, Manufacturer
@@ -19,7 +19,7 @@ html_strip = analyzer(
 
 
 @registry.register_document
-class CarDocument(DocType):
+class CarDocument(Document):
     # test can override __init__
     def __init__(self, *args, **kwargs):
         super(CarDocument, self).__init__(*args, **kwargs)
@@ -67,7 +67,7 @@ class CarDocument(DocType):
 
 
 @registry.register_document
-class ManufacturerDocument(DocType):
+class ManufacturerDocument(Document):
     country = fields.StringField()
 
     class Django:
@@ -85,7 +85,7 @@ class ManufacturerDocument(DocType):
 
 
 @registry.register_document
-class CarWithPrepareDocument(DocType):
+class CarWithPrepareDocument(Document):
     manufacturer = fields.ObjectField(properties={
         'name': fields.StringField(),
         'country': fields.StringField(),
@@ -128,7 +128,7 @@ class CarWithPrepareDocument(DocType):
 
 
 @registry.register_document
-class AdDocument(DocType):
+class AdDocument(Document):
     description = fields.TextField(
         analyzer=html_strip,
         fields={'raw': fields.KeywordField()}
@@ -149,7 +149,7 @@ class AdDocument(DocType):
 
 
 @registry.register_document
-class PaginatedAdDocument(DocType):
+class PaginatedAdDocument(Document):
 
     class Django:
         model = Ad
