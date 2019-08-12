@@ -4,15 +4,13 @@ from collections import deque
 from copy import deepcopy
 from functools import partial
 
-from django.db import models
 from django.core.paginator import Paginator
-from django.utils.six import add_metaclass, iteritems
+from django.db import models
+from django.utils.six import iteritems
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Document as DSLDocument
-from elasticsearch_dsl.field import Field
 
-from .apps import DEDConfig
-from .exceptions import ModelFieldNotMappedError, RedeclaredFieldError
+from .exceptions import ModelFieldNotMappedError
 from .fields import (
     BooleanField,
     DateField,
@@ -25,8 +23,6 @@ from .fields import (
     ShortField,
     TextField,
 )
-from .indices import Index
-from .registries import registry
 from .search import Search
 
 model_field_class_to_field_class = {
@@ -251,3 +247,7 @@ class DocType(DSLDocument):
             parallel=self.django.parallel_indexing,
             **kwargs
         )
+
+
+# Alias of DocType. Need to remove DocType in 7.x
+Document = DocType
