@@ -468,7 +468,7 @@ want to put in this Elasticsearch index and also add the `registry.register_docu
                         'number_of_replicas': 0}
 
         class Django:
-            model = Car
+            model = Manufacturer
             fields = [
                 'name',
                 'country_code',
