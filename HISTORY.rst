@@ -3,6 +3,35 @@
 History
 -------
 
+7.0.0 (2019-08-11)
+~~~~~~~~~~~~~~~~~~
+* Support Elasticsearch 7.0 (See PR #176)
+* Added order by to paginate queryset properly (See PR #153)
+* Remove `standard` token filter from `README.md` and test files
+* Various documentation fixes
+
+
+6.4.2 (2019-07-26)
+~~~~~~~~~~~~~~~~~~
+* Fix document importing path
+* Update readme
+
+
+
+6.4.1 (2019-06-14)
+~~~~~~~~~~~~~~~~~~
+* The `DocType` import has changed to `Document`
+
+
+
+6.4.0 (2019-06-01)
+~~~~~~~~~~~~~~~~~~
+* Support elasticsearch-dsl>6.3.0
+* Class `Meta` has changed to class `Django` (See PR #136)
+* Add `register_document` decorator to register a document (See PR #136)
+* Additional Bug fixing and others
+
+
 0.5.1 (2018-11-07)
 ~~~~~~~~~~~~~~~~~~
 * Limit elastsearch-dsl to supported versions
