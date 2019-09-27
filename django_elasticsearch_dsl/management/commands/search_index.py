@@ -92,7 +92,7 @@ class Command(BaseCommand):
             doc().update(qs)
 
     def _delete(self, models, options):
-        index_names = [str(index) for index in registry.get_indices(models)]
+        index_names = [index._name for index in registry.get_indices(models)]
 
         if not options['force']:
             response = input(
