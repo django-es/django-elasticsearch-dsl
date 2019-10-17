@@ -53,6 +53,8 @@ class DocType(DSLDocument):
     def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(DocType, self).__init__(**kwargs)
         self._related_instance_to_ignore = related_instance_to_ignore
+        if getattr(self._doc_type, '_prepared_fields', None) is None:
+            self._doc_type._prepared_fields = self.init_prepare()
 
     def __eq__(self, other):
         return id(self) == id(other)
@@ -109,16 +111,13 @@ class DocType(DSLDocument):
 
             fields.append((name, field, fn))
 
-        self._doc_type._prepared_fields = fields
+        return fields
 
     def prepare(self, instance):
         """
         Take a model instance, and turn it into a dict that can be serialized
         based on the fields defined on this DocType subclass
         """
-        if getattr(self._doc_type, '_prepared_fields', None) is None:
-            self.init_prepare()
-
         data = {
             name: prep_func(instance)
                 for name, field, prep_func in self._doc_type._prepared_fields
