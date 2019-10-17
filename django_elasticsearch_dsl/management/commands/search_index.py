@@ -1,4 +1,6 @@
 from __future__ import unicode_literals, absolute_import
+
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.six.moves import input
 from ...registries import registry
@@ -49,6 +51,19 @@ class Command(BaseCommand):
             dest='force',
             help="Force operations without asking"
         )
+        parser.add_argument(
+            '--parallel',
+            action='store_true',
+            dest='parallel',
+            help='Run populate/rebuild update multi threaded'
+        )
+        parser.add_argument(
+            '--no-parallel',
+            action='store_false',
+            dest='parallel',
+            help='Run populate/rebuild update single threaded'
+        )
+        parser.set_defaults(parallel=getattr(settings, 'ELASTICSEARCH_DSL_PARALLEL', False))
 
     def _get_models(self, args):
         """
@@ -84,12 +99,14 @@ class Command(BaseCommand):
             index.create()
 
     def _populate(self, models, options):
+        parallel = options['parallel']
         for doc in registry.get_documents(models):
-            qs = doc().get_queryset()
-            self.stdout.write("Indexing {} '{}' objects".format(
-                qs.count(), doc.django.model.__name__)
+            self.stdout.write("Indexing {} '{}' objects {}".format(
+                doc().get_queryset().count(), doc.django.model.__name__,
+                "(parallel)" if parallel else "")
             )
-            doc().update(qs)
+            qs = doc().get_indexing_queryset()
+            doc().update(qs, parallel=parallel)
 
     def _delete(self, models, options):
         index_names = [index._name for index in registry.get_indices(models)]

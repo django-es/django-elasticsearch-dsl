@@ -131,10 +131,12 @@ It required to defined ``Document`` class in  ``documents.py`` in your app direc
             # Ignore auto updating of Elasticsearch when a model is saved
             # or deleted:
             # ignore_signals = True
+
             # Don't perform an index refresh after every update (overrides global setting):
             # auto_refresh = False
+
             # Paginate the django queryset used to populate the index with the specified size
-            # (by default there is no pagination)
+            # (by default it uses the database driver's default setting)
             # queryset_pagination = 5000
 
 
@@ -550,6 +552,15 @@ Defaults to ``django_elasticsearch_dsl.signals.RealTimeSignalProcessor``.
 
 You could, for instance, make a ``CelerySignalProcessor`` which would add
 update jobs to the queue to for delayed processing.
+
+ELASTICSEARCH_DSL_PARALLEL
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: ``False``
+
+Run indexing (populate and rebuild) in parallel using ES' parallel_bulk() method.
+Note that some databases (e.g. sqlite) do not play well with this option.
+
 
 Testing
 -------
