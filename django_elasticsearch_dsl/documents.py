@@ -53,8 +53,7 @@ class DocType(DSLDocument):
     def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(DocType, self).__init__(**kwargs)
         self._related_instance_to_ignore = related_instance_to_ignore
-        if getattr(self._doc_type, '_prepared_fields', None) is None:
-            self._doc_type._prepared_fields = self.init_prepare()
+        self._prepared_fields = self.init_prepare()
 
     def __eq__(self, other):
         return id(self) == id(other)
@@ -75,10 +74,12 @@ class DocType(DSLDocument):
         """
         Return the queryset that should be indexed by this doc type.
         """
-        primary_key_field_name = self.django.model._meta.pk.name
-        return self.django.model._default_manager.all().order_by(primary_key_field_name)
+        return self.django.model._default_manager.all()
 
     def get_indexing_queryset(self):
+        """
+        Build queryset (iterator) for use by indexing.
+        """
         qs = self.get_queryset()
         kwargs = {}
         if self.django.queryset_pagination:
@@ -120,7 +121,7 @@ class DocType(DSLDocument):
         """
         data = {
             name: prep_func(instance)
-                for name, field, prep_func in self._doc_type._prepared_fields
+                for name, field, prep_func in self._prepared_fields
             }
         # print("-> %s" % data)
         return data
