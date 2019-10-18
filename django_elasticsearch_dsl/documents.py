@@ -93,8 +93,9 @@ class DocType(DSLDocument):
         from the model and generate a list of callables to avoid doing that
         work on every object instance over.
         """
+        index_fields = getattr(self, '_fields', {})
         fields = []
-        for name, field in iteritems(self._fields):
+        for name, field in iteritems(index_fields):
             if not isinstance(field, DEDField):
                 continue
 
