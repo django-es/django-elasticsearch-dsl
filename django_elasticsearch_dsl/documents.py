@@ -4,6 +4,7 @@ from collections import deque
 from copy import deepcopy
 from functools import partial
 
+from django import VERSION as DJANGO_VERSION
 from django.core.paginator import Paginator
 from django.db import models
 from django.utils.six import iteritems
@@ -82,7 +83,7 @@ class DocType(DSLDocument):
         """
         qs = self.get_queryset()
         kwargs = {}
-        if self.django.queryset_pagination:
+        if DJANGO_VERSION >= (2,) and self.django.queryset_pagination:
             kwargs = {'chunk_size': self.django.queryset_pagination}
         return qs.iterator(**kwargs)
 
