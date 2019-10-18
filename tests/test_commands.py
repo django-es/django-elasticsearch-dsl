@@ -112,7 +112,8 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
 
     def test_populate_all_doc_type(self):
         call_command('search_index', stdout=self.out, action='populate')
-        self.doc_a1.get_queryset.assert_called_once()
+        # One call for "Indexing NNN documents", one for indexing itself (via get_index_queryset).
+        assert self.doc_a1.get_queryset.call_count == 2
         self.doc_a1.update.assert_called_once_with(self.doc_a1_qs)
         self.doc_a2.get_queryset.assert_called_once()
         self.doc_a2.update.assert_called_once_with(self.doc_a2_qs)
