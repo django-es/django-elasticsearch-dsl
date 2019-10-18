@@ -51,6 +51,7 @@ model_field_class_to_field_class = {
 }
 
 class DocType(DSLDocument):
+    _prepared_fields = []
     def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(DocType, self).__init__(**kwargs)
         self._related_instance_to_ignore = related_instance_to_ignore
