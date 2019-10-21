@@ -135,7 +135,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
         ])
 
     def test_doc_to_dict(self):
-        self.maxDiff = None  # XXX: mjl temporary
         s = CarDocument.search().query("match", name=self.car2.name)
         result = s.execute()
         self.assertEqual(len(result), 1)
