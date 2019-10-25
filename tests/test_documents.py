@@ -336,4 +336,6 @@ class DocTypeTestCase(TestCase):
         # preparing no access to _fields should happen
         with patch.object(CarDocument, '_fields', 33):
             d.prepare(m)
-        self.assertEqual([tuple(x) for x in m.method_calls], [('type', (), {}), ('name', (), {}), ('price', (), {})])
+        self.assertEqual(sorted([tuple(x) for x in m.method_calls], key=lambda _: _[0]),
+                         [('name', (), {}),  ('price', (), {}), ('type', (), {})]
+        )
