@@ -305,17 +305,21 @@ class DocTypeTestCase(TestCase):
         self.assertEqual(len(d._prepared_fields), 4)
 
         expect = {
-            'color': ("<class 'django_elasticsearch_dsl.fields.TextField'>", "<class 'method'>"),
-            'type': ("<class 'django_elasticsearch_dsl.fields.StringField'>", "<class 'functools.partial'>"),
-            'name': ("<class 'django_elasticsearch_dsl.fields.TextField'>", "<class 'functools.partial'>"),
-            'price': ("<class 'django_elasticsearch_dsl.fields.DoubleField'>", "<class 'functools.partial'>"),
+            'color': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
+                    ("<class 'method'>", "<type 'instancemethod'>")), # py3, py2
+            'type': ("<class 'django_elasticsearch_dsl.fields.StringField'>",
+                    ("<class 'functools.partial'>","<type 'functools.partial'>")),
+            'name': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
+                    ("<class 'functools.partial'>","<type 'functools.partial'>")),
+            'price': ("<class 'django_elasticsearch_dsl.fields.DoubleField'>",
+                    ("<class 'functools.partial'>","<type 'functools.partial'>")),
         }
 
         for name, field, prep in d._prepared_fields:
             e = expect[name]
             self.assertEqual(str(type(field)), e[0], 'field type should be copied over')
             self.assertTrue('__call__' in dir(prep), 'prep function should be callable')
-            self.assertEqual(str(type(prep)), e[1], 'prep function is correct partial or method')
+            self.assertTrue(str(type(prep)) in e[1], 'prep function is correct partial or method')
 
     def test_init_prepare_results(self):
         """Are the results from init_prepare() actually used in prepare()?"""
