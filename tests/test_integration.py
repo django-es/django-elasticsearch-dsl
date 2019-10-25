@@ -17,7 +17,6 @@ from .documents import (
     car_index,
     CarDocument,
     CarWithPrepareDocument,
-    PaginatedAdDocument,
     ManufacturerDocument,
     index_settings
 )
@@ -337,19 +336,19 @@ class IntegrationTestCase(ESTestCase, TestCase):
         self.assertEqual(qs.count(), 2)
         self.assertEqual(list(qs), [self.ad2, self.ad1])
 
-    @unittest.expectedFailure  # ripping out pagination made this fail (mjl)
-    def test_queryset_pagination(self):
+    def test_queryset_iterator_queries(self):
         ad3 = Ad(title="Ad 3",  car=self.car1)
         ad3.save()
         with self.assertNumQueries(1):
             AdDocument().update(Ad.objects.all())
 
-        doc = PaginatedAdDocument()
+        doc = AdDocument()
 
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(1):
             doc.update(Ad.objects.all().order_by('-id'))
             self.assertEqual(
                 set(int(instance.meta.id) for instance in
                     doc.search().query('match', title="Ad")),
                 set([ad3.pk, self.ad1.pk, self.ad2.pk])
             )
+
