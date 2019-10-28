@@ -274,9 +274,11 @@ class DocTypeTestCase(TestCase):
         car1 = Car()
         car2 = Car()
         car3 = Car()
-        with patch('django_elasticsearch_dsl.documents.bulk') as mock_bulk, \
-             patch('django_elasticsearch_dsl.documents.parallel_bulk') as mock_parallel_bulk:
-            doc.update([car1, car2, car3])
+
+        bulk = "django_elasticsearch_dsl.documents.bulk"
+        parallel_bulk = "django_elasticsearch_dsl.documents.parallel_bulk"
+        with patch(bulk) as mock_bulk, patch(parallel_bulk) as mock_parallel_bulk:
+            doc.update([car3, car2, car3])
             self.assertEqual(
                 3, len(list(mock_bulk.call_args_list[0][1]['actions']))
             )
@@ -292,8 +294,9 @@ class DocTypeTestCase(TestCase):
         car1 = Car()
         car2 = Car()
         car3 = Car()
-        with patch('django_elasticsearch_dsl.documents.bulk') as mock_bulk, \
-             patch('django_elasticsearch_dsl.documents.parallel_bulk') as mock_parallel_bulk:
+        bulk = "django_elasticsearch_dsl.documents.bulk"
+        parallel_bulk = "django_elasticsearch_dsl.documents.parallel_bulk"
+        with patch(bulk) as mock_bulk, patch(parallel_bulk) as mock_parallel_bulk:
             doc.update([car1, car2, car3], parallel=True)
             self.assertEqual(mock_bulk.call_count, 0, "bulk is not called")
             self.assertEqual(mock_parallel_bulk.call_count, 1, "parallel bulk is called")
