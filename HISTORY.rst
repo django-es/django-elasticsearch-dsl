@@ -3,6 +3,17 @@
 History
 -------
 
+7.1.0 (2019-10-29)
+~~~~~~~~~~~~~~~~~~
+* Support for Django `DecimalField` #141
+* Indexing speedup by using `parallel` indexing. #213.
+  Now you can pass `--parallel` or set `ELASTICSEARCH_DSL_PARALLEL`
+  in your settings to get indexing speed boost while indexing
+  through management command.
+* Fixing name resolution in management command #206
+* Small documentation fixes. #196
+
+
 7.0.0 (2019-08-11)
 ~~~~~~~~~~~~~~~~~~
 * Support Elasticsearch 7.0 (See PR #176)
