@@ -125,7 +125,6 @@ class DocType(DSLDocument):
             name: prep_func(instance)
                 for name, field, prep_func in self._prepared_fields
             }
-        # print("-> %s" % data)
         return data
 
     @classmethod
