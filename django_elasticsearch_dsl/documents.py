@@ -5,7 +5,6 @@ from copy import deepcopy
 from functools import partial
 
 from django import VERSION as DJANGO_VERSION
-from django.core.paginator import Paginator
 from django.db import models
 from django.utils.six import iteritems
 from elasticsearch.helpers import bulk, parallel_bulk
@@ -149,6 +148,8 @@ class DocType(DSLDocument):
         return bulk(client=self._get_connection(), actions=actions, **kwargs)
 
     def parallel_bulk(self, actions, **kwargs):
+        if self.django.queryset_pagination and 'chunk_size' not in kwargs:
+            kwargs['chunk_size'] = self.django.queryset_pagination
         deque(parallel_bulk(client=self._get_connection(), actions=actions, **kwargs), maxlen=0)
         # Fake return value to emulate bulk() since we don't have a result yet,
         # the result is currently not used upstream anyway.
