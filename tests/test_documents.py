@@ -280,8 +280,8 @@ class DocTypeTestCase(TestCase):
             self.assertEqual(
                 3, len(list(mock_bulk.call_args_list[0][1]['actions']))
             )
-            self.assertEqual(mock_bulk.call_count, 1, "bulk is no called")
-            self.assertEqual(mock_parallel_bulk.call_count, 0, "parallel bulk is no called")
+            self.assertEqual(mock_bulk.call_count, 1, "bulk is called")
+            self.assertEqual(mock_parallel_bulk.call_count, 0, "parallel bulk is not called")
 
     def test_model_instance_iterable_update_with_parallel(self):
         class CarDocument2(DocType):
