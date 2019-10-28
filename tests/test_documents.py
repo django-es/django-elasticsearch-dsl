@@ -3,7 +3,7 @@ from unittest import TestCase
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from elasticsearch_dsl import GeoPoint, MetaField
-from mock import patch
+from mock import patch, Mock, PropertyMock
 
 from django_elasticsearch_dsl import fields
 from django_elasticsearch_dsl.documents import DocType
@@ -274,8 +274,75 @@ class DocTypeTestCase(TestCase):
         car1 = Car()
         car2 = Car()
         car3 = Car()
-        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update([car1, car2, car3])
+
+        bulk = "django_elasticsearch_dsl.documents.bulk"
+        parallel_bulk = "django_elasticsearch_dsl.documents.parallel_bulk"
+        with patch(bulk) as mock_bulk, patch(parallel_bulk) as mock_parallel_bulk:
+            doc.update([car3, car2, car3])
             self.assertEqual(
-                3, len(list(mock.call_args_list[0][1]['actions']))
+                3, len(list(mock_bulk.call_args_list[0][1]['actions']))
             )
+            self.assertEqual(mock_bulk.call_count, 1, "bulk is called")
+            self.assertEqual(mock_parallel_bulk.call_count, 0, "parallel bulk is not called")
+
+    def test_model_instance_iterable_update_with_parallel(self):
+        class CarDocument2(DocType):
+            class Django:
+                model = Car
+
+        doc = CarDocument()
+        car1 = Car()
+        car2 = Car()
+        car3 = Car()
+        bulk = "django_elasticsearch_dsl.documents.bulk"
+        parallel_bulk = "django_elasticsearch_dsl.documents.parallel_bulk"
+        with patch(bulk) as mock_bulk, patch(parallel_bulk) as mock_parallel_bulk:
+            doc.update([car1, car2, car3], parallel=True)
+            self.assertEqual(mock_bulk.call_count, 0, "bulk is not called")
+            self.assertEqual(mock_parallel_bulk.call_count, 1, "parallel bulk is called")
+
+    def test_init_prepare_correct(self):
+        """Does init_prepare() run and collect the right preparation functions?"""
+
+        d = CarDocument()
+        self.assertEqual(len(d._prepared_fields), 4)
+
+        expect = {
+            'color': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
+                    ("<class 'method'>", "<type 'instancemethod'>")), # py3, py2
+            'type': ("<class 'django_elasticsearch_dsl.fields.StringField'>",
+                    ("<class 'functools.partial'>","<type 'functools.partial'>")),
+            'name': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
+                    ("<class 'functools.partial'>","<type 'functools.partial'>")),
+            'price': ("<class 'django_elasticsearch_dsl.fields.DoubleField'>",
+                    ("<class 'functools.partial'>","<type 'functools.partial'>")),
+        }
+
+        for name, field, prep in d._prepared_fields:
+            e = expect[name]
+            self.assertEqual(str(type(field)), e[0], 'field type should be copied over')
+            self.assertTrue('__call__' in dir(prep), 'prep function should be callable')
+            self.assertTrue(str(type(prep)) in e[1], 'prep function is correct partial or method')
+
+    def test_init_prepare_results(self):
+        """Are the results from init_prepare() actually used in prepare()?"""
+        d = CarDocument()
+
+        car = Car()
+        setattr(car, 'name', "Tusla")
+        setattr(car, 'price', 340123.21)
+        setattr(car, 'color', "polka-dots") # Overwritten by prepare function
+        setattr(car, 'pk', 4701) # Ignored, not in document
+        setattr(car, 'type', "imaginary")
+
+        self.assertEqual(d.prepare(car), {'color': 'blue', 'type': 'imaginary', 'name': 'Tusla', 'price': 340123.21})
+
+        m = Mock()
+        # This will blow up should we access _fields and try to iterate over it.
+        # Since init_prepare compiles a list of prepare functions, while
+        # preparing no access to _fields should happen
+        with patch.object(CarDocument, '_fields', 33):
+            d.prepare(m)
+        self.assertEqual(sorted([tuple(x) for x in m.method_calls], key=lambda _: _[0]),
+                         [('name', (), {}),  ('price', (), {}), ('type', (), {})]
+        )

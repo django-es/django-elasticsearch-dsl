@@ -148,25 +148,5 @@ class AdDocument(Document):
         settings = index_settings
 
 
-@registry.register_document
-class PaginatedAdDocument(Document):
-
-    class Django:
-        model = Ad
-        queryset_pagination = 2
-        fields = [
-            'title',
-            'created',
-            'modified',
-            'url',
-        ]
-
-    class Index:
-        name = 'ad_index'
-
-    def get_queryset(self):
-        return Ad.objects.all().order_by('-id')
-
-
 ad_index = AdDocument._index
 car_index = CarDocument._index
