@@ -1,5 +1,2 @@
 django>=1.9.6
 elasticsearch-dsl>=7.0.0,<8.0.0
-django-elasticsearch-dsl==7.1.0 \
-    --hash=sha256:2fdae0d20f1b57196f6455d6eea9c556332cde35620622f6db5c224fd9ce2582 \
-    --hash=sha256:38e3f7774c2b2dc1dcf19f24f083e6ca11304c2c3bcffba7e53027847c052529
