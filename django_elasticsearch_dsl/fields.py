@@ -1,7 +1,7 @@
 import collections
 from types import MethodType
-import warnings
 
+from elasticsearch_dsl.field import Keyword, Text
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.fields.files import FieldFile
@@ -210,61 +210,13 @@ class FileFieldMixin(object):
         return _file if _file else ''
 
 
-# ES5+ has text types Keyword and Text, ES2 has type String.
-try:
-    from elasticsearch_dsl.field import Keyword, Text
-
-    class KeywordField(DEDField, Keyword):
-        pass
-
-    class TextField(DEDField, Text):
-        pass
-
-    class StringField(DEDField, Text):
-        warnings.warn(
-            'StringField is deprecated in Elasticsearch 5 and removed in '
-            'Elasticsearch 6. Please use TextField and KeywordField instead.',
-            DeprecationWarning
-        )
-
-    class FileField(FileFieldMixin, DEDField, Text):
-        pass
+class KeywordField(DEDField, Keyword):
+    pass
 
 
-except ImportError:
-    from elasticsearch_dsl.field import String
-
-    class KeywordField(DEDField, String):
-        def __init__(self, **kwargs):
-            if 'index' not in kwargs or kwargs['index'] is True:
-                # Unless a custom 'index' setting was provided, create the
-                # Keyword field as a "not_analyzed" field.
-                kwargs['index'] = 'not_analyzed'
-            super(KeywordField, self).__init__(**kwargs)
-
-    class TextField(DEDField, String):
-        pass
-
-    class StringField(DEDField, String):
-        pass
-
-    class FileField(FileFieldMixin, DEDField, String):
-        pass
+class TextField(DEDField, Text):
+    pass
 
 
-# Elasticsearch 2 and 5 have an Attachment field, ES 6 doesn't.
-try:
-    from elasticsearch_dsl.field import Attachment
-
-    class AttachmentField(DEDField, Attachment):
-        pass
-except ImportError:
-    from elasticsearch_dsl.field import Text
-
-    class AttachmentField(DEDField, Text):
-        name = 'attachment'
-        warnings.warn(
-            'AttachmentField is deprecated in Elasticsearch 5 and removed in '
-            'Elasticsearch 6.',
-            DeprecationWarning
-        )
+class FileField(FileFieldMixin, DEDField, Text):
+    pass
