@@ -5,6 +5,7 @@ from copy import deepcopy
 from functools import partial
 
 from django import VERSION as DJANGO_VERSION
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.six import iteritems
 from elasticsearch.helpers import bulk, parallel_bulk
@@ -22,7 +23,7 @@ from .fields import (
     LongField,
     ShortField,
     TextField,
-)
+    ObjectField)
 from .search import Search
 
 model_field_class_to_field_class = {
@@ -47,7 +48,9 @@ model_field_class_to_field_class = {
     models.TextField: TextField,
     models.TimeField: LongField,
     models.URLField: TextField,
+    JSONField: ObjectField
 }
+
 
 class DocType(DSLDocument):
     _prepared_fields = []
