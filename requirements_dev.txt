@@ -3,6 +3,5 @@ wheel==0.32.2
 django>=2.0,<2.2
 elasticsearch-dsl>=7.0.0,<8.0.0
 twine
-wheel==0.29.0
-django>=2.0,<2.1
+sphinx
 -e .
