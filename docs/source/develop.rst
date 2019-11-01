@@ -29,3 +29,14 @@ Or::
 For integration testing with a running Elasticsearch server::
 
     $ python runtests.py --elasticsearch [localhost:9200]
+
+TODO
+====
+ 
+- Add support for --using (use another Elasticsearch cluster) in management commands.
+- Add management commands for mapping level operations (like update_mapping....).
+- Generate ObjectField/NestField properties from a Document class.
+- More examples.
+- Better ``ESTestCase`` and documentation for testing
+
+

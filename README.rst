@@ -54,15 +54,3 @@ The library is compatible with all Elasticsearch versions since 5.x
     elasticsearch-dsl>=0.5.1,<6.0.0
 
 .. _Search: http://elasticsearch-dsl.readthedocs.io/en/stable/search_dsl.html
-
-
-TODO
-====
- 
--- Add support for --using (use another Elasticsearch cluster) in management commands.
--- Add management commands for mapping level operations (like update_mapping....).
--- Generate ObjectField/NestField properties from a Document class.
--- More examples.
--- Better ``ESTestCase`` and documentation for testing
-
-
