@@ -5,7 +5,6 @@ from copy import deepcopy
 from functools import partial
 
 from django import VERSION as DJANGO_VERSION
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.six import iteritems
 from elasticsearch.helpers import bulk, parallel_bulk
@@ -48,12 +47,18 @@ model_field_class_to_field_class = {
     models.TextField: TextField,
     models.TimeField: LongField,
     models.URLField: TextField,
-    JSONField: ObjectField
 }
+
+try:
+    from django.contrib.postgres.fields import JSONField
+    model_field_class_to_field_class[JSONField] = ObjectField
+except ImportError:
+    pass
 
 
 class DocType(DSLDocument):
     _prepared_fields = []
+
     def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(DocType, self).__init__(**kwargs)
         self._related_instance_to_ignore = related_instance_to_ignore
