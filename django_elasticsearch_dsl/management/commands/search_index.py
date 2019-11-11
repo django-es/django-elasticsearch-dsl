@@ -102,7 +102,7 @@ class Command(BaseCommand):
 
     def _create(self, models, options):
         for index in registry.get_indices(models):
-            self.stdout.write("Creating index '{}'".format(index))
+            self.stdout.write("Creating index '{}'".format(index._name))
             index.create()
 
     def _populate(self, models, options):
@@ -128,7 +128,7 @@ class Command(BaseCommand):
                 return False
 
         for index in registry.get_indices(models):
-            self.stdout.write("Deleting index '{}'".format(index))
+            self.stdout.write("Deleting index '{}'".format(index._name))
             index.delete(ignore=404)
         return True
 
