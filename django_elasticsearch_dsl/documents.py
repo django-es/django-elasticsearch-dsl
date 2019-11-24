@@ -22,7 +22,7 @@ from .fields import (
     LongField,
     ShortField,
     TextField,
-)
+    ObjectField)
 from .search import Search
 
 model_field_class_to_field_class = {
@@ -49,8 +49,16 @@ model_field_class_to_field_class = {
     models.URLField: TextField,
 }
 
+try:
+    from django.contrib.postgres.fields import JSONField
+    model_field_class_to_field_class[JSONField] = ObjectField
+except ImportError:
+    pass
+
+
 class DocType(DSLDocument):
     _prepared_fields = []
+
     def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(DocType, self).__init__(**kwargs)
         self._related_instance_to_ignore = related_instance_to_ignore
