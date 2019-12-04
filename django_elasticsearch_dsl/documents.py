@@ -6,7 +6,7 @@ from functools import partial
 
 from django import VERSION as DJANGO_VERSION
 from django.db import models
-from django.utils.six import iteritems
+from six import iteritems
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Document as DSLDocument
 
