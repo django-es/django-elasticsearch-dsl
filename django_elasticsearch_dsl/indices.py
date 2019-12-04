@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 from elasticsearch_dsl import Index as DSLIndex
 
 from .apps import DEDConfig
