@@ -43,6 +43,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'elasticsearch-dsl>=7.0.0<8.0.0',
+        'six',
     ],
     license="Apache Software License 2.0",
     zip_safe=False,
@@ -50,10 +51,11 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Framework :: Django',
-        'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
         'Framework :: Django :: 2.1',
+        'Framework :: Django :: 2.2',
+        'Framework :: Django :: 3.0',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',

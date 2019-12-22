@@ -5,8 +5,8 @@ from itertools import chain
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.six import itervalues, iterkeys, iteritems
 from elasticsearch_dsl import Field, AttrDict
+from six import itervalues, iterkeys, iteritems
 
 from django_elasticsearch_dsl.exceptions import RedeclaredFieldError
 from .apps import DEDConfig

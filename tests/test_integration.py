@@ -4,8 +4,8 @@ import unittest
 
 from django.core.management import call_command
 from django.test import TestCase
-from django.utils.six import StringIO
 from django.utils.translation import ugettext_lazy as _
+from six import StringIO
 
 from elasticsearch_dsl import Index as DSLIndex
 from django_elasticsearch_dsl.test import ESTestCase

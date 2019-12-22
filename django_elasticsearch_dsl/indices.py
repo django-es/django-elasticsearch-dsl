@@ -1,7 +1,7 @@
 from copy import deepcopy
 
-from django.utils.encoding import python_2_unicode_compatible
 from elasticsearch_dsl import Index as DSLIndex
+from six import python_2_unicode_compatible
 
 from .apps import DEDConfig
 from .registries import registry
