@@ -18,6 +18,13 @@ class Command(BaseCommand):
             help="Specify the model or app to be updated in elasticsearch"
         )
         parser.add_argument(
+            '--indices',
+            metavar='indices',
+            type=str,
+            nargs='*',
+            help="Specify the indices to be updated in elasticsearch"
+        )
+        parser.add_argument(
             '--create',
             action='store_const',
             dest='action',
@@ -100,14 +107,31 @@ class Command(BaseCommand):
 
         return set(models)
 
-    def _create(self, models, options):
-        for index in registry.get_indices(models):
+    def get_indices_names(self, args):
+        if args:
+            indices_names = []
+            for arg in args:
+                arg = arg.lower()
+
+                for index in registry._indices:
+                    if index._name == arg:
+                        indices_names.append(arg)
+                        break
+                else:
+                    raise CommandError("No index named {}".format(arg))
+
+            return indices_names
+        return None
+
+    def _create(self, models, indices_names, options):
+        for index in registry.get_indices(models, indices_names):
             self.stdout.write("Creating index '{}'".format(index._name))
             index.create()
 
-    def _populate(self, models, options):
+    def _populate(self, models, indices_names, options):
         parallel = options['parallel']
-        for doc in registry.get_documents(models):
+
+        for doc in registry.get_documents(models, indices_names):
             self.stdout.write("Indexing {} '{}' objects {}".format(
                 doc().get_queryset().count() if options['count'] else "all",
                 doc.django.model.__name__,
@@ -116,9 +140,8 @@ class Command(BaseCommand):
             qs = doc().get_indexing_queryset()
             doc().update(qs, parallel=parallel)
 
-    def _delete(self, models, options):
-        index_names = [index._name for index in registry.get_indices(models)]
-
+    def _delete(self, models, indices_names, options):
+        index_names = [index._name for index in registry.get_indices(models, indices_names)]
         if not options['force']:
             response = input(
                 "Are you sure you want to delete "
@@ -127,17 +150,17 @@ class Command(BaseCommand):
                 self.stdout.write('Aborted')
                 return False
 
-        for index in registry.get_indices(models):
+        for index in registry.get_indices(models, indices_names):
             self.stdout.write("Deleting index '{}'".format(index._name))
             index.delete(ignore=404)
         return True
 
-    def _rebuild(self, models, options):
-        if not self._delete(models, options):
+    def _rebuild(self, models, indices_names, options):
+        if not self._delete(models, indices_names, options):
             return
 
-        self._create(models, options)
-        self._populate(models, options)
+        self._create(models, indices_names, options)
+        self._populate(models, indices_names, options)
 
     def handle(self, *args, **options):
         if not options['action']:
@@ -148,15 +171,16 @@ class Command(BaseCommand):
 
         action = options['action']
         models = self._get_models(options['models'])
+        indices_names = self.get_indices_names(options['indices'])
 
         if action == 'create':
-            self._create(models, options)
+            self._create(models, indices_names, options)
         elif action == 'populate':
-            self._populate(models, options)
+            self._populate(models, indices_names, options)
         elif action == 'delete':
-            self._delete(models, options)
+            self._delete(models, indices_names, options)
         elif action == 'rebuild':
-            self._rebuild(models, options)
+            self._rebuild(models, indices_names,options)
         else:
             raise CommandError(
                 "Invalid action. Must be one of"

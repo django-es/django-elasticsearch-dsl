@@ -147,10 +147,13 @@ class DocumentRegistry(object):
         """
         self.update(instance, action="delete", **kwargs)
 
-    def get_documents(self, models=None):
+    def get_documents(self, models=None, indices=None):
         """
-        Get all documents in the registry or the documents for a list of models
+        Get all documents in the registry or the documents for a list of models or indices
         """
+        if indices is not None:
+            return set(chain(*(docs for idx, docs in iteritems(registry._indices) if idx._name in indices)))
+
         if models is not None:
             return set(chain(*(self._models[model] for model in models
                                if model in self._models)))
@@ -162,10 +165,13 @@ class DocumentRegistry(object):
         """
         return set(iterkeys(self._models))
 
-    def get_indices(self, models=None):
+    def get_indices(self, models=None, indices=None):
         """
-        Get all indices in the registry or the indices for a list of models
+        Get all indices in the registry or the indices for a list of models or indices
         """
+        if indices is not None:
+            return set(idx for idx in iterkeys(self._indices) if idx._name in indices)
+
         if models is not None:
             return set(
                 indice for indice, docs in iteritems(self._indices)
