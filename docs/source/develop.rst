@@ -20,11 +20,6 @@ the requirements from ``requirements_test.txt`` (``pip install -r requirements_t
 
     $ python runtests.py
 
-Or::
-
-    $ make test
-
-    $ make test-all # for tox testing
 
 For integration testing with a running Elasticsearch server::
 
