@@ -25,19 +25,19 @@ class CarDocument(Document):
         super(CarDocument, self).__init__(*args, **kwargs)
 
     manufacturer = fields.ObjectField(properties={
-        'name': fields.StringField(),
-        'country': fields.StringField(),
+        'name': fields.TextField(),
+        'country': fields.TextField(),
     })
 
     ads = fields.NestedField(properties={
-        'description': fields.StringField(analyzer=html_strip),
-        'title': fields.StringField(),
+        'description': fields.TextField(analyzer=html_strip),
+        'title': fields.TextField(),
         'pk': fields.IntegerField(),
     })
 
     categories = fields.NestedField(properties={
-        'title': fields.StringField(),
-        'slug': fields.StringField(),
+        'title': fields.TextField(),
+        'slug': fields.TextField(),
         'icon': fields.FileField(),
     })
 
@@ -68,7 +68,7 @@ class CarDocument(Document):
 
 @registry.register_document
 class ManufacturerDocument(Document):
-    country = fields.StringField()
+    country = fields.TextField()
 
     class Django:
         model = Manufacturer
@@ -87,12 +87,12 @@ class ManufacturerDocument(Document):
 @registry.register_document
 class CarWithPrepareDocument(Document):
     manufacturer = fields.ObjectField(properties={
-        'name': fields.StringField(),
-        'country': fields.StringField(),
+        'name': fields.TextField(),
+        'country': fields.TextField(),
     })
 
     manufacturer_short = fields.ObjectField(properties={
-        'name': fields.StringField(),
+        'name': fields.TextField(),
     })
 
     class Django:
