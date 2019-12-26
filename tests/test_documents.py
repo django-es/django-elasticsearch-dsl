@@ -38,7 +38,7 @@ class Manufacturer(models.Model):
 @registry.register_document
 class CarDocument(DocType):
     color = fields.TextField()
-    type = fields.StringField()
+    type = fields.TextField()
 
     def prepare_color(self, instance):
         return "blue"
@@ -111,8 +111,8 @@ class DocTypeTestCase(TestCase):
         with self.assertRaises(RedeclaredFieldError):
             @registry.register_document
             class CarDocument(DocType):
-                color = fields.StringField()
-                name = fields.StringField()
+                color = fields.TextField()
+                name = fields.TextField()
 
                 class Django:
                     fields = ['name']
@@ -310,7 +310,7 @@ class DocTypeTestCase(TestCase):
         expect = {
             'color': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
                     ("<class 'method'>", "<type 'instancemethod'>")), # py3, py2
-            'type': ("<class 'django_elasticsearch_dsl.fields.StringField'>",
+            'type': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
                     ("<class 'functools.partial'>","<type 'functools.partial'>")),
             'name': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
                     ("<class 'functools.partial'>","<type 'functools.partial'>")),
