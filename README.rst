@@ -27,6 +27,7 @@ Features
 - Management commands for creating, deleting, rebuilding and populating indices.
 - Elasticsearch auto mapping from django models fields.
 - Complex field type support (ObjectField, NestedField).
+- Index fast using `parallel` indexing.
 - Requirements
 
    - Django >= 1.11
