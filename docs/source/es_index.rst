@@ -56,3 +56,7 @@ When you execute the command::
 
 This will create two index named ``cars`` and ``manufacture``
 in Elasticsearch with appropriate mapping.
+
+** If your model have huge amount of data, its preferred to use `parallel` indexing.
+To do that, you can pass `--parallel` flag while reindexing or populating.
+**

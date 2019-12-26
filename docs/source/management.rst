@@ -18,11 +18,11 @@ Populate the Elasticsearch mappings with the django models data (index need to b
 
 ::
 
-    $ search_index --populate [--models [app[.model] app[.model] ...]]
+    $ search_index --populate [--models [app[.model] app[.model] ...]] [--parallel]
 
 Recreate and repopulate the indices:
 
 ::
 
-    $ search_index --rebuild [-f] [--models [app[.model] app[.model] ...]]
+    $ search_index --rebuild [-f] [--models [app[.model] app[.model] ...]] [--parallel]
 
