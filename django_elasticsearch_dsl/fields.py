@@ -1,13 +1,11 @@
 import collections
 from types import MethodType
 
-from elasticsearch_dsl.field import Keyword, Text
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.fields.files import FieldFile
 from django.utils.encoding import force_text
 from django.utils.functional import Promise
-
 from elasticsearch_dsl.field import (
     Boolean,
     Byte,
@@ -24,7 +22,10 @@ from elasticsearch_dsl.field import (
     Nested,
     Object,
     Short,
+    Keyword,
+    Text
 )
+
 from .exceptions import VariableLookupError
 
 
