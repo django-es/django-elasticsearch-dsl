@@ -59,7 +59,7 @@ author = 'sabricot and others'
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = '0.7.1'
+release = '7.1.1'
 # The short X.Y version
 version = ".".join(release.split(".", 3)[:2])
 
