@@ -7,6 +7,7 @@ from django import VERSION as DJANGO_VERSION
 from django.db import models
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Document as DSLDocument
+from elasticsearch_dsl.connections import get_connection
 from six import iteritems
 
 from .exceptions import ModelFieldNotMappedError
@@ -47,6 +48,8 @@ model_field_class_to_field_class = {
     models.TimeField: LongField,
     models.URLField: TextField,
 }
+
+es_connection = get_connection()
 
 class DocType(DSLDocument):
     _prepared_fields = []
@@ -157,15 +160,19 @@ class DocType(DSLDocument):
         return (1, [])
 
     def _prepare_action(self, object_instance, action):
-        return {
+        prepared_object = {
             '_op_type': action,
             '_index': self._index._name,
-            '_type': self._doc_type.name,
             '_id': object_instance.pk,
             '_source': (
                 self.prepare(object_instance) if action != 'delete' else None
             ),
         }
+
+        if es_connection.info()['version']['number'][0] == '6':
+            prepared_object['_type'] = self._doc_type.name
+
+        return prepared_object
 
     def _get_actions(self, object_list, action):
         for object_instance in object_list:
