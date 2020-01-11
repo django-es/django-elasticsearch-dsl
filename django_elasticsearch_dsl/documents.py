@@ -49,7 +49,6 @@ model_field_class_to_field_class = {
     models.URLField: TextField,
 }
 
-es_connection = get_connection()
 
 class DocType(DSLDocument):
     _prepared_fields = []
@@ -168,7 +167,7 @@ class DocType(DSLDocument):
                 self.prepare(object_instance) if action != 'delete' else None
             ),
         }
-
+        es_connection = get_connection()
         if es_connection.info()['version']['number'][0] == '6':
             prepared_object['_type'] = self._doc_type.name
 
