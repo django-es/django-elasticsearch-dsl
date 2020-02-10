@@ -9,6 +9,7 @@ History
 * Resolve name resolution while delete, create index (#228)
 * Added support for Django 3.0. (#230)
 * Removing old Elasticsearc compatibility (#219)
+* Drop StringField in favor of TextField.
 
 
 7.1.0 (2019-10-29)
