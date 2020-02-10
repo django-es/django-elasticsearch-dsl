@@ -219,20 +219,16 @@ Available Fields
   - ``FloatField(attr=None, **elasticsearch_properties)``
   - ``IntegerField(attr=None, **elasticsearch_properties)``
   - ``IpField(attr=None, **elasticsearch_properties)``
+  - ``KeywordField(attr=None, **elasticsearch_properties)``
   - ``GeoPointField(attr=None, **elasticsearch_properties)``
   - ``GeoShapField(attr=None, **elasticsearch_properties)``
   - ``ShortField(attr=None, **elasticsearch_properties)``
-  - ``StringField(attr=None, **elasticsearch_properties)``
+  - ``TextField(attr=None, **elasticsearch_properties)``
 
 - Complex Fields
 
   - ``ObjectField(properties, attr=None, **elasticsearch_properties)``
   - ``NestedField(properties, attr=None, **elasticsearch_properties)``
-
-- Elasticsearch >= 5 Fields
-
-  - ``TextField(attr=None, **elasticsearch_properties)``
-  - ``KeywordField(attr=None, **elasticsearch_properties)``
 
 ``properties`` is a dict where the key is a field name, and the value is a field
 instance.
