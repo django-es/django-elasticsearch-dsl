@@ -6,7 +6,7 @@ from elasticsearch_dsl import GeoPoint, MetaField
 try:
     from mock import patch, Mock, PropertyMock
 except ImportError:
-    from unittest.mock import patch Mock, PropertyMock
+    from unittest.mock import patch, Mock, PropertyMock
 
 from django_elasticsearch_dsl import fields
 from django_elasticsearch_dsl.documents import DocType
