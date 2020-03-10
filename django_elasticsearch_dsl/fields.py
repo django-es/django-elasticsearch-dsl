@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.fields.files import FieldFile
 from django.utils.encoding import force_text
-from django.utils.functional import Promise
+from django.utils.functional import Promise, SimpleLazyObject
 from elasticsearch_dsl.field import (
     Boolean,
     Byte,
@@ -124,7 +124,7 @@ class ObjectField(DEDField, Object):
 
         if objs is None:
             return {}
-        if isinstance(objs, collections.Iterable):
+        if not isinstance(objs, SimpleLazyObject) and isinstance(objs, collections.Iterable):
             return [
                 self._get_inner_field_data(obj, field_value_to_ignore)
                 for obj in objs if obj != field_value_to_ignore
