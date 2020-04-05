@@ -42,9 +42,16 @@ class Search(DSLSearch):
 
         return queryset
 
+    def _get_queryset(self):
+        """
+        Return a django queryset that will be filtered by to_queryset method.
+        """
+        return self._model._default_manager.all()
+
     def to_queryset(self, keep_order=True):
         """
         Return a django queryset from the elasticsearch result.
         It costs a query to the sql db.
         """
-        return self.filter_queryset(self._model._default_manager, keep_order)
+        qs = self._get_queryset()
+        return self.filter_queryset(qs, keep_order)
