@@ -124,7 +124,12 @@ class ObjectField(DEDField, Object):
 
         if objs is None:
             return {}
-        if isinstance(objs, collections.Iterable):
+        try:
+            is_iterable = bool(iter(objs))
+        except TypeError:
+            is_iterable = False
+        
+        if is_iterable:
             return [
                 self._get_inner_field_data(obj, field_value_to_ignore)
                 for obj in objs if obj != field_value_to_ignore
