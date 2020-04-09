@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.fields.files import FieldFile
 from django.utils.encoding import force_text
-from django.utils.functional import Promise, SimpleLazyObject
+from django.utils.functional import Promise
 from elasticsearch_dsl.field import (
     Boolean,
     Byte,
