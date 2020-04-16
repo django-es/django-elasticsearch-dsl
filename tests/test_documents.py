@@ -28,6 +28,18 @@ class Car(models.Model):
         return "break"
 
 
+class Bicycle(models.Model):
+    name = models.CharField(max_length=255)
+    price = models.FloatField()
+    gears_name = models.CharField(max_length=255)
+
+    class Meta:
+        app_label = 'bicycle'
+
+    def type(self):
+        return "bicicle"
+
+
 class Manufacturer(models.Model):
     name = models.CharField(max_length=255)
 
@@ -346,3 +358,57 @@ class DocTypeTestCase(TestCase):
         self.assertEqual(sorted([tuple(x) for x in m.method_calls], key=lambda _: _[0]),
                          [('name', (), {}),  ('price', (), {}), ('type', (), {})]
         )
+
+
+    def test_multiple_docs_in_same_index(self):
+        car_doc = CarDocument()
+        car_doc_mappings = car_doc._index.to_dict().get('mappings')
+        self.assertEqual(car_doc_mappings, {'properties': {
+            'color': {'type': 'text'},
+            'type': {'type': 'text'},
+            'name': {'type': 'text'},
+            'price': {'type': 'double'}}})
+
+        # Register bicycle document to the car_index also
+        @registry.register_document
+        class BicycleDocument(DocType):
+            color = fields.TextField()
+            type = fields.TextField()
+
+            def prepare_color(self, instance):
+                return "red"
+
+            def prepare_type(self, instance):
+                return "bicycle"
+
+            class Meta:
+                doc_type = 'bicycle_document'
+
+            class Django:
+                fields = ['name', 'price', 'gears_name']
+                model = Bicycle
+
+            model = Car
+            # related_models = [Manufacturer]
+
+            class Index:
+                name = 'car_index'
+                doc_type = 'bycicle_document'
+
+        bicycle_doc = BicycleDocument()
+        bicycle_doc_mappings = bicycle_doc._index.to_dict().get('mappings')
+        self.assertEqual(bicycle_doc_mappings, {'properties': {
+            'color': {'type': 'text'},
+            'name': {'type': 'text'},
+            'type': {'type': 'text'},
+            'price': {'type': 'double'},
+            'gears_name': {'type': 'text'}}})
+
+        # Verify that the new field gears_name was merge to the car_doc mappings
+        car_doc_mappings = car_doc._index.to_dict().get('mappings')
+        self.assertEqual(car_doc_mappings, {'properties': {
+            'color': {'type': 'text'},
+            'type': {'type': 'text'},
+            'name': {'type': 'text'},
+            'price': {'type': 'double'},
+            'gears_name': {'type': 'text'}}})
