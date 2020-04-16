@@ -359,7 +359,6 @@ class DocTypeTestCase(TestCase):
                          [('name', (), {}),  ('price', (), {}), ('type', (), {})]
         )
 
-
     def test_multiple_docs_in_same_index(self):
         car_doc = CarDocument()
         car_doc_mappings = car_doc._index.to_dict().get('mappings')
@@ -404,7 +403,7 @@ class DocTypeTestCase(TestCase):
             'price': {'type': 'double'},
             'gears_name': {'type': 'text'}}})
 
-        # Verify that the new field gears_name was merge to the car_doc mappings
+        # Verify the new field gears_name was merged to the car_doc mappings
         car_doc_mappings = car_doc._index.to_dict().get('mappings')
         self.assertEqual(car_doc_mappings, {'properties': {
             'color': {'type': 'text'},
