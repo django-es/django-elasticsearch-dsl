@@ -233,3 +233,45 @@ Available Fields
 ``properties`` is a dict where the key is a field name, and the value is a field
 instance.
 
+
+Document id
+===========
+
+The elasticsearch document id (``_id``) is not strictly speaking a field, as it is not 
+part of the document itself. The default behavior of ``django_elasticsearch_dsl``
+is to use the primary key of the model as the document's id (``pk`` or ``id``).
+Nevertheless, it can sometimes be useful to change this default behavior. For this, one
+can redefine the ``document_id(self, instance)`` method of the ``Document`` class.
+
+For example, to use an article's slug as the elasticsearch ``_id`` instead of the 
+article's integer id, one could use:
+
+.. code-block:: python
+
+    # models.py
+
+    from django.db import models
+
+    class Article(models.Model):
+        # ... #
+
+        slug = models.SlugField(
+            max_length=40,
+            unique=True,
+        )
+
+        # ... #
+
+
+    # documents.py
+
+    from .models import Article
+
+    class ArticleDocument(Document):
+        class Django:
+            model = Article
+
+        # ... #
+
+        def document_id(self, article):
+            return article.slug

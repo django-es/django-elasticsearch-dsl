@@ -156,11 +156,19 @@ class DocType(DSLDocument):
         # the result is currently not used upstream anyway.
         return (1, [])
 
+    def document_id(self, object_instance):
+        """
+        The default behavior is to use the Django object's pk (id) as the 
+        elasticseach index id (_id). If needed, this method can be overloaded 
+        to change this default behavior.
+        """
+        return object_instance.pk
+
     def _prepare_action(self, object_instance, action):
         return {
             '_op_type': action,
             '_index': self._index._name,
-            '_id': object_instance.pk,
+            '_id': self.document_id(object_instance),
             '_source': (
                 self.prepare(object_instance) if action != 'delete' else None
             ),
