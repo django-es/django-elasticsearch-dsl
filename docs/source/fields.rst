@@ -241,7 +241,7 @@ The elasticsearch document id (``_id``) is not strictly speaking a field, as it 
 part of the document itself. The default behavior of ``django_elasticsearch_dsl``
 is to use the primary key of the model as the document's id (``pk`` or ``id``).
 Nevertheless, it can sometimes be useful to change this default behavior. For this, one
-can redefine the ``document_id(self, instance)`` method of the ``Document`` class.
+can redefine the ``generate_id(self, instance)`` method of the ``Document`` class.
 
 For example, to use an article's slug as the elasticsearch ``_id`` instead of the 
 article's integer id, one could use:
@@ -256,7 +256,7 @@ article's integer id, one could use:
         # ... #
 
         slug = models.SlugField(
-            max_length=40,
+            max_length=255,
             unique=True,
         )
 
@@ -273,5 +273,5 @@ article's integer id, one could use:
 
         # ... #
 
-        def document_id(self, article):
+        def generate_id(self, article):
             return article.slug

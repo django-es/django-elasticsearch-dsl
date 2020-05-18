@@ -2,7 +2,7 @@ from elasticsearch_dsl import analyzer
 from django_elasticsearch_dsl import Document, Index, fields
 from django_elasticsearch_dsl.registries import registry
 
-from .models import Ad, Category, Car, Manufacturer
+from .models import Ad, Category, Car, Manufacturer, Article
 
 index_settings = {
     'number_of_shards': 1,
@@ -146,6 +146,34 @@ class AdDocument(Document):
     class Index:
         name = 'test_ads'
         settings = index_settings
+
+
+@registry.register_document
+class ArticleDocument(Document):
+    class Django:
+        model = Article
+        fields = [
+            'slug',
+        ]
+
+    class Index:
+        name = 'test_articles'
+        settings = index_settings
+
+@registry.register_document
+class ArticleWithSlugAsIdDocument(Document):
+    class Django:
+        model = Article
+        fields = [
+            'slug',
+        ]
+
+    class Index:
+        name = 'test_articles_with_slugs_as_doc_ids'
+        settings = index_settings
+
+    def generate_id(self, article):
+        return article.slug
 
 
 ad_index = AdDocument._index

@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 from six import StringIO
 
+from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import Index as DSLIndex
 from django_elasticsearch_dsl.test import ESTestCase
 from tests import ES_MAJOR_VERSION
@@ -18,9 +19,11 @@ from .documents import (
     CarDocument,
     CarWithPrepareDocument,
     ManufacturerDocument,
+    ArticleDocument,
+    ArticleWithSlugAsIdDocument,
     index_settings
 )
-from .models import Car, Manufacturer, Ad, Category, COUNTRIES
+from .models import Car, Manufacturer, Ad, Category, Article, COUNTRIES
 
 
 @unittest.skipUnless(
@@ -352,3 +355,41 @@ class IntegrationTestCase(ESTestCase, TestCase):
                 set([ad3.pk, self.ad1.pk, self.ad2.pk])
             )
 
+    def test_default_document_id(self):
+        obj_id = 12458
+        article_slug = "some-article"
+        article = Article(
+            id=obj_id,
+            slug=article_slug,
+        )
+
+        # saving should create two documents (in the two indices): one with the 
+        # Django object's id as the ES doc _id, and the other with the slug 
+        # as the ES _id
+        article.save()
+
+        # assert that the document's id is the id of the Django object
+        try:
+            ArticleDocument.get(id=obj_id)
+        except NotFoundError:
+            self.fail("document with _id {} not found").format(obj_id)
+
+    def test_custom_document_id(self):
+        article_slug = "my-very-first-article"
+        article = Article(
+            slug=article_slug,
+        )
+
+        # saving should create two documents (in the two indices): one with the 
+        # Django object's id as the ES doc _id, and the other with the slug 
+        # as the ES _id
+        article.save()
+
+        # assert that the document's id is its the slug
+        try:
+            ArticleWithSlugAsIdDocument.get(id=article_slug)
+        except NotFoundError:
+            self.fail(
+                "document with _id '{}' not found: "
+                "using a custom id is broken".format(article_slug)
+            )
