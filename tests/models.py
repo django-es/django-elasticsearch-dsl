@@ -98,3 +98,6 @@ class Article(models.Model):
 
     class Meta:
         app_label = 'tests'
+
+    def __str__(self):
+        return self.slug
