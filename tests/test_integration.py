@@ -388,7 +388,9 @@ class IntegrationTestCase(ESTestCase, TestCase):
         article.save()
 
         # assert that the document's id is its the slug
-        try:
+        es_obj = ArticleDocument.get(id=article_slug)
+        self.assertEqual(es_obj._id, article.article_slug)
+        self.assertEqual(es_obj.slug, article.slug)
             ArticleWithSlugAsIdDocument.get(id=article_slug)
         except NotFoundError:
             self.fail(
