@@ -12,6 +12,9 @@ from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
 from django_elasticsearch_dsl.registries import registry
 from tests import ES_MAJOR_VERSION
 
+from .models import Article
+from .documents import ArticleDocument, ArticleWithSlugAsIdDocument
+
 
 class Car(models.Model):
     name = models.CharField(max_length=255)
@@ -346,3 +349,37 @@ class DocTypeTestCase(TestCase):
         self.assertEqual(sorted([tuple(x) for x in m.method_calls], key=lambda _: _[0]),
                          [('name', (), {}),  ('price', (), {}), ('type', (), {})]
         )
+
+    # def test_default_generate_id_is_called(self):       
+    #     article = Article(
+    #         id=124594,
+    #         slug='some-article',
+    #     )
+    #     with patch.object(DocType, 'generate_id') as patched_generate_id_method:
+    #         @registry.register_document
+    #         class ArticleDocument(DocType):
+    #             class Django:
+    #                 model = Article
+    #                 fields = [
+    #                     'slug',
+    #                 ]
+
+    #             class Index:
+    #                 name = 'test_articles'
+    #                 settings = {
+    #                     'number_of_shards': 1,
+    #                     'number_of_replicas': 0,
+    #                 }
+    #         d = ArticleDocument()
+    #         d.update(article)
+    #         patched_generate_id_method.assert_called()
+
+    # @patch.object(ArticleWithSlugAsIdDocument, 'generate_id')
+    # def test_custom_generate_id_is_called(self, mock_method):       
+    #     article = Article(
+    #         id=54218,
+    #         slug='some-article-2',
+    #     )
+    #     d = ArticleWithSlugAsIdDocument()
+    #     d.update(article)
+    #     mock_method.assert_called()
