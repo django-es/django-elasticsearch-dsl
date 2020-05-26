@@ -369,12 +369,11 @@ class IntegrationTestCase(ESTestCase, TestCase):
         article.save()
 
         # assert that the document's id is the id of the Django object
-        es_obj = ArticleDocument.get(id=obj_id)
-        self.assertEqual(es_obj._id, article.id)
-        self.assertEqual(es_obj.slug, article.slug)
-            ArticleDocument.get(id=obj_id)
+        try:
+            es_obj = ArticleDocument.get(id=obj_id)
         except NotFoundError:
             self.fail("document with _id {} not found").format(obj_id)
+        self.assertEqual(es_obj.slug, article.slug)
 
     def test_custom_document_id(self):
         article_slug = "my-very-first-article"
@@ -388,12 +387,11 @@ class IntegrationTestCase(ESTestCase, TestCase):
         article.save()
 
         # assert that the document's id is its the slug
-        es_obj = ArticleDocument.get(id=article_slug)
-        self.assertEqual(es_obj._id, article.article_slug)
-        self.assertEqual(es_obj.slug, article.slug)
-            ArticleWithSlugAsIdDocument.get(id=article_slug)
+        try:
+            es_obj = ArticleWithSlugAsIdDocument.get(id=article_slug)
         except NotFoundError:
             self.fail(
                 "document with _id '{}' not found: "
                 "using a custom id is broken".format(article_slug)
             )
+        self.assertEqual(es_obj.slug, article.slug)
