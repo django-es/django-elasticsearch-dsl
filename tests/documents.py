@@ -172,7 +172,8 @@ class ArticleWithSlugAsIdDocument(Document):
         name = 'test_articles_with_slugs_as_doc_ids'
         settings = index_settings
 
-    def generate_id(self, article):
+    @classmethod
+    def generate_id(cls, article):
         return article.slug
 
 

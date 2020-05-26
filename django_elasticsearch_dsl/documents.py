@@ -156,7 +156,8 @@ class DocType(DSLDocument):
         # the result is currently not used upstream anyway.
         return (1, [])
 
-    def generate_id(self, object_instance):
+    @classmethod
+    def generate_id(cls, object_instance):
         """
         The default behavior is to use the Django object's pk (id) as the 
         elasticseach index id (_id). If needed, this method can be overloaded 
