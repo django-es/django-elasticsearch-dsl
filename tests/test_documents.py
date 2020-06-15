@@ -1,3 +1,4 @@
+import json
 from unittest import TestCase
 
 from django.db import models
@@ -6,7 +7,7 @@ from elasticsearch_dsl import GeoPoint, MetaField
 from mock import patch, Mock, PropertyMock
 
 from django_elasticsearch_dsl import fields
-from django_elasticsearch_dsl.documents import DocType
+from django_elasticsearch_dsl.documents import DocType, Document
 from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
                                                  RedeclaredFieldError)
 from django_elasticsearch_dsl.registries import registry
@@ -350,36 +351,63 @@ class DocTypeTestCase(TestCase):
                          [('name', (), {}),  ('price', (), {}), ('type', (), {})]
         )
 
-    # def test_default_generate_id_is_called(self):       
-    #     article = Article(
-    #         id=124594,
-    #         slug='some-article',
-    #     )
-    #     with patch.object(DocType, 'generate_id') as patched_generate_id_method:
-    #         @registry.register_document
-    #         class ArticleDocument(DocType):
-    #             class Django:
-    #                 model = Article
-    #                 fields = [
-    #                     'slug',
-    #                 ]
+    # Mock the elasticsearch connection because we need to execute the bulk so that the generator
+    # got iterated and generate_id called.
+    # If we mock the bulk in django_elasticsearch_dsl.document
+    # the actual bulk will be never called and the test will fail
+    @patch('elasticsearch_dsl.connections.Elasticsearch.bulk')
+    def test_default_generate_id_is_called(self, _):
+        article = Article(
+            id=124594,
+            slug='some-article',
+        )
+        @registry.register_document
+        class ArticleDocument(DocType):
+            class Django:
+                model = Article
+                fields = [
+                    'slug',
+                ]
 
-    #             class Index:
-    #                 name = 'test_articles'
-    #                 settings = {
-    #                     'number_of_shards': 1,
-    #                     'number_of_replicas': 0,
-    #                 }
-    #         d = ArticleDocument()
-    #         d.update(article)
-    #         patched_generate_id_method.assert_called()
+            class Index:
+                name = 'test_articles'
+                settings = {
+                    'number_of_shards': 1,
+                    'number_of_replicas': 0,
+                }
 
-    # @patch.object(ArticleWithSlugAsIdDocument, 'generate_id')
-    # def test_custom_generate_id_is_called(self, mock_method):       
-    #     article = Article(
-    #         id=54218,
-    #         slug='some-article-2',
-    #     )
-    #     d = ArticleWithSlugAsIdDocument()
-    #     d.update(article)
-    #     mock_method.assert_called()
+        with patch.object(ArticleDocument, 'generate_id',
+                          return_value=article.id) as patched_method:
+            d = ArticleDocument()
+            d.update(article)
+            patched_method.assert_called()
+
+    @patch('elasticsearch_dsl.connections.Elasticsearch.bulk')
+    def test_custom_generate_id_is_called(self, mock_bulk):
+        article = Article(
+            id=54218,
+            slug='some-article-2',
+        )
+
+        @registry.register_document
+        class ArticleDocument(DocType):
+            class Django:
+                model = Article
+                fields = [
+                    'slug',
+                ]
+
+            class Index:
+                name = 'test_articles'
+
+            @classmethod
+            def generate_id(cls, article):
+                return article.slug
+
+        d = ArticleDocument()
+        d.update(article)
+
+        # Get the data from the elasticsearch low level API because
+        # The generator get executed there.
+        data = json.loads(mock_bulk.call_args[0][0].split("\n")[0])
+        assert data["index"]["_id"] == article.slug
