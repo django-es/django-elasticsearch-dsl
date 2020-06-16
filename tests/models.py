@@ -87,3 +87,17 @@ class Ad(models.Model):
 
     def __str__(self):
         return self.title
+
+
+@python_2_unicode_compatible
+class Article(models.Model):
+    slug = models.CharField(
+        max_length=255,
+        unique=True,
+    )
+
+    class Meta:
+        app_label = 'tests'
+
+    def __str__(self):
+        return self.slug
