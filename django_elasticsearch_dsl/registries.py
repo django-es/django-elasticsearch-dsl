@@ -152,9 +152,9 @@ class DocumentRegistry(object):
         Get all documents in the registry or the documents for a list of models
         """
         if models is not None:
-            return set(chain(*(self._models[model] for model in models
-                               if model in self._models)))
-        return set(chain(*itervalues(self._indices)))
+            return set(chain.from_iterable(self._models[model] for model in models
+                                           if model in self._models))
+        return set(chain.from_iterable(itervalues(self._indices)))
 
     def get_models(self):
         """
