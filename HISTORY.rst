@@ -2,6 +2,15 @@
 
 History
 -------
+7.1.2 (2020-07-05)
+~~~~~~~~~~~~~~~~~~
+* Configure Elasticsearch _id dynamically from document (#272)
+* Use chain.from_iterable in for performance improvement (#278)
+* Handle case where SimpleLazyObject being treated as an Iterable (#255)
+* Camelcase default value in management command (#254)
+* Various updates and fixup in docs (#250, #276)
+* Start testing against Python 3.8 (#266)
+
 
 7.1.1 (2019-12-26)
 ~~~~~~~~~~~~~~~~~~
