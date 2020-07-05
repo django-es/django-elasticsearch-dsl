@@ -2,7 +2,7 @@
 
 History
 -------
-7.1.2 (2020-07-05)
+7.1.3 (2020-07-05)
 ~~~~~~~~~~~~~~~~~~
 * Configure Elasticsearch _id dynamically from document (#272)
 * Use chain.from_iterable in for performance improvement (#278)
