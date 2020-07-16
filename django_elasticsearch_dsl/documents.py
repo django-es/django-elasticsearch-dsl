@@ -159,21 +159,32 @@ class DocType(DSLDocument):
     @classmethod
     def generate_id(cls, object_instance):
         """
-        The default behavior is to use the Django object's pk (id) as the 
-        elasticseach index id (_id). If needed, this method can be overloaded 
+        The default behavior is to use the Django object's pk (id) as the
+        elasticseach index id (_id). If needed, this method can be overloaded
         to change this default behavior.
         """
         return object_instance.pk
 
+    @classmethod
+    def generate_routing(cls, object_instance):
+        """
+        If needed, this method can be overloaded to provide custom routing during bulk indexing
+        e.g.
+            return object_instance.something
+        """
+        return None
+
     def _prepare_action(self, object_instance, action):
-        return {
-            '_op_type': action,
-            '_index': self._index._name,
-            '_id': self.generate_id(object_instance),
-            '_source': (
-                self.prepare(object_instance) if action != 'delete' else None
-            ),
+        doc = {
+            "_op_type": action,
+            "_index": self._index._name,
+            "_id": self.generate_id(object_instance),
+            "_source": (self.prepare(object_instance) if action != "delete" else None),
         }
+        routing = self.generate_routing(object_instance)
+        if routing is not None:
+            doc["routing"] = routing
+        return doc
 
     def _get_actions(self, object_list, action):
         for object_instance in object_list:
