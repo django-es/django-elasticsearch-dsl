@@ -166,18 +166,24 @@ class DocType(DSLDocument):
         return object_instance.pk
 
     @classmethod
+    def generate_index_name(cls, object_instance, index_base_id=None):
+        if index_base_id:
+            return "{0}-{1}".format(index_base_id, cls._index._name)
+        return cls._index._name
+
+    @classmethod
     def generate_routing(cls, object_instance):
         """
-        If needed, this method can be overloaded to provide custom routing during bulk indexing
-        e.g.
-            return object_instance.something
+        If needed, this method can be overloaded to provide custom routing
+        during bulk indexing e.g.
+            return object_instance.custom_route
         """
         return None
 
-    def _prepare_action(self, object_instance, action):
+    def _prepare_action(self, object_instance, action, index_base_id=None):
         doc = {
             "_op_type": action,
-            "_index": self._index._name,
+            "_index": self.generate_index_name(object_instance, index_base_id=index_base_id),
             "_id": self.generate_id(object_instance),
             "_source": (self.prepare(object_instance) if action != "delete" else None),
         }
@@ -186,9 +192,9 @@ class DocType(DSLDocument):
             doc["routing"] = routing
         return doc
 
-    def _get_actions(self, object_list, action):
+    def _get_actions(self, object_list, action, index_base_id=None):
         for object_instance in object_list:
-            yield self._prepare_action(object_instance, action)
+            yield self._prepare_action(object_instance, action, index_base_id=index_base_id)
 
     def _bulk(self, *args, **kwargs):
         """Helper for switching between normal and parallel bulk operation"""
@@ -198,7 +204,7 @@ class DocType(DSLDocument):
         else:
             return self.bulk(*args, **kwargs)
 
-    def update(self, thing, refresh=None, action='index', parallel=False, **kwargs):
+    def update(self, thing, refresh=None, action='index', parallel=False, index_base_id=None, **kwargs):
         """
         Update each document in ES for a model, iterable of models or queryset
         """
@@ -213,7 +219,7 @@ class DocType(DSLDocument):
             object_list = thing
 
         return self._bulk(
-            self._get_actions(object_list, action),
+            self._get_actions(object_list, action, index_base_id=index_base_id),
             parallel=parallel,
             **kwargs
         )
