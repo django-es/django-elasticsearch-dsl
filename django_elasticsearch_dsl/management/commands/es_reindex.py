@@ -27,6 +27,11 @@ class Command(BaseCommand):
         )
 
         parser.add_argument("--wipe-old-indexes", action="store_true", help="wipe the old indexes after reindexing")
+        parser.add_argument(
+            "--refresh-new-indexes",
+            action="store_true",
+            help="Manually refresh new indexes. Necessary if index.refresh_interval is set to -1",
+        )
 
         parser.add_argument(
             "--no-count",
@@ -116,6 +121,13 @@ class Command(BaseCommand):
             qs = doc().get_indexing_queryset()
             doc().update(qs, parallel=parallel, index_base_id=index_base_id)
 
+    def _refresh_new_indexes(self, es, models, options):
+        """
+        perform n index refresh on all newly created indexes
+        """
+        pattern = "{0}-*".format(options["index_base_id"])
+        es.indices.refresh(index=pattern)
+
     def _update_alias(self, es, models, options):
         """
         Move the alias from the old index to the new index
@@ -128,16 +140,25 @@ class Command(BaseCommand):
             try:
                 old_index_aliases = es.indices.get_alias(name=alias)
                 old_indexes = list(old_index_aliases.keys())
-                es.indices.update_aliases(
-                    body={
-                        "actions": [
-                            {"remove": {"alias": alias, "indices": old_indexes}},
-                            {"add": {"alias": alias, "index": pattern}},
-                        ]
-                    }
-                )
-                if options["wipe_old_indexes"]:
-                    es.indices.delete(index=",".join(old_indexes))
+                if old_indexes[0].startswith(str(options["index_base_id"])):
+                    self.stdout.write("Old Indexes also match current index_base_id, skipping Alias update")
+                else:
+
+                    es.indices.update_aliases(
+                        body={
+                            "actions": [
+                                {"remove": {"alias": alias, "indices": old_indexes}},
+                                {"add": {"alias": alias, "index": pattern}},
+                            ]
+                        }
+                    )
+                    if options["wipe_old_indexes"]:
+                        if old_indexes[0].startswith(str(options["index_base_id"])):
+                            self.stdout.write(
+                                "Old Indexes also match current index_base_id, skipping wipe_old_indexes"
+                            )
+                        else:
+                            es.indices.delete(index=",".join(old_indexes))
 
             except NotFoundError:
                 es.indices.update_aliases(body={"actions": [{"add": {"alias": alias, "index": pattern}},]})
@@ -147,5 +168,9 @@ class Command(BaseCommand):
         models = self._get_models(options["models"])
         self._create_index_templates(models, options)
         self._reindex_as_new(es, models, options)
-        if options["alias"] and not options["index_base_id"]:
+
+        if options["refresh_new_indexes"]:
+            self._refresh_new_indexes(es, models, options)
+
+        if options["alias"]:
             self._update_alias(es, models, options)
