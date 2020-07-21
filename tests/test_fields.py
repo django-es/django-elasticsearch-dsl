@@ -1,17 +1,18 @@
 from unittest import TestCase
 
 from django.db.models.fields.files import FieldFile
-from django.utils.six import string_types
 from django.utils.translation import ugettext_lazy as _
 from mock import Mock, NonCallableMock
+from six import string_types
 
 from django_elasticsearch_dsl.exceptions import VariableLookupError
-from django_elasticsearch_dsl.fields import (
-    AttachmentField, BooleanField, ByteField, CompletionField, DEDField,
-    DateField, DoubleField, FileField, FloatField, GeoPointField,
-    GeoShapeField, IntegerField, IpField, KeywordField, ListField, LongField,
-    NestedField, ObjectField, ShortField, StringField, TextField
-)
+from django_elasticsearch_dsl.fields import (BooleanField, ByteField, CompletionField, DEDField,
+                                             DateField, DoubleField, FileField, FloatField,
+                                             GeoPointField,
+                                             GeoShapeField, IntegerField, IpField, KeywordField,
+                                             ListField, LongField,
+                                             NestedField, ObjectField, ShortField, TextField
+                                             )
 from tests import ES_MAJOR_VERSION
 
 
@@ -87,8 +88,8 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_instance(self):
         field = ObjectField(attr='person', properties={
-            'first_name': StringField(analyzier='foo'),
-            'last_name': StringField()
+            'first_name': TextField(analyzier='foo'),
+            'last_name': TextField()
         })
 
         instance = NonCallableMock(person=NonCallableMock(
@@ -101,8 +102,8 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_instance_with_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
-            'first_name': StringField(analyzier='foo'),
-            'last_name': StringField(),
+            'first_name': TextField(analyzier='foo'),
+            'last_name': TextField(),
             'aditional': ObjectField(properties={
                 'age': IntegerField()
             })
@@ -121,8 +122,8 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_instance_with_none_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
-            'first_name': StringField(analyzier='foo'),
-            'last_name': StringField(),
+            'first_name': TextField(analyzier='foo'),
+            'last_name': TextField(),
             'aditional': ObjectField(properties={
                 'age': IntegerField()
             })
@@ -141,8 +142,8 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_iterable(self):
         field = ObjectField(attr='person', properties={
-            'first_name': StringField(analyzier='foo'),
-            'last_name': StringField()
+            'first_name': TextField(analyzier='foo'),
+            'last_name': TextField()
         })
 
         instance = NonCallableMock(
@@ -204,9 +205,9 @@ class DateFieldTestCase(TestCase):
         }, field.to_dict())
 
 
-class StringFieldTestCase(TestCase):
+class TextFieldTestCase(TestCase):
     def test_get_mapping(self):
-        field = StringField()
+        field = TextField()
 
         expected_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
 
@@ -298,18 +299,9 @@ class ListFieldTestCase(TestCase):
         instance = NonCallableMock(
             foo=NonCallableMock(bar=["alpha", "beta", "gamma"])
         )
-        field = ListField(StringField(attr='foo.bar'))
+        field = ListField(TextField(attr='foo.bar'))
         self.assertEqual(
             field.get_value_from_instance(instance), instance.foo.bar)
-
-
-class AttachmentFieldTestCase(TestCase):
-    def test_get_mapping(self):
-        field = AttachmentField()
-
-        self.assertEqual({
-            'type': 'attachment',
-        }, field.to_dict())
 
 
 class ShortFieldTestCase(TestCase):

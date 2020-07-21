@@ -27,7 +27,7 @@ try:
             ELASTICSEARCH_DSL={
                 'default': {
                     'hosts': os.environ.get('ELASTICSEARCH_URL',
-                                            'localhost:9200')
+                                            '127.0.0.1:9200')
                 },
             },
         )

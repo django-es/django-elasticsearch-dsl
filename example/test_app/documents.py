@@ -1,7 +1,8 @@
 from elasticsearch_dsl import analyzer
-from django_elasticsearch_dsl import DocType, Index, fields
+from django_elasticsearch_dsl import Document, Index, fields
+from django_elasticsearch_dsl.registries import registry
 
-from .models import Ad, Category, Car, Manufacturer
+from .models import Ad, Car, Manufacturer
 
 
 car = Index('test_cars')
@@ -14,13 +15,13 @@ car.settings(
 html_strip = analyzer(
     'html_strip',
     tokenizer="standard",
-    filter=["standard", "lowercase", "stop", "snowball"],
+    filter=["lowercase", "stop", "snowball"],
     char_filter=["html_strip"]
 )
 
 
-@car.doc_type
-class CarDocument(DocType):
+@registry.register_document
+class CarDocument(Document):
     manufacturer = fields.ObjectField(properties={
         'name': fields.TextField(),
         'country': fields.TextField(),
@@ -37,19 +38,16 @@ class CarDocument(DocType):
         'title': fields.TextField(),
     })
 
-    class Meta:
+    class Django:
         model = Car
-        related_models = [Ad, Manufacturer, Category]
         fields = [
             'name',
             'launched',
             'type',
         ]
 
-    def get_queryset(self):
-        return super(CarDocument, self).get_queryset().select_related(
-            'manufacturer'
-        )
+    class Index:
+        name = "car"
 
     def get_instances_from_related(self, related_instance):
         if isinstance(related_instance, Ad):
@@ -59,11 +57,11 @@ class CarDocument(DocType):
         return related_instance.car_set.all()
 
 
-@car.doc_type
-class ManufacturerDocument(DocType):
+@registry.register_document
+class ManufacturerDocument(Document):
     country = fields.TextField()
 
-    class Meta:
+    class Django:
         model = Manufacturer
         fields = [
             'name',
@@ -72,54 +70,61 @@ class ManufacturerDocument(DocType):
             'logo',
         ]
 
-
-class CarWithPrepareDocument(DocType):
-    manufacturer = fields.ObjectField(properties={
-        'name': fields.TextField(),
-        'country': fields.TextField(),
-    })
-
-    manufacturer_short = fields.ObjectField(properties={
-        'name': fields.TextField(),
-    })
-
-    class Meta:
-        model = Car
-        related_models = [Manufacturer]
-        index = 'car_with_prepare_index'
-        fields = [
-            'name',
-            'launched',
-            'type',
-        ]
-
-    def prepare_manufacturer_with_related(self, car, related_to_ignore):
-        if (car.manufacturer is not None and car.manufacturer !=
-                related_to_ignore):
-            return {
-                'name': car.manufacturer.name,
-                'country': car.manufacturer.country(),
-            }
-        return {}
-
-    def prepare_manufacturer_short(self, car):
-        if car.manufacturer is not None:
-            return {
-                'name': car.manufacturer.name,
-            }
-        return {}
-
-    def get_instances_from_related(self, related_instance):
-        return related_instance.car_set.all()
+    class Index:
+        name = "manufacturer"
 
 
-class AdDocument(DocType):
+# @registry.register_document
+# class CarWithPrepareDocument(Document):
+#     manufacturer = fields.ObjectField(properties={
+#         'name': fields.TextField(),
+#         'country': fields.TextField(),
+#     })
+#
+#     manufacturer_short = fields.ObjectField(properties={
+#         'name': fields.TextField(),
+#     })
+#
+#     class Index:
+#         name = "car_with_prepare_index"
+#
+#     class Django:
+#         model = Car
+#         related_models = [Manufacturer]
+#         fields = [
+#             'name',
+#             'launched',
+#             'type',
+#         ]
+#
+#     def prepare_manufacturer_with_related(self, car, related_to_ignore):
+#         if (car.manufacturer is not None and car.manufacturer !=
+#                 related_to_ignore):
+#             return {
+#                 'name': car.manufacturer.name,
+#                 'country': car.manufacturer.country(),
+#             }
+#         return {}
+#
+#     def prepare_manufacturer_short(self, car):
+#         if car.manufacturer is not None:
+#             return {
+#                 'name': car.manufacturer.name,
+#             }
+#         return {}
+#
+#     def get_instances_from_related(self, related_instance):
+#         return related_instance.car_set.all()
+
+
+@registry.register_document
+class AdDocument(Document):
     description = fields.TextField(
         analyzer=html_strip,
         fields={'raw': fields.KeywordField()}
     )
 
-    class Meta:
+    class Django:
         model = Ad
         index = 'test_ads'
         fields = [
@@ -129,14 +134,21 @@ class AdDocument(DocType):
             'url',
         ]
 
+    class Index:
+        name = "add"
 
-class AdDocument2(DocType):
+
+@registry.register_document
+class AdDocument2(Document):
     def __init__(self, *args, **kwargs):
         super(AdDocument2, self).__init__(*args, **kwargs)
 
-    class Meta:
+    class Django:
         model = Ad
         index = 'test_ads2'
         fields = [
             'title',
         ]
+
+    class Index:
+        name = "add2"

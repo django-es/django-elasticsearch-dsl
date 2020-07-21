@@ -1,7 +1,8 @@
 from elasticsearch_dsl import analyzer
-from django_elasticsearch_dsl import DocType, Index, fields
+from django_elasticsearch_dsl import Document, Index, fields
+from django_elasticsearch_dsl.registries import registry
 
-from .models import Ad, Category, Car, Manufacturer
+from .models import Ad, Category, Car, Manufacturer, Article
 
 index_settings = {
     'number_of_shards': 1,
@@ -9,41 +10,38 @@ index_settings = {
 }
 
 
-car_index = Index('test_cars').settings(**index_settings)
-
-
 html_strip = analyzer(
     'html_strip',
     tokenizer="standard",
-    filter=["standard", "lowercase", "stop", "snowball"],
+    filter=["lowercase", "stop", "snowball"],
     char_filter=["html_strip"]
 )
 
 
-@car_index.doc_type
-class CarDocument(DocType):
+@registry.register_document
+class CarDocument(Document):
     # test can override __init__
     def __init__(self, *args, **kwargs):
         super(CarDocument, self).__init__(*args, **kwargs)
 
     manufacturer = fields.ObjectField(properties={
-        'name': fields.StringField(),
-        'country': fields.StringField(),
+        'name': fields.TextField(),
+        'country': fields.TextField(),
     })
 
     ads = fields.NestedField(properties={
-        'description': fields.StringField(analyzer=html_strip),
-        'title': fields.StringField(),
+        'description': fields.TextField(analyzer=html_strip),
+        'title': fields.TextField(),
         'pk': fields.IntegerField(),
     })
 
     categories = fields.NestedField(properties={
-        'title': fields.StringField(),
-        'slug': fields.StringField(),
+        'title': fields.TextField(),
+        'slug': fields.TextField(),
         'icon': fields.FileField(),
     })
 
-    class Meta:
+    class Django:
         model = Car
         related_models = [Ad, Manufacturer, Category]
         fields = [
@@ -51,7 +49,10 @@ class CarDocument(DocType):
             'launched',
             'type',
         ]
-        doc_type = 'car_document'
+
+    class Index:
+        name = 'test_cars'
+        settings = index_settings
 
     def get_queryset(self):
         return super(CarDocument, self).get_queryset().select_related(
@@ -65,14 +66,11 @@ class CarDocument(DocType):
         return related_instance.car_set.all()
 
 
-manufacturer_index = Index('test_manufacturers').settings(**index_settings)
+@registry.register_document
+class ManufacturerDocument(Document):
+    country = fields.TextField()
 
-
-@manufacturer_index.doc_type
-class ManufacturerDocument(DocType):
-    country = fields.StringField()
-
-    class Meta:
+    class Django:
         model = Manufacturer
         fields = [
             'name',
@@ -80,28 +78,34 @@ class ManufacturerDocument(DocType):
             'country_code',
             'logo',
         ]
-        doc_type = 'manufacturer_document'
+
+    class Index:
+        name = 'index_settings'
+        settings = index_settings
 
 
-class CarWithPrepareDocument(DocType):
+@registry.register_document
+class CarWithPrepareDocument(Document):
     manufacturer = fields.ObjectField(properties={
-        'name': fields.StringField(),
-        'country': fields.StringField(),
+        'name': fields.TextField(),
+        'country': fields.TextField(),
     })
 
     manufacturer_short = fields.ObjectField(properties={
-        'name': fields.StringField(),
+        'name': fields.TextField(),
     })
 
-    class Meta:
+    class Django:
         model = Car
         related_models = [Manufacturer]
-        index = 'car_with_prepare_index'
         fields = [
             'name',
             'launched',
             'type',
         ]
+
+    class Index:
+        name = 'car_with_prepare_index'
 
     def prepare_manufacturer_with_related(self, car, related_to_ignore):
         if (car.manufacturer is not None and car.manufacturer !=
@@ -123,17 +127,14 @@ class CarWithPrepareDocument(DocType):
         return related_instance.car_set.all()
 
 
-ad_index = Index('test_ads').settings(**index_settings)
-
-
-@ad_index.doc_type
-class AdDocument(DocType):
+@registry.register_document
+class AdDocument(Document):
     description = fields.TextField(
         analyzer=html_strip,
         fields={'raw': fields.KeywordField()}
     )
 
-    class Meta:
+    class Django:
         model = Ad
         fields = [
             'title',
@@ -141,21 +142,40 @@ class AdDocument(DocType):
             'modified',
             'url',
         ]
-        doc_type = 'ad_document'
+
+    class Index:
+        name = 'test_ads'
+        settings = index_settings
 
 
-class PaginatedAdDocument(DocType):
-    class Meta:
-        model = Ad
-        index = 'ad_index'
-        queryset_pagination = 2
+@registry.register_document
+class ArticleDocument(Document):
+    class Django:
+        model = Article
         fields = [
-            'title',
-            'created',
-            'modified',
-            'url',
+            'slug',
         ]
-        doc_type = 'paginated_ad_document'
 
-    def get_queryset(self):
-        return Ad.objects.all().order_by('-id')
+    class Index:
+        name = 'test_articles'
+        settings = index_settings
+
+@registry.register_document
+class ArticleWithSlugAsIdDocument(Document):
+    class Django:
+        model = Article
+        fields = [
+            'slug',
+        ]
+
+    class Index:
+        name = 'test_articles_with_slugs_as_doc_ids'
+        settings = index_settings
+
+    @classmethod
+    def generate_id(cls, article):
+        return article.slug
+
+
+ad_index = AdDocument._index
+car_index = CarDocument._index

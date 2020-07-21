@@ -4,9 +4,10 @@ import unittest
 
 from django.core.management import call_command
 from django.test import TestCase
-from django.utils.six import StringIO
 from django.utils.translation import ugettext_lazy as _
+from six import StringIO
 
+from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import Index as DSLIndex
 from django_elasticsearch_dsl.test import ESTestCase
 from tests import ES_MAJOR_VERSION
@@ -17,11 +18,12 @@ from .documents import (
     car_index,
     CarDocument,
     CarWithPrepareDocument,
-    PaginatedAdDocument,
     ManufacturerDocument,
+    ArticleDocument,
+    ArticleWithSlugAsIdDocument,
     index_settings
 )
-from .models import Car, Manufacturer, Ad, Category, COUNTRIES
+from .models import Car, Manufacturer, Ad, Category, Article, COUNTRIES
 
 
 @unittest.skipUnless(
@@ -182,8 +184,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
         text_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
 
         test_index = DSLIndex('test_index').settings(**index_settings)
-        test_index.doc_type(CarDocument)
-        test_index.doc_type(ManufacturerDocument)
+        test_index.document(CarDocument)
 
         index_dict = test_index.to_dict()
 
@@ -194,7 +195,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
                 'analyzer': {
                     'html_strip': {
                         'tokenizer': 'standard',
-                        'filter': ['standard', 'lowercase',
+                        'filter': ['lowercase',
                                    'stop', 'snowball'],
                         'type': 'custom',
                         'char_filter': ['html_strip']
@@ -203,16 +204,6 @@ class IntegrationTestCase(ESTestCase, TestCase):
             }
         })
         self.assertEqual(index_dict['mappings'], {
-            'manufacturer_document': {
-                'properties': {
-                    'created': {'type': 'date'},
-                    'name': {'type': text_type},
-                    'country': {'type': text_type},
-                    'country_code': {'type': text_type},
-                    'logo': {'type': text_type},
-                }
-            },
-            'car_document': {
                 'properties': {
                     'ads': {
                         'type': 'nested',
@@ -222,7 +213,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
                                 'html_strip'
                             },
                             'pk': {'type': 'integer'},
-                            'title': {'type': text_type},
+                            'title': {'type': text_type}
                         },
                     },
                     'categories': {
@@ -230,21 +221,20 @@ class IntegrationTestCase(ESTestCase, TestCase):
                         'properties': {
                             'title': {'type': text_type},
                             'slug': {'type': text_type},
-                            'icon': {'type': text_type},
+                            'icon': {'type': text_type}
                         },
                     },
                     'manufacturer': {
                         'type': 'object',
                         'properties': {
                             'country': {'type': text_type},
-                            'name': {'type': text_type},
+                            'name': {'type': text_type}
                         },
                     },
                     'name': {'type': text_type},
                     'launched': {'type': 'date'},
-                    'type': {'type': text_type},
+                    'type': {'type': text_type}
                 }
-            },
         })
 
     def test_related_docs_are_updated(self):
@@ -349,18 +339,59 @@ class IntegrationTestCase(ESTestCase, TestCase):
         self.assertEqual(qs.count(), 2)
         self.assertEqual(list(qs), [self.ad2, self.ad1])
 
-    def test_queryset_pagination(self):
+    def test_queryset_iterator_queries(self):
         ad3 = Ad(title="Ad 3",  car=self.car1)
         ad3.save()
         with self.assertNumQueries(1):
             AdDocument().update(Ad.objects.all())
 
-        doc = PaginatedAdDocument()
+        doc = AdDocument()
 
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(1):
             doc.update(Ad.objects.all().order_by('-id'))
             self.assertEqual(
                 set(int(instance.meta.id) for instance in
                     doc.search().query('match', title="Ad")),
                 set([ad3.pk, self.ad1.pk, self.ad2.pk])
             )
+
+    def test_default_document_id(self):
+        obj_id = 12458
+        article_slug = "some-article"
+        article = Article(
+            id=obj_id,
+            slug=article_slug,
+        )
+
+        # saving should create two documents (in the two indices): one with the 
+        # Django object's id as the ES doc _id, and the other with the slug 
+        # as the ES _id
+        article.save()
+
+        # assert that the document's id is the id of the Django object
+        try:
+            es_obj = ArticleDocument.get(id=obj_id)
+        except NotFoundError:
+            self.fail("document with _id {} not found").format(obj_id)
+        self.assertEqual(es_obj.slug, article.slug)
+
+    def test_custom_document_id(self):
+        article_slug = "my-very-first-article"
+        article = Article(
+            slug=article_slug,
+        )
+
+        # saving should create two documents (in the two indices): one with the 
+        # Django object's id as the ES doc _id, and the other with the slug 
+        # as the ES _id
+        article.save()
+
+        # assert that the document's id is its the slug
+        try:
+            es_obj = ArticleWithSlugAsIdDocument.get(id=article_slug)
+        except NotFoundError:
+            self.fail(
+                "document with _id '{}' not found: "
+                "using a custom id is broken".format(article_slug)
+            )
+        self.assertEqual(es_obj.slug, article.slug)
