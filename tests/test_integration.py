@@ -10,7 +10,7 @@ from six import StringIO
 from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import Index as DSLIndex
 from django_elasticsearch_dsl.test import ESTestCase
-from tests import ES_MAJOR_VERSION
+from django_elasticsearch_dsl.versions import ES_MAJOR_VERSION
 
 from .documents import (
     ad_index,
@@ -31,6 +31,9 @@ from .models import Car, Manufacturer, Ad, Category, Article, COUNTRIES
     "--elasticsearch not set"
 )
 class IntegrationTestCase(ESTestCase, TestCase):
+
+    maxDiff = None
+
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
         self.manufacturer = Manufacturer(
@@ -103,7 +106,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
         result = s.execute()
         self.assertEqual(len(result), 1)
         car1_doc = result[0]
-        self.assertEqual(car1_doc.ads, [
+        self.assertListEqual(list(car1_doc.ads), [
             {
                 'title': self.ad1.title,
                 'description': self.ad1.description,
@@ -123,7 +126,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
         result = s.execute()
         self.assertEqual(len(result), 1)
         car1_doc = result[0]
-        self.assertEqual(car1_doc.categories, [
+        self.assertListEqual(list(car1_doc.categories), [
             {
                 'title': self.category1.title,
                 'slug': self.category1.slug,
@@ -141,7 +144,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
         result = s.execute()
         self.assertEqual(len(result), 1)
         car2_doc = result[0]
-        self.assertEqual(car2_doc.to_dict(), {
+        self.assertDictEqual(car2_doc.to_dict(), {
             'type': self.car2.type,
             'launched': self.car2.launched,
             'name': self.car2.name,
@@ -160,7 +163,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
         result = s.execute()
         self.assertEqual(len(result), 1)
         car3_doc = result[0]
-        self.assertEqual(car3_doc.to_dict(), {
+        self.assertDictEqual(car3_doc.to_dict(), {
             'type': self.car3.type,
             'launched': self.car3.launched,
             'name': self.car3.name,
@@ -188,7 +191,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
 
         index_dict = test_index.to_dict()
 
-        self.assertEqual(index_dict['settings'], {
+        self.assertDictEqual(index_dict['settings'], {
             'number_of_shards': 1,
             'number_of_replicas': 0,
             'analysis': {
@@ -203,7 +206,14 @@ class IntegrationTestCase(ESTestCase, TestCase):
                 }
             }
         })
-        self.assertEqual(index_dict['mappings'], {
+
+        index_dict_mappings = index_dict['mappings']
+        if ES_MAJOR_VERSION < 7:
+            index_dict_mappings = index_dict_mappings['doc']
+
+        self.assertDictEqual(
+            index_dict_mappings, 
+            {
                 'properties': {
                     'ads': {
                         'type': 'nested',
@@ -235,7 +245,8 @@ class IntegrationTestCase(ESTestCase, TestCase):
                     'launched': {'type': 'date'},
                     'type': {'type': text_type}
                 }
-        })
+            }
+        )
 
     def test_related_docs_are_updated(self):
         # test foreignkey relation

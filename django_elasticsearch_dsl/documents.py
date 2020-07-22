@@ -23,6 +23,7 @@ from .fields import (
     TextField,
 )
 from .search import Search
+from .versions import ES_MAJOR_VERSION
 
 model_field_class_to_field_class = {
     models.AutoField: IntegerField,
@@ -166,7 +167,7 @@ class DocType(DSLDocument):
         return object_instance.pk
 
     def _prepare_action(self, object_instance, action):
-        return {
+        _val = {
             '_op_type': action,
             '_index': self._index._name,
             '_id': self.generate_id(object_instance),
@@ -174,6 +175,9 @@ class DocType(DSLDocument):
                 self.prepare(object_instance) if action != 'delete' else None
             ),
         }
+        if ES_MAJOR_VERSION < 7:
+            _val['_type'] = self._doc_type.name
+        return _val
 
     def _get_actions(self, object_list, action):
         for object_instance in object_list:
