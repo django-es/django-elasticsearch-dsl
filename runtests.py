@@ -63,7 +63,7 @@ def make_parser():
 
 def run_tests(*test_args):
     args, test_args = make_parser().parse_known_args(test_args)
-    # import ipdb; ipdb.set_trace()
+
     if args.elasticsearch:
         os.environ.setdefault('ELASTICSEARCH_URL', args.elasticsearch)
 
