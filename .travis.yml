@@ -7,31 +7,69 @@ dist: xenial # default "precise" distro doesn't include Java 8 for Elasticsearch
 
 matrix:
   include:
-    - env: TOX_ENV=py36-django-111-es6
+    - env: TOX_ENV=py36-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 3.6
-    - env: TOX_ENV=py37-django-111-es6
+    - env: TOX_ENV=py36-django-111-es7
+      python: 3.6
+
+    - env: TOX_ENV=py37-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 3.7
-    - env: TOX_ENV=py38-django-111-es6
+    - env: TOX_ENV=py37-django-111-es7
+      python: 3.7
+
+    - env: TOX_ENV=py38-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 3.8
-    - env: TOX_ENV=py27-django-111-es6
+    - env: TOX_ENV=py38-django-111-es7
+      python: 3.8
+
+    - env: TOX_ENV=py27-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 2.7
-    - env: TOX_ENV=py36-django-2-es6
+    - env: TOX_ENV=py27-django-111-es7
+      python: 2.7
+
+    - env: TOX_ENV=py36-django-2-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 3.6
-    - env: TOX_ENV=py37-django-2-es6
+    - env: TOX_ENV=py36-django-2-es7
+      python: 3.6
+
+    - env: TOX_ENV=py37-django-2-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 3.7
-    - env: TOX_ENV=py37-django-21-es6
+    - env: TOX_ENV=py37-django-2-es7
       python: 3.7
-    - env: TOX_ENV=py37-django-22-es6
+
+    - env: TOX_ENV=py37-django-21-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 3.7
-    - env: TOX_ENV=py37-django-30-es6
+    - env: TOX_ENV=py37-django-21-es7
       python: 3.7
-    - env: TOX_ENV=py38-django-2-es6
+
+    - env: TOX_ENV=py37-django-22-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.7
+    - env: TOX_ENV=py37-django-22-es7
+      python: 3.7
+
+    - env: TOX_ENV=py37-django-30-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.7
+    - env: TOX_ENV=py37-django-30-es7
+      python: 3.7
+
+    - env: TOX_ENV=py38-django-2-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 3.8
-    - env: TOX_ENV=py38-django-21-es6
+    - env: TOX_ENV=py38-django-2-es7
       python: 3.8
-    - env: TOX_ENV=py38-django-22-es6
+
+    - env: TOX_ENV=py38-django-21-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
       python: 3.8
-    - env: TOX_ENV=py38-django-30-es6
+    - env: TOX_ENV=py38-django-21-es7
+      python: 3.8
+
+    - env: TOX_ENV=py38-django-22-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.8
+    - env: TOX_ENV=py38-django-22-es7
+      python: 3.8
+
+    - env: TOX_ENV=py38-django-30-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+      python: 3.8
+    - env: TOX_ENV=py38-django-30-es7
       python: 3.8
 
 cache: pip
