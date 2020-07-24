@@ -26,7 +26,8 @@ class Command(BaseCommand):
             "--no-update-alias", action="store_false", dest="alias", help="Do not update the live alias"
         )
 
-        parser.add_argument("--wipe-old-indexes", action="store_true", help="wipe the old indexes after reindexing")
+        parser.add_argument("--wipe-old-indexes", action="store_true", help="Wipe the old indexes after reindexing")
+
         parser.add_argument(
             "--refresh-new-indexes",
             action="store_true",
@@ -46,12 +47,23 @@ class Command(BaseCommand):
         )
 
         parser.add_argument(
-            "--alias-pattern", action="store", type=str, help="Use the supplied alias_pattern for the alias posfix"
+            "--alias-wildcard-pattern",
+            action="store",
+            type=str,
+            help="Use the supplied alias_pattern for wildcard searches",
+        )
+        parser.add_argument(
+            "--alias-fixed-pattern",
+            action="store",
+            type=str,
+            help="Use the supplied alias_pattern for targetted index specific GETs",
         )
         parser.set_defaults(
             parallel=getattr(settings, "ELASTICSEARCH_DSL_PARALLEL", False),
             index_base_id=int(timezone.now().timestamp()),
-            alias_pattern="_r_alias",
+            alias_wildcard_pattern="_r_wildcard",
+            alias_fixed_pattern="_r",
+            wipe_old_indexes=True,
         )
 
     def _get_models(self, args):
@@ -133,35 +145,84 @@ class Command(BaseCommand):
         Move the alias from the old index to the new index
         """
         for index in registry.get_indices(models):
-            pattern = "{0}-{1}-*".format(options["index_base_id"], index._name)
-            alias = "{0}{1}".format(index._name, options["alias_pattern"])
-            self.stdout.write("Creating Alias {0} {1} for '{2}'".format(alias, pattern, index._name))
 
-            try:
-                old_index_aliases = es.indices.get_alias(name=alias)
-                old_indexes = list(old_index_aliases.keys())
-                if old_indexes[0].startswith(str(options["index_base_id"])):
-                    self.stdout.write("Old Indexes also match current index_base_id, skipping Alias update")
-                else:
+            self._update_wildcard_indexes(es, index, options)
+            # Must be called second
+            self._update_fixed_indexes(es, index, options)
 
-                    es.indices.update_aliases(
-                        body={
-                            "actions": [
-                                {"remove": {"alias": alias, "indices": old_indexes}},
-                                {"add": {"alias": alias, "index": pattern}},
-                            ]
-                        }
+    def _update_wildcard_indexes(self, es, index, options):
+        pattern = "{0}-{1}-*".format(options["index_base_id"], index._name)
+        alias = "{0}{1}".format(index._name, options["alias_wildcard_pattern"])
+        self.stdout.write("Creating wildcard Alias {0} {1} for '{2}'".format(alias, pattern, index._name))
+        try:
+            old_index_aliases = es.indices.get_alias(name=alias)
+            old_indexes = list(old_index_aliases.keys())
+            if old_indexes[0].startswith(str(options["index_base_id"])):
+                self.stdout.write("Old Indexes also match current index_base_id, skipping Alias update")
+            else:
+
+                es.indices.update_aliases(
+                    body={
+                        "actions": [
+                            {"remove": {"alias": alias, "indices": old_indexes}},
+                            {"add": {"alias": alias, "index": pattern}},
+                        ]
+                    }
+                )
+                if options["wipe_old_indexes"]:
+                    if old_indexes[0].startswith(str(options["index_base_id"])):
+                        self.stdout.write("Old Indexes also match current index_base_id, skipping wipe_old_indexes")
+                    else:
+                        es.indices.delete(index=",".join(old_indexes))
+
+        except NotFoundError:
+            es.indices.update_aliases(body={"actions": [{"add": {"alias": alias, "index": pattern}},]})
+
+    def _update_fixed_indexes(self, es, index, options):
+
+        """
+            This function should create an alias for each individual index created during the indexing process
+            e.g.
+            <index._name>_<options["alias_fixed_pattern"]>-<doc.get_index_name>
+            = <index_base_id>-<index._name>-<doc.get_index_name>
+
+            So we use the Newly created wildcard alias to get a list of indexes that need an alias
+        """
+
+        w_alias = "{0}{1}".format(index._name, options["alias_wildcard_pattern"])
+        self.stdout.write("Creating fixed Aliases for indexes found in {0} '{1}'".format(w_alias, index._name))
+        try:
+            current_indexes_for_alias = es.indices.get_alias(name=w_alias)
+            current_indexes = list(current_indexes_for_alias.keys())
+
+            if not current_indexes[0].startswith(str(options["index_base_id"])):
+                self.stdout.write("Current Indexes don't match the current index_base_id, skipping Alias update")
+            else:
+
+                for current_index in current_indexes:
+                    index_postfix = current_index.replace("{0}-{1}".format(options["index_base_id"], index._name), "")
+                    alias = "{0}{1}{2}".format(index._name, options["alias_fixed_pattern"], index_postfix)
+                    self.stdout.write(
+                        "Creating fixed Alias {0} for {1} index {2}'".format(alias, index._name, current_index)
                     )
-                    if options["wipe_old_indexes"]:
-                        if old_indexes[0].startswith(str(options["index_base_id"])):
-                            self.stdout.write(
-                                "Old Indexes also match current index_base_id, skipping wipe_old_indexes"
-                            )
-                        else:
-                            es.indices.delete(index=",".join(old_indexes))
+                    try:
+                        old_indexes_for_alias = es.indices.get_alias(name=alias)
+                        old_indexes = list(old_indexes_for_alias.keys())
 
-            except NotFoundError:
-                es.indices.update_aliases(body={"actions": [{"add": {"alias": alias, "index": pattern}},]})
+                        es.indices.update_aliases(
+                            body={
+                                "actions": [
+                                    {"remove": {"alias": alias, "indices": old_indexes}},
+                                    {"add": {"alias": alias, "index": current_index}},
+                                ]
+                            }
+                        )
+                    except NotFoundError:
+                        es.indices.update_aliases(
+                            body={"actions": [{"add": {"alias": alias, "index": current_index}},]}
+                        )
+        except NotFoundError:
+            self.stdout.write("No Existing indexes found for alias '{1}' - Not creating Fixed indexes".format(w_alias))
 
     def handle(self, *args, **options):
         es = connections.get_connection()
