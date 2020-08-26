@@ -147,6 +147,47 @@ class DocumentRegistry(object):
         """
         self.update(instance, action="delete", **kwargs)
 
+    def delete_by_id(self, ids, instance_class, **kwargs):
+        if not DEDConfig.autosync_enabled():
+            return
+
+        if instance_class in self._models:
+            for doc in self._models[instance_class]:
+                if not doc.django.ignore_signals:
+                    doc().delete(ids, **kwargs)
+
+    def generate_ids(self, instance, **kwargs):
+        ids = []
+
+        if not DEDConfig.autosync_enabled():
+            return
+
+        if instance.__class__ in self._models:
+            for doc in self._models[instance.__class__]:
+                if not doc.django.ignore_signals:
+                    ids.append(doc().generate_id(instance))
+
+        return ids
+
+    def get_related(self, instance, **kwargs):
+        if not DEDConfig.autosync_enabled():
+            return []
+
+        related_objects = []
+
+        for doc in self._get_related_doc(instance):
+            doc_instance = doc()
+            try:
+                related = doc_instance.get_instances_from_related(instance)
+            except ObjectDoesNotExist:
+                related = None
+
+            if related is not None:
+                related_objects.append(related)
+
+        return related_objects
+
+
     def get_documents(self, models=None):
         """
         Get all documents in the registry or the documents for a list of models
