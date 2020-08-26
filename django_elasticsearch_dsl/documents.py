@@ -207,6 +207,29 @@ class DocType(DSLDocument):
             **kwargs
         )
 
+    def delete(self, ids, refresh=None, parallel=False, **kwargs):
+        """
+        Update each document in ES for a model, iterable of models or queryset
+        """
+        if refresh is True or (
+            refresh is None and self.django.auto_refresh
+        ):
+            kwargs['refresh'] = True
+
+        def generator(ids):
+            for id in ids:
+                yield {
+                    '_op_type': "delete",
+                    '_index': self._index._name,
+                    '_id': id,
+                }
+
+        return self._bulk(
+            generator(ids),
+            parallel=parallel,
+            **kwargs
+        )
+
 
 # Alias of DocType. Need to remove DocType in 7.x
 Document = DocType
