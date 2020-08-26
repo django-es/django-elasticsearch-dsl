@@ -6,9 +6,11 @@ cause things to index.
 
 from __future__ import absolute_import
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from .registries import registry
+from .tasks import task_handle_delete, task_handle_delete_related, task_handle_save
 
 
 class BaseSignalProcessor(object):
@@ -94,3 +96,18 @@ class RealTimeSignalProcessor(BaseSignalProcessor):
         models.signals.post_delete.disconnect(self.handle_delete)
         models.signals.m2m_changed.disconnect(self.handle_m2m_changed)
         models.signals.pre_delete.disconnect(self.handle_pre_delete)
+
+
+class CelerySignalProcessor(RealTimeSignalProcessor):
+    def handle_save(self, sender, instance, **kwargs):
+        ct = ContentType.objects.get_for_model(instance)
+        task_handle_save.delay(instance.pk, ct.natural_key())
+
+    def handle_pre_delete(self, sender, instance, **kwargs):
+        for related in registry.get_related(instance):
+            ct = ContentType.objects.get_for_model(related)
+            task_handle_delete_related.delay(related.pk, ct.natural_key())
+
+    def handle_delete(self, sender, instance, **kwargs):
+        ct = ContentType.objects.get_for_model(instance)
+        task_handle_delete.delay(registry.generate_id(instance), ct)
