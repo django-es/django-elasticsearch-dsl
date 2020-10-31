@@ -207,12 +207,10 @@ class IntegrationTestCase(ESTestCase, TestCase):
             }
         })
 
-        index_dict_mappings = index_dict['mappings']
-        if ES_MAJOR_VERSION < 7:
-            index_dict_mappings = index_dict_mappings['doc']
+        index_dict_mappings = index_dict['doc']
 
         self.assertDictEqual(
-            index_dict_mappings, 
+            index_dict_mappings,
             {
                 'properties': {
                     'ads': {
@@ -374,8 +372,8 @@ class IntegrationTestCase(ESTestCase, TestCase):
             slug=article_slug,
         )
 
-        # saving should create two documents (in the two indices): one with the 
-        # Django object's id as the ES doc _id, and the other with the slug 
+        # saving should create two documents (in the two indices): one with the
+        # Django object's id as the ES doc _id, and the other with the slug
         # as the ES _id
         article.save()
 
@@ -392,8 +390,8 @@ class IntegrationTestCase(ESTestCase, TestCase):
             slug=article_slug,
         )
 
-        # saving should create two documents (in the two indices): one with the 
-        # Django object's id as the ES doc _id, and the other with the slug 
+        # saving should create two documents (in the two indices): one with the
+        # Django object's id as the ES doc _id, and the other with the slug
         # as the ES _id
         article.save()
 
