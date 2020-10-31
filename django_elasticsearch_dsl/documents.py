@@ -159,8 +159,8 @@ class DocType(DSLDocument):
     @classmethod
     def generate_id(cls, object_instance):
         """
-        The default behavior is to use the Django object's pk (id) as the 
-        elasticseach index id (_id). If needed, this method can be overloaded 
+        The default behavior is to use the Django object's pk (id) as the
+        elasticseach index id (_id). If needed, this method can be overloaded
         to change this default behavior.
         """
         return object_instance.pk
@@ -177,7 +177,8 @@ class DocType(DSLDocument):
 
     def _get_actions(self, object_list, action):
         for object_instance in object_list:
-            yield self._prepare_action(object_instance, action)
+            if self.should_index_object(object_instance):
+                yield self._prepare_action(object_instance, action)
 
     def _bulk(self, *args, **kwargs):
         """Helper for switching between normal and parallel bulk operation"""
@@ -186,6 +187,9 @@ class DocType(DSLDocument):
             return self.parallel_bulk(*args, **kwargs)
         else:
             return self.bulk(*args, **kwargs)
+
+    def should_index_object(self, obj):
+        return True
 
     def update(self, thing, refresh=None, action='index', parallel=False, **kwargs):
         """
