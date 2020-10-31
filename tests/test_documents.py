@@ -138,9 +138,7 @@ class DocTypeTestCase(TestCase):
     def test_mapping(self):
         text_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
 
-        doc_type_mapping = CarDocument._doc_type.mapping.to_dict()
-        if ES_MAJOR_VERSION < 7:
-            doc_type_mapping = doc_type_mapping['car_document']
+        doc_type_mapping = CarDocument._doc_type.mapping.to_dict()['car_document']
 
         self.assertDictEqual(
             doc_type_mapping, {
@@ -217,9 +215,8 @@ class DocTypeTestCase(TestCase):
                     'color': doc.prepare_color(None),
                 },
                 '_index': 'car_index',
+                '_type': 'car_document'
             }]
-            if ES_MAJOR_VERSION < 7:
-                actions[0]['_type'] = 'car_document'
 
             self.assertEqual(1, mock.call_count)
             self.assertEqual(
@@ -249,6 +246,7 @@ class DocTypeTestCase(TestCase):
                     'color': doc.prepare_color(None),
                 },
                 '_index': 'car_index',
+                '_type': 'car_document'
             },
                 {
                     '_id': car2.pk,
@@ -259,11 +257,9 @@ class DocTypeTestCase(TestCase):
                         'type': car2.type(),
                         'color': doc.prepare_color(None),
                     },
-                    '_index': 'car_index'
+                    '_index': 'car_index',
+                    '_type': 'car_document'
                 }]
-            if ES_MAJOR_VERSION < 7:
-                actions[0]['_type'] = 'car_document'
-                actions[1]['_type'] = 'car_document'
             self.assertEqual(1, mock.call_count)
             self.assertListEqual(
                 actions, list(mock.call_args_list[0][1]['actions'])

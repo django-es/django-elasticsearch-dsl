@@ -1,81 +1,37 @@
 # Config file for automatic testing at travis-ci.org
 
 language: python
-python: 3.8
+python: 3.7
 
 dist: xenial # default "precise" distro doesn't include Java 8 for Elasticsearch 5
 
 matrix:
   include:
-    - env: TOX_ENV=py36-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+    - env: TOX_ENV=py36-django-110-es6
       python: 3.6
-    - env: TOX_ENV=py36-django-111-es7
-      python: 3.6
-
-    - env: TOX_ENV=py37-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+    - env: TOX_ENV=py37-django-110-es6
       python: 3.7
-    - env: TOX_ENV=py37-django-111-es7
-      python: 3.7
-
-    - env: TOX_ENV=py38-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
-      python: 3.8
-    - env: TOX_ENV=py38-django-111-es7
-      python: 3.8
-
-    - env: TOX_ENV=py27-django-111-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+    - env: TOX_ENV=py27-django-110-es6
       python: 2.7
-    - env: TOX_ENV=py27-django-111-es7
+    - env: TOX_ENV=py36-django-111-es6
+      python: 3.6
+    - env: TOX_ENV=py37-django-111-es6
+      python: 3.7
+    - env: TOX_ENV=py27-django-111-es6
       python: 2.7
-
-    - env: TOX_ENV=py36-django-2-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+    - env: TOX_ENV=py36-django-2-es6
       python: 3.6
-    - env: TOX_ENV=py36-django-2-es7
-      python: 3.6
-
-    - env: TOX_ENV=py37-django-2-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+    - env: TOX_ENV=py37-django-2-es6
       python: 3.7
-    - env: TOX_ENV=py37-django-2-es7
+    - env: TOX_ENV=py37-django-21-es6
       python: 3.7
-
-    - env: TOX_ENV=py37-django-21-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
+    - env: TOX_ENV=py37-django-22-es6
       python: 3.7
-    - env: TOX_ENV=py37-django-21-es7
-      python: 3.7
-
-    - env: TOX_ENV=py37-django-22-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
-      python: 3.7
-    - env: TOX_ENV=py37-django-22-es7
-      python: 3.7
-
-    - env: TOX_ENV=py37-django-30-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
-      python: 3.7
-    - env: TOX_ENV=py37-django-30-es7
-      python: 3.7
-
-    - env: TOX_ENV=py38-django-2-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
-      python: 3.8
-    - env: TOX_ENV=py38-django-2-es7
-      python: 3.8
-
-    - env: TOX_ENV=py38-django-21-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
-      python: 3.8
-    - env: TOX_ENV=py38-django-21-es7
-      python: 3.8
-
-    - env: TOX_ENV=py38-django-22-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
-      python: 3.8
-    - env: TOX_ENV=py38-django-22-es7
-      python: 3.8
-
-    - env: TOX_ENV=py38-django-30-es6 ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
-      python: 3.8
-    - env: TOX_ENV=py38-django-30-es7
-      python: 3.8
 
 cache: pip
 env:
   global:
-    - ES_APT_URL=https://artifacts.elastic.co/packages/7.x/apt
+    - ES_APT_URL=https://artifacts.elastic.co/packages/6.x/apt
 
 before_install:
   # work around https://github.com/travis-ci/travis-ci/issues/8363
