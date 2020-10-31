@@ -115,6 +115,9 @@ class ObjectField(DEDField, Object):
                     obj, field_value_to_ignore
                 )
 
+        if not data and obj and isinstance(obj, dict):
+            data = obj
+
         return data
 
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
@@ -125,7 +128,7 @@ class ObjectField(DEDField, Object):
         if objs is None:
             return {}
         try:
-            is_iterable = bool(iter(objs))
+            is_iterable = bool(iter(objs)) and not isinstance(objs, dict)
         except TypeError:
             is_iterable = False
         
