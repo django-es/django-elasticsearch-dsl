@@ -88,7 +88,7 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_instance(self):
         field = ObjectField(attr='person', properties={
-            'first_name': TextField(analyzier='foo'),
+            'first_name': TextField(analyzer='foo'),
             'last_name': TextField()
         })
 
@@ -102,7 +102,7 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_instance_with_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
-            'first_name': TextField(analyzier='foo'),
+            'first_name': TextField(analyzer='foo'),
             'last_name': TextField(),
             'aditional': ObjectField(properties={
                 'age': IntegerField()
@@ -122,7 +122,7 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_instance_with_none_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
-            'first_name': TextField(analyzier='foo'),
+            'first_name': TextField(analyzer='foo'),
             'last_name': TextField(),
             'aditional': ObjectField(properties={
                 'age': IntegerField()
@@ -142,7 +142,7 @@ class ObjectFieldTestCase(TestCase):
 
     def test_get_value_from_iterable(self):
         field = ObjectField(attr='person', properties={
-            'first_name': TextField(analyzier='foo'),
+            'first_name': TextField(analyzer='foo'),
             'last_name': TextField()
         })
 
