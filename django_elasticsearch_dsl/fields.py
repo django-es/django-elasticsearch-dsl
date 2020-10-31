@@ -128,11 +128,11 @@ class ObjectField(DEDField, Object):
         if objs is None:
             return {}
         try:
-            is_iterable = bool(iter(objs)) and not isinstance(objs, dict)
+            is_iterable = bool(iter(objs))
         except TypeError:
             is_iterable = False
         
-        if is_iterable:
+        if is_iterable and not isinstance(objs, dict):
             return [
                 self._get_inner_field_data(obj, field_value_to_ignore)
                 for obj in objs if obj != field_value_to_ignore
