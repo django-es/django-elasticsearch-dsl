@@ -104,40 +104,40 @@ class ObjectFieldTestCase(TestCase):
         field = ObjectField(attr='person', properties={
             'first_name': TextField(analyzer='foo'),
             'last_name': TextField(),
-            'aditional': ObjectField(properties={
+            'additional': ObjectField(properties={
                 'age': IntegerField()
             })
         })
 
         instance = NonCallableMock(person=NonCallableMock(
             first_name="foo", last_name="bar",
-            aditional=NonCallableMock(age=12)
+            additional=NonCallableMock(age=12)
         ))
 
         self.assertEqual(field.get_value_from_instance(instance), {
             'first_name': "foo",
             'last_name': "bar",
-            'aditional': {'age': 12}
+            'additional': {'age': 12}
         })
 
     def test_get_value_from_instance_with_none_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
             'first_name': TextField(analyzer='foo'),
             'last_name': TextField(),
-            'aditional': ObjectField(properties={
+            'additional': ObjectField(properties={
                 'age': IntegerField()
             })
         })
 
         instance = NonCallableMock(person=NonCallableMock(
             first_name="foo", last_name="bar",
-            aditional=None
+            additional=None
         ))
 
         self.assertEqual(field.get_value_from_instance(instance), {
             'first_name': "foo",
             'last_name': "bar",
-            'aditional': {}
+            'additional': {}
         })
 
     def test_get_value_from_iterable(self):
