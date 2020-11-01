@@ -115,6 +115,8 @@ class ObjectField(DEDField, Object):
                     obj, field_value_to_ignore
                 )
 
+        # This allows for ObjectFields to be indexed from dicts with
+        # dynamic keys (i.e. keys/fields not defined in 'properties')
         if not data and obj and isinstance(obj, dict):
             data = obj
 
@@ -132,6 +134,8 @@ class ObjectField(DEDField, Object):
         except TypeError:
             is_iterable = False
 
+        # While dicts are iterable, they need to be excluded here so
+        # their full data is indexed
         if is_iterable and not isinstance(objs, dict):
             return [
                 self._get_inner_field_data(obj, field_value_to_ignore)
