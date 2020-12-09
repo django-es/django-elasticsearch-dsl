@@ -207,7 +207,7 @@ class IntegrationTestCase(ESTestCase, TestCase):
             }
         })
 
-        index_dict_mappings = index_dict['doc']
+        index_dict_mappings = index_dict['mappings']["doc"]
 
         self.assertDictEqual(
             index_dict_mappings,
