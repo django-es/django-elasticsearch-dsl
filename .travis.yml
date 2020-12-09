@@ -7,12 +7,6 @@ dist: xenial # default "precise" distro doesn't include Java 8 for Elasticsearch
 
 matrix:
   include:
-    - env: TOX_ENV=py36-django-110-es6
-      python: 3.6
-    - env: TOX_ENV=py37-django-110-es6
-      python: 3.7
-    - env: TOX_ENV=py27-django-110-es6
-      python: 2.7
     - env: TOX_ENV=py36-django-111-es6
       python: 3.6
     - env: TOX_ENV=py37-django-111-es6
