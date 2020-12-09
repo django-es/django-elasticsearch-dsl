@@ -13,7 +13,7 @@ from django_elasticsearch_dsl.fields import (BooleanField, ByteField, Completion
                                              ListField, LongField,
                                              NestedField, ObjectField, ShortField, TextField
                                              )
-from tests import ES_MAJOR_VERSION
+from django_elasticsearch_dsl.versions import ES_MAJOR_VERSION
 
 
 class DEDFieldTestCase(TestCase):

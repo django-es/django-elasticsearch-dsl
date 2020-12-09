@@ -11,7 +11,7 @@ from django_elasticsearch_dsl.documents import DocType, Document
 from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
                                                  RedeclaredFieldError)
 from django_elasticsearch_dsl.registries import registry
-from tests import ES_MAJOR_VERSION
+from django_elasticsearch_dsl.versions import ES_MAJOR_VERSION
 
 from .models import Article
 from .documents import ArticleDocument, ArticleWithSlugAsIdDocument
@@ -61,6 +61,8 @@ class CarDocument(DocType):
 
 
 class DocTypeTestCase(TestCase):
+
+    maxDiff = None
 
     def test_model_class_added(self):
         self.assertEqual(CarDocument.django.model, Car)
@@ -136,8 +138,12 @@ class DocTypeTestCase(TestCase):
     def test_mapping(self):
         text_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
 
-        self.assertEqual(
-            CarDocument._doc_type.mapping.to_dict(), {
+        doc_type_mapping = CarDocument._doc_type.mapping.to_dict()
+        if ES_MAJOR_VERSION < 7:
+            doc_type_mapping = doc_type_mapping['car_document']
+
+        self.assertDictEqual(
+            doc_type_mapping, {
                     'properties': {
                         'name': {
                             'type': text_type
@@ -164,7 +170,7 @@ class DocTypeTestCase(TestCase):
         car = Car(name="Type 57", price=5400000.0, not_indexed="not_indexex")
         doc = CarDocument()
         prepared_data = doc.prepare(car)
-        self.assertEqual(
+        self.assertDictEqual(
             prepared_data, {
                 'color': doc.prepare_color(None),
                 'type': car.type(),
@@ -188,7 +194,7 @@ class DocTypeTestCase(TestCase):
         car = Car(name="Type 57", price=5400000.0, not_indexed="not_indexex")
         doc = CarDocumentDSlBaseField()
         prepared_data = doc.prepare(car)
-        self.assertEqual(
+        self.assertDictEqual(
             prepared_data, {
                 'name': car.name,
                 'price': car.price
@@ -212,9 +218,13 @@ class DocTypeTestCase(TestCase):
                 },
                 '_index': 'car_index',
             }]
+            if ES_MAJOR_VERSION < 7:
+                actions[0]['_type'] = 'car_document'
+
             self.assertEqual(1, mock.call_count)
             self.assertEqual(
-                actions, list(mock.call_args_list[0][1]['actions'])
+                actions, list(mock.call_args_list[0][1]['actions']),
+                str(list(mock.call_args_list[0][1]['actions']))
             )
             self.assertTrue(mock.call_args_list[0][1]['refresh'])
             self.assertEqual(
@@ -251,8 +261,11 @@ class DocTypeTestCase(TestCase):
                     },
                     '_index': 'car_index'
                 }]
+            if ES_MAJOR_VERSION < 7:
+                actions[0]['_type'] = 'car_document'
+                actions[1]['_type'] = 'car_document'
             self.assertEqual(1, mock.call_count)
-            self.assertEqual(
+            self.assertListEqual(
                 actions, list(mock.call_args_list[0][1]['actions'])
             )
             self.assertTrue(mock.call_args_list[0][1]['refresh'])
