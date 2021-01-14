@@ -48,8 +48,10 @@ model_field_class_to_field_class = {
     models.URLField: TextField,
 }
 
+
 class DocType(DSLDocument):
     _prepared_fields = []
+
     def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(DocType, self).__init__(**kwargs)
         self._related_instance_to_ignore = related_instance_to_ignore
@@ -122,8 +124,8 @@ class DocType(DSLDocument):
         """
         data = {
             name: prep_func(instance)
-                for name, field, prep_func in self._prepared_fields
-            }
+            for name, field, prep_func in self._prepared_fields
+        }
         return data
 
     @classmethod
@@ -159,8 +161,8 @@ class DocType(DSLDocument):
     @classmethod
     def generate_id(cls, object_instance):
         """
-        The default behavior is to use the Django object's pk (id) as the 
-        elasticseach index id (_id). If needed, this method can be overloaded 
+        The default behavior is to use the Django object's pk (id) as the
+        elasticseach index id (_id). If needed, this method can be overloaded
         to change this default behavior.
         """
         return object_instance.pk

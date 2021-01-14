@@ -127,18 +127,40 @@ class DocumentRegistry(object):
             if related is not None:
                 doc_instance.update(related, **kwargs)
 
+    def initialize_tag_mapping(self):
+        pass
+
+    def get_index_prefix_name(self):
+        pass
+
     def update(self, instance, **kwargs):
         """
-        Update all the elasticsearch documents attached to this model (if their
+        Update all the elasticsearch documents that are in
+        the subcategory related to this documents attached to this model (if their
         ignore_signals flag allows it)
         """
         if not DEDConfig.autosync_enabled():
             return
-
-        if instance.__class__ in self._models:
-            for doc in self._models[instance.__class__]:
-                if not doc.django.ignore_signals:
-                    doc().update(instance, **kwargs)
+        if instance.__class__ in registry._models:
+            if instance.__class__.__name__ == 'Business':
+                subcategory_id_list = []
+                index_name_list = []
+                tag_subcategory_dict = self.initialize_tag_mapping().\
+                    get_tag_name_to_subcategory_id_mapping()
+                for tag in instance.tags.all():
+                    if tag.title in tag_subcategory_dict.keys():
+                        subcategory_id_list.append(tag_subcategory_dict[tag.title])
+                        _sub_id = tag_subcategory_dict[tag.title]
+                        index_name = f'{self.get_index_prefix_name()}_{_sub_id}'
+                        index_name_list.append(index_name)
+                for doc in registry._models[instance.__class__]:
+                    if doc.Index.name in index_name_list:
+                        if not doc.django.ignore_signals:
+                            doc().update(instance, **kwargs)
+            else:
+                for doc in registry._models[instance.__class__]:
+                    if not doc.django.ignore_signals:
+                        doc().update(instance, **kwargs)
 
     def delete(self, instance, **kwargs):
         """
