@@ -20,6 +20,8 @@ class DocumentRegistry(object):
         self._indices = defaultdict(set)
         self._models = defaultdict(set)
         self._related_models = defaultdict(set)
+        self._tag_sub_category_dictionary = {}
+        self._rankpage_bunch_index_prefix = ''
 
     def register(self, index, doc_class):
         """Register the model with the registry"""
@@ -127,11 +129,11 @@ class DocumentRegistry(object):
             if related is not None:
                 doc_instance.update(related, **kwargs)
 
-    def initialize_tag_mapping(self):
-        pass
+    def initialize_tag_sub_category_dictionary(self, diction):
+        self._tag_sub_category_dictionary = diction
 
-    def get_index_prefix_name(self):
-        pass
+    def initialize_business_index_prefix(self, prefix):
+        self._rankpage_bunch_index_prefix = prefix
 
     def update(self, instance, **kwargs):
         """
@@ -145,13 +147,12 @@ class DocumentRegistry(object):
             if instance.__class__.__name__ == 'Business':
                 subcategory_id_list = []
                 index_name_list = []
-                tag_subcategory_dict = self.initialize_tag_mapping().\
-                    get_tag_name_to_subcategory_id_mapping()
+                tag_subcategory_dict = self._tag_sub_category_dictionary
                 for tag in instance.tags.all():
                     if tag.title in tag_subcategory_dict.keys():
                         subcategory_id_list.append(tag_subcategory_dict[tag.title])
                         _sub_id = tag_subcategory_dict[tag.title]
-                        index_name = f'{self.get_index_prefix_name()}_{_sub_id}'
+                        index_name = f'{self._rankpage_bunch_index_prefix}_{_sub_id}'
                         index_name_list.append(index_name)
                 for doc in registry._models[instance.__class__]:
                     if doc.Index.name in index_name_list:
