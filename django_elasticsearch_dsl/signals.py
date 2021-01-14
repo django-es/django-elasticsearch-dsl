@@ -45,6 +45,12 @@ class BaseSignalProcessor(object):
     def handle_m2m_changed(self, sender, instance, action, **kwargs):
         if action in ('post_add', 'post_remove', 'post_clear'):
             self.handle_save(sender, instance)
+            if action == 'post_remove':
+                model = kwargs.get('model', None)
+                if model:
+                    if type(instance).__name__ == 'Business' and model.__name__ == 'BusinessTag':
+                        if kwargs.get('pk_set', None):
+                            instance.remove_tag_handler(list(kwargs['pk_set']))
         elif action in ('pre_remove', 'pre_clear'):
             self.handle_pre_delete(sender, instance)
 
