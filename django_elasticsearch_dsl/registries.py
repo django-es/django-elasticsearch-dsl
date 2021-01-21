@@ -155,7 +155,7 @@ class DocumentRegistry(object):
                         index_name = f'{self._rankpage_bunch_index_prefix}_{_sub_id}'
                         index_name_list.append(index_name)
                 for doc in registry._models[instance.__class__]:
-                    if doc.Index.name in index_name_list:
+                    if doc.Index.name in index_name_list or self._rankpage_bunch_index_prefix not in doc.Index.name:
                         if not doc.django.ignore_signals:
                             doc().update(instance, **kwargs)
             else:
