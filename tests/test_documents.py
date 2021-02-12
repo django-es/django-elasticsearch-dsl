@@ -268,6 +268,26 @@ class DocTypeTestCase(TestCase):
             doc.update(car)
             self.assertNotIn('refresh', mock.call_args_list[0][1])
 
+    def test_model_instance_update_refresh_wait_for(self):
+        doc = CarDocument()
+        doc.django.auto_refresh = False
+        car = Car()
+        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
+            doc.update(car, refresh='wait_for')
+            self.assertEqual(
+                mock.call_args_list[0][1]['refresh'], 'wait_for'
+            )
+
+    def test_model_instance_update_refresh_wait_for_overrides_auto_refresh(self):
+        doc = CarDocument()
+        doc.django.auto_refresh = True
+        car = Car()
+        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
+            doc.update(car, refresh='wait_for')
+            self.assertEqual(
+                mock.call_args_list[0][1]['refresh'], 'wait_for'
+            )
+
     def test_model_instance_iterable_update_with_pagination(self):
         class CarDocument2(DocType):
             class Django:
