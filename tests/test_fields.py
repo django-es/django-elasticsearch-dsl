@@ -100,6 +100,36 @@ class ObjectFieldTestCase(TestCase):
             'last_name': "bar",
         })
 
+    def test_get_value_from_instance_with_partial_properties(self):
+        field = ObjectField(
+            attr='person',
+            properties={
+                'first_name': TextField(analyzer='foo')
+            }
+        )
+
+        instance = NonCallableMock(
+            person=NonCallableMock(first_name='foo', last_name='bar')
+        )
+
+        self.assertEqual(field.get_value_from_instance(instance), {
+            'first_name': "foo"
+        })
+
+    def test_get_value_from_instance_without_properties(self):
+        field = ObjectField(attr='person')
+
+        instance = NonCallableMock(
+            person={'first_name': 'foo', 'last_name': 'bar'}
+        )
+
+        self.assertEqual(field.get_value_from_instance(instance),
+            {
+                'first_name': "foo",
+                'last_name': "bar"
+            }
+        )
+
     def test_get_value_from_instance_with_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
             'first_name': TextField(analyzer='foo'),
@@ -119,6 +149,30 @@ class ObjectFieldTestCase(TestCase):
             'last_name': "bar",
             'additional': {'age': 12}
         })
+
+    def test_get_value_from_instance_with_inner_objectfield_without_properties(self):
+        field = ObjectField(
+            attr='person',
+            properties={
+                'first_name': TextField(analyzer='foo'),
+                'last_name': TextField(),
+                'additional': ObjectField()
+            }
+        )
+
+        instance = NonCallableMock(person=NonCallableMock(
+            first_name="foo",
+            last_name="bar",
+            additional={'age': 12}
+        ))
+
+        self.assertEqual(field.get_value_from_instance(instance),
+            {
+                'first_name': "foo",
+                'last_name': "bar",
+                'additional': {'age': 12}
+            }
+        )
 
     def test_get_value_from_instance_with_none_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
@@ -167,6 +221,29 @@ class ObjectFieldTestCase(TestCase):
                 'last_name': "bar2",
             }
         ])
+
+    def test_get_value_from_iterable_without_properties(self):
+        field = ObjectField(attr='person')
+
+        instance = NonCallableMock(
+            person=[
+                {'first_name': "foo1", 'last_name': "bar1"},
+                {'first_name': "foo2", 'last_name': "bar2"}
+            ]
+        )
+
+        self.assertEqual(field.get_value_from_instance(instance),
+            [
+                {
+                    'first_name': "foo1",
+                    'last_name': "bar1",
+                },
+                {
+                    'first_name': "foo2",
+                    'last_name': "bar2",
+                }
+            ]
+        )
 
 
 class NestedFieldTestCase(TestCase):
