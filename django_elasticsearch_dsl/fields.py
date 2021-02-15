@@ -23,7 +23,8 @@ from elasticsearch_dsl.field import (
     Object,
     Short,
     Keyword,
-    Text
+    Text,
+    SearchAsYouType,
 )
 
 from .exceptions import VariableLookupError
@@ -128,7 +129,7 @@ class ObjectField(DEDField, Object):
             is_iterable = bool(iter(objs))
         except TypeError:
             is_iterable = False
-        
+
         if is_iterable:
             return [
                 self._get_inner_field_data(obj, field_value_to_ignore)
@@ -206,6 +207,18 @@ class ShortField(DEDField, Short):
     pass
 
 
+class KeywordField(DEDField, Keyword):
+    pass
+
+
+class TextField(DEDField, Text):
+    pass
+
+
+class SearchAsYouTypeField(DEDField, SearchAsYouType):
+    pass
+
+
 class FileFieldMixin(object):
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
         _file = super(FileFieldMixin, self).get_value_from_instance(
@@ -214,14 +227,6 @@ class FileFieldMixin(object):
         if isinstance(_file, FieldFile):
             return _file.url if _file else ''
         return _file if _file else ''
-
-
-class KeywordField(DEDField, Keyword):
-    pass
-
-
-class TextField(DEDField, Text):
-    pass
 
 
 class FileField(FileFieldMixin, DEDField, Text):
