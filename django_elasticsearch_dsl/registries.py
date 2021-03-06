@@ -156,10 +156,16 @@ class DocumentRegistry(object):
                                            if model in self._models))
         return set(chain.from_iterable(itervalues(self._indices)))
 
-    def get_models(self):
+    def get_models(self, indices=None):
         """
-        Get all models in the registry
+        Get all models in the registry or the models for a list of indices
         """
+        if indices is not None:
+            return set(
+                doc.django.model for index, docs in iteritems(self._indices)
+                for doc in docs if index in indices
+            )
+
         return set(iterkeys(self._models))
 
     def get_indices(self, models=None):

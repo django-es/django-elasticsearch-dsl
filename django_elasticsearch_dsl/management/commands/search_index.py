@@ -100,13 +100,14 @@ class Command(BaseCommand):
 
         return set(models)
 
-    def _create(self, models, options):
-        for index in registry.get_indices(models):
+    def _create(self, indices, options):
+        for index in indices:
             self.stdout.write("Creating index '{}'".format(index._name))
             index.create()
 
-    def _populate(self, models, options):
+    def _populate(self, indices, options):
         parallel = options['parallel']
+        models = registry.get_models(indices)
         for doc in registry.get_documents(models):
             self.stdout.write("Indexing {} '{}' objects {}".format(
                 doc().get_queryset().count() if options['count'] else "all",
@@ -116,8 +117,8 @@ class Command(BaseCommand):
             qs = doc().get_indexing_queryset()
             doc().update(qs, parallel=parallel)
 
-    def _delete(self, models, options):
-        index_names = [index._name for index in registry.get_indices(models)]
+    def _delete(self, indices, options):
+        index_names = [index._name for index in indices]
 
         if not options['force']:
             response = input(
@@ -127,7 +128,7 @@ class Command(BaseCommand):
                 self.stdout.write('Aborted')
                 return False
 
-        for index in registry.get_indices(models):
+        for index in indices:
             self.stdout.write("Deleting index '{}'".format(index._name))
             index.delete(ignore=404)
         return True
@@ -148,15 +149,16 @@ class Command(BaseCommand):
 
         action = options['action']
         models = self._get_models(options['models'])
+        indices = registry.get_indices(models)
 
         if action == 'create':
-            self._create(models, options)
+            self._create(indices, options)
         elif action == 'populate':
-            self._populate(models, options)
+            self._populate(indices, options)
         elif action == 'delete':
-            self._delete(models, options)
+            self._delete(indices, options)
         elif action == 'rebuild':
-            self._rebuild(models, options)
+            self._rebuild(indices, options)
         else:
             raise CommandError(
                 "Invalid action. Must be one of"

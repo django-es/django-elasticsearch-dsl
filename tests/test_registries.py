@@ -40,6 +40,10 @@ class DocumentRegistryTestCase(WithFixturesMixin, TestCase):
         self.assertEqual(self.registry.get_models(),
                          set([self.ModelA, self.ModelB, self.ModelC]))
 
+    def test_get_models_by_index(self):
+        self.assertEqual(self.registry.get_models([self.index_1]),
+                         set([self.ModelA, self.ModelC]))
+
     def test_get_documents(self):
         self.assertEqual(self.registry.get_documents(),
                          set([self.doc_a1, self.doc_a2,
