@@ -18,10 +18,10 @@ class Command(BaseCommand):
             help="Specify the model or app to be updated in elasticsearch"
         )
         parser.add_argument(
-            '--index_names',
+            '--indices',
             type=str,
             nargs='*',
-            help="Specify the index names to be updated in elasticsearch"
+            help="Specify the indices to be updated in elasticsearch"
         )
         parser.add_argument(
             '--create',
@@ -162,12 +162,12 @@ class Command(BaseCommand):
                 " '--create','--populate', '--delete' or '--rebuild' ."
             )
 
-        if options['models'] and options['index_names']:
-            raise CommandError("Only one of '--models' or '--index_names' are allowed.")
+        if options['models'] and options['indices']:
+            raise CommandError("Only one of '--models' or '--indices' are allowed.")
 
         action = options['action']
-        if options['index_names']:
-            indices = self._get_indices(options['index_names'])
+        if options['indices']:
+            indices = self._get_indices(options['indices'])
         else:
             models = self._get_models(options['models'])
             indices = registry.get_indices(models)

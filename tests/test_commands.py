@@ -80,13 +80,13 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
         with self.assertRaises(CommandError):
             cmd.handle(action="")
 
-    def test_models_index_names_error(self):
+    def test_models_indices_error(self):
         cmd = Command()
         with self.assertRaisesRegex(
             CommandError,
-            "Only one of '--models' or '--index_names' are allowed."
+            "Only one of '--models' or '--indices' are allowed."
         ):
-            cmd.handle(action="create", models="foo", index_names="bar")
+            cmd.handle(action="create", models="foo", indices="bar")
 
     def test_delete_foo_index(self):
 
@@ -168,7 +168,7 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
             cmd._get_indices(['foo', 'unknown'])
 
     def test_create_by_index_name(self):
-        call_command('search_index', stdout=self.out, action='create', index_names=['foo'])
+        call_command('search_index', stdout=self.out, action='create', indices=['foo'])
         self.index_a.create.assert_called_once()
         self.assertFalse(self.index_b.create.called)
 
@@ -179,12 +179,12 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
             Mock(return_value="y")
         ):
             call_command('search_index', stdout=self.out,
-                         action='delete', index_names=['foo'])
+                         action='delete', indices=['foo'])
             self.index_a.delete.assert_called_once()
             self.assertFalse(self.index_b.delete.called)
 
     def test_populate_by_index_name(self):
-        call_command('search_index', stdout=self.out, action='populate', index_names=['foo'])
+        call_command('search_index', stdout=self.out, action='populate', indices=['foo'])
         # One call for "Indexing NNN documents", one for indexing itself (via get_index_queryset).
         assert self.doc_a1.get_queryset.call_count == 2
         self.doc_a1.update.assert_called_once_with(self.doc_a1_qs.iterator(), parallel=False)
@@ -201,7 +201,7 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
             Command, _create=DEFAULT, _delete=DEFAULT, _populate=DEFAULT
         ) as handles:
             handles['_delete'].return_value = True
-            call_command('search_index', stdout=self.out, action='rebuild', index_names=['foo'])
+            call_command('search_index', stdout=self.out, action='rebuild', indices=['foo'])
             handles['_delete'].assert_called_once_with({self.index_a}, ANY)
             handles['_create'].assert_called_once_with({self.index_a}, ANY)
             handles['_populate'].assert_called_once_with({self.index_a}, ANY)
