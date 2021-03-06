@@ -111,7 +111,7 @@ class Command(BaseCommand):
 
         invalid_index_names = set(index_names) - set(index._name for index in indices)
         if invalid_index_names:
-            raise CommandError("No index named {}".format(invalid_index_names))
+            raise CommandError("No index named {}".format(list(invalid_index_names)))
 
         return set(index for index in indices if index._name in index_names)
 

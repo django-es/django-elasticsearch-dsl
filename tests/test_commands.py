@@ -82,11 +82,13 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
 
     def test_models_indices_error(self):
         cmd = Command()
-        with self.assertRaisesRegex(
-            CommandError,
-            "Only one of '--models' or '--indices' are allowed."
-        ):
+        with self.assertRaises(CommandError) as error:
             cmd.handle(action="create", models="foo", indices="bar")
+
+        self.assertEqual(
+            str(error.exception),
+            "Only one of '--models' or '--indices' are allowed."
+        )
 
     def test_delete_foo_index(self):
 
@@ -164,8 +166,9 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
             set([self.index_b])
         )
 
-        with self.assertRaisesRegex(CommandError, "No index named {'unknown'}"):
+        with self.assertRaises(CommandError) as error:
             cmd._get_indices(['foo', 'unknown'])
+        self.assertEqual(str(error.exception), "No index named ['unknown']")
 
     def test_create_by_index_name(self):
         call_command('search_index', stdout=self.out, action='create', indices=['foo'])
