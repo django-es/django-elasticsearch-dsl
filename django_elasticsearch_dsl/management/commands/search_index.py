@@ -18,6 +18,12 @@ class Command(BaseCommand):
             help="Specify the model or app to be updated in elasticsearch"
         )
         parser.add_argument(
+            '--index_names',
+            type=str,
+            nargs='*',
+            help="Specify the index names to be updated in elasticsearch"
+        )
+        parser.add_argument(
             '--create',
             action='store_const',
             dest='action',
@@ -100,6 +106,15 @@ class Command(BaseCommand):
 
         return set(models)
 
+    def _get_indices(self, index_names):
+        indices = registry.get_indices()
+
+        invalid_index_names = set(index_names) - set(index._name for index in indices)
+        if invalid_index_names:
+            raise CommandError("No index named {}".format(invalid_index_names))
+
+        return set(index for index in indices if index._name in index_names)
+
     def _create(self, indices, options):
         for index in indices:
             self.stdout.write("Creating index '{}'".format(index._name))
@@ -147,9 +162,15 @@ class Command(BaseCommand):
                 " '--create','--populate', '--delete' or '--rebuild' ."
             )
 
+        if options['models'] and options['index_names']:
+            raise CommandError("Only one of '--models' or '--index_names' are allowed.")
+
         action = options['action']
-        models = self._get_models(options['models'])
-        indices = registry.get_indices(models)
+        if options['index_names']:
+            indices = self._get_indices(options['index_names'])
+        else:
+            models = self._get_models(options['models'])
+            indices = registry.get_indices(models)
 
         if action == 'create':
             self._create(indices, options)
