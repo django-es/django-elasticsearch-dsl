@@ -288,6 +288,16 @@ class DocTypeTestCase(TestCase):
                 mock.call_args_list[0][1]['refresh'], 'wait_for'
             )
 
+    def test_model_instance_update_auto_refresh_wait_for(self):
+        doc = CarDocument()
+        doc.django.auto_refresh = 'wait_for'
+        car = Car()
+        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
+            doc.update(car)
+            self.assertEqual(
+                mock.call_args_list[0][1]['refresh'], 'wait_for'
+            )
+
     def test_model_instance_update_refresh_overrides_auto_refresh(self):
         doc = CarDocument()
         doc.django.auto_refresh = True

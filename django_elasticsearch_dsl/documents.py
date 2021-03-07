@@ -194,7 +194,7 @@ class DocType(DSLDocument):
         if refresh is not None:
             kwargs['refresh'] = refresh
         elif self.django.auto_refresh:
-            kwargs['refresh'] = True
+            kwargs['refresh'] = self.django.auto_refresh
 
         if isinstance(thing, models.Model):
             object_list = [thing]
