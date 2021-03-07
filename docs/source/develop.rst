@@ -8,7 +8,7 @@ Report bugs or propose enhancements through  `github bug tracker`_
 _`github bug tracker`: https://github.com/sabricot/django-elasticsearch-dsl/issues
 
 
-If you wan't to contribute, the code is on github:
+If you want to contribute, the code is on github:
 https://github.com/sabricot/django-elasticsearch-dsl
 
 Testing

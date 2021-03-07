@@ -21,7 +21,7 @@ ELASTICSEARCH_DSL_AUTO_REFRESH
 
 Default: ``True``
 
-Set to ``False`` not force an [index refresh](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-refresh.html) with every save.
+Set to ``False`` not force an `index refresh <https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-refresh.html>`_ with every save.
 
 ELASTICSEARCH_DSL_SIGNAL_PROCESSOR
 ==================================
