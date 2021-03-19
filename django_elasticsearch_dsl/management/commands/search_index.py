@@ -65,6 +65,13 @@ class Command(BaseCommand):
         )
         parser.set_defaults(parallel=getattr(settings, 'ELASTICSEARCH_DSL_PARALLEL', False))
         parser.add_argument(
+            '--refresh',
+            action='store_true',
+            dest='refresh',
+            default=None,
+            help='Refresh indices after populate/rebuild'
+        )
+        parser.add_argument(
             '--no-count',
             action='store_false',
             default=True,
@@ -114,7 +121,7 @@ class Command(BaseCommand):
                 "(parallel)" if parallel else "")
             )
             qs = doc().get_indexing_queryset()
-            doc().update(qs, parallel=parallel)
+            doc().update(qs, parallel=parallel, refresh=options['refresh'])
 
     def _delete(self, models, options):
         index_names = [index._name for index in registry.get_indices(models)]

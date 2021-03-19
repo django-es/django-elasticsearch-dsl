@@ -87,7 +87,10 @@ It is required to define ``Document`` class in  ``documents.py`` in your app dir
             # or deleted:
             # ignore_signals = True
 
-            # Don't perform an index refresh after every update (overrides global setting):
+            # Configure how the index should be refreshed after an update.
+            # See Elasticsearch documentation for supported options:
+            # https://www.elastic.co/guide/en/elasticsearch/reference/master/docs-refresh.html
+            # This per-Document setting overrides settings.ELASTICSEARCH_DSL_AUTO_REFRESH.
             # auto_refresh = False
 
             # Paginate the django queryset used to populate the index with the specified size

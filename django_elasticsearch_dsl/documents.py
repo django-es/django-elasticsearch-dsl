@@ -191,10 +191,10 @@ class DocType(DSLDocument):
         """
         Update each document in ES for a model, iterable of models or queryset
         """
-        if refresh is True or (
-            refresh is None and self.django.auto_refresh
-        ):
-            kwargs['refresh'] = True
+        if refresh is not None:
+            kwargs['refresh'] = refresh
+        elif self.django.auto_refresh:
+            kwargs['refresh'] = self.django.auto_refresh
 
         if isinstance(thing, models.Model):
             object_list = [thing]

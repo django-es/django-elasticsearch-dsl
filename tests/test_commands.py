@@ -112,15 +112,24 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
 
     def test_populate_all_doc_type(self):
         call_command('search_index', stdout=self.out, action='populate')
+        expected_kwargs = {'parallel': False, 'refresh': None}
         # One call for "Indexing NNN documents", one for indexing itself (via get_index_queryset).
         assert self.doc_a1.get_queryset.call_count == 2
-        self.doc_a1.update.assert_called_once_with(self.doc_a1_qs.iterator(), parallel=False)
+        self.doc_a1.update.assert_called_once_with(self.doc_a1_qs.iterator(), **expected_kwargs)
         assert self.doc_a2.get_queryset.call_count == 2
-        self.doc_a2.update.assert_called_once_with(self.doc_a2_qs.iterator(), parallel=False)
+        self.doc_a2.update.assert_called_once_with(self.doc_a2_qs.iterator(), **expected_kwargs)
         assert self.doc_b1.get_queryset.call_count == 2
-        self.doc_b1.update.assert_called_once_with(self.doc_b1_qs.iterator(), parallel=False)
+        self.doc_b1.update.assert_called_once_with(self.doc_b1_qs.iterator(), **expected_kwargs)
         assert self.doc_c1.get_queryset.call_count == 2
-        self.doc_c1.update.assert_called_once_with(self.doc_c1_qs.iterator(), parallel=False)
+        self.doc_c1.update.assert_called_once_with(self.doc_c1_qs.iterator(), **expected_kwargs)
+
+    def test_populate_all_doc_type_refresh(self):
+        call_command('search_index', stdout=self.out, action='populate', refresh=True)
+        expected_kwargs = {'parallel': False, 'refresh': True}
+        self.doc_a1.update.assert_called_once_with(self.doc_a1_qs.iterator(), **expected_kwargs)
+        self.doc_a2.update.assert_called_once_with(self.doc_a2_qs.iterator(), **expected_kwargs)
+        self.doc_b1.update.assert_called_once_with(self.doc_b1_qs.iterator(), **expected_kwargs)
+        self.doc_c1.update.assert_called_once_with(self.doc_c1_qs.iterator(), **expected_kwargs)
 
     def test_rebuild_indices(self):
 
