@@ -1,5 +1,4 @@
 from datetime import datetime
-import os
 import unittest
 
 from django.core.management import call_command
@@ -9,7 +8,7 @@ from six import StringIO
 
 from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import Index as DSLIndex
-from django_elasticsearch_dsl.test import ESTestCase
+from django_elasticsearch_dsl.test import ESTestCase, is_es_online
 from tests import ES_MAJOR_VERSION
 
 from .documents import (
@@ -26,10 +25,7 @@ from .documents import (
 from .models import Car, Manufacturer, Ad, Category, Article, COUNTRIES
 
 
-@unittest.skipUnless(
-    os.environ.get('ELASTICSEARCH_URL', False),
-    "--elasticsearch not set"
-)
+@unittest.skipUnless(is_es_online(), 'Elasticsearch is offline')
 class IntegrationTestCase(ESTestCase, TestCase):
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
