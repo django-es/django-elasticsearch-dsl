@@ -189,7 +189,10 @@ class DocType(DSLDocument):
             return self.bulk(*args, **kwargs)
 
     def should_index_object(self, obj):
-        """Overwriting this method and returning a boolean value should determine whether the object should be index."""
+        """
+        Overwriting this method and returning a boolean value 
+        should determine whether the object should be indexed.
+        """
         return True
 
     def update(self, thing, refresh=None, action='index', parallel=False, **kwargs):
