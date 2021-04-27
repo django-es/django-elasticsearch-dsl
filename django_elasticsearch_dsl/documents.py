@@ -26,6 +26,7 @@ from .search import Search
 
 model_field_class_to_field_class = {
     models.AutoField: IntegerField,
+    models.BigAutoField: LongField,
     models.BigIntegerField: LongField,
     models.BooleanField: BooleanField,
     models.CharField: TextField,
