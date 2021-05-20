@@ -141,6 +141,7 @@ but it is also possible to convert the elastisearch result into a real django qu
 just be aware that this costs a sql request to retrieve the model instances
 with the ids returned by the elastisearch query.
 
+.. _Search: https://elasticsearch-dsl.readthedocs.io/en/latest/search_dsl.html#the-search-object
 .. _elasticsearch_dsl: http://elasticsearch-dsl.readthedocs.io/en/latest/search_dsl.html#response
 
 .. code-block:: python
