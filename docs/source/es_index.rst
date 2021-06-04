@@ -1,5 +1,5 @@
 Index
-######
+#####
 
 In typical scenario using `class Index` on a `Document` class is sufficient to perform any action.
 In a few cases though it can be useful to manipulate an Index object directly.
@@ -60,3 +60,22 @@ in Elasticsearch with appropriate mapping.
 ** If your model have huge amount of data, its preferred to use `parallel` indexing.
 To do that, you can pass `--parallel` flag while reindexing or populating.
 **
+
+
+Signals
+=======
+
+* ``django_elasticsearch_dsl.signals.post_index``
+    Sent after document indexing is completed. (not applicable for ``parallel`` indexing).
+    Provides the following arguments:
+
+    ``sender``
+        A subclass of ``django_elasticsearch_dsl.documents.DocType`` used
+        to perform indexing.
+
+    ``instance``
+        A ``django_elasticsearch_dsl.documents.DocType`` subclass instance.
+
+    ``response``
+        The response from ``bulk()`` function of ``elasticsearch-py``,
+        which includes ``success`` count and ``failed`` count or ``error`` list.

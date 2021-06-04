@@ -23,6 +23,7 @@ from .fields import (
     TextField,
 )
 from .search import Search
+from .signals import post_index
 
 model_field_class_to_field_class = {
     models.AutoField: IntegerField,
@@ -143,7 +144,14 @@ class DocType(DSLDocument):
             )
 
     def bulk(self, actions, **kwargs):
-        return bulk(client=self._get_connection(), actions=actions, **kwargs)
+        response = bulk(client=self._get_connection(), actions=actions, **kwargs)
+        # send post index signal
+        post_index.send(
+            sender=self.__class__,
+            instance=self,
+            response=response
+        )
+        return response
 
     def parallel_bulk(self, actions, **kwargs):
         if self.django.queryset_pagination and 'chunk_size' not in kwargs:
