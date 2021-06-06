@@ -149,6 +149,7 @@ class DocType(DSLDocument):
         post_index.send(
             sender=self.__class__,
             instance=self,
+            actions=actions,
             response=response
         )
         return response

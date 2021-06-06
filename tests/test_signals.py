@@ -10,9 +10,10 @@ from .models import Car
 
 class PostIndexSignalTestCase(TestCase):
 
+    @patch('django_elasticsearch_dsl.documents.DocType._get_actions')
     @patch('django_elasticsearch_dsl.documents.bulk')
     @patch('django_elasticsearch_dsl.documents.post_index')
-    def test_post_index_signal_sent(self, post_index, bulk):
+    def test_post_index_signal_sent(self, post_index, bulk, get_actions):
 
         @registry.register_document
         class CarDocument(DocType):
@@ -35,5 +36,6 @@ class PostIndexSignalTestCase(TestCase):
         post_index.send.assert_called_once_with(
             sender=CarDocument,
             instance=doc,
+            actions=get_actions(),
             response=(1, [])
         )

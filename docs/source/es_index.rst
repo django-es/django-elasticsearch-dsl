@@ -76,6 +76,9 @@ Signals
     ``instance``
         A ``django_elasticsearch_dsl.documents.DocType`` subclass instance.
 
+    ``actions``
+        A generator containing document data that were sent to elasticsearch for indexing.
+
     ``response``
         The response from ``bulk()`` function of ``elasticsearch-py``,
         which includes ``success`` count and ``failed`` count or ``error`` list.
