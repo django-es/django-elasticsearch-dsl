@@ -21,6 +21,7 @@ from elasticsearch_dsl.field import (
     Long,
     Nested,
     Object,
+    ScaledFloat,
     Short,
     Keyword,
     Text,
@@ -183,6 +184,10 @@ class DoubleField(DEDField, Double):
 
 
 class FloatField(DEDField, Float):
+    pass
+
+
+class ScaledFloatField(DEDField, ScaledFloat):
     pass
 
 

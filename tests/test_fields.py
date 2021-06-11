@@ -11,7 +11,7 @@ from django_elasticsearch_dsl.fields import (BooleanField, ByteField, Completion
                                              GeoPointField,
                                              GeoShapeField, IntegerField, IpField, KeywordField,
                                              ListField, LongField,
-                                             NestedField, ObjectField, ShortField, TextField
+                                             NestedField, ObjectField, ScaledFloatField, ShortField, TextField
                                              )
 from tests import ES_MAJOR_VERSION
 
@@ -353,6 +353,16 @@ class FloatFieldTestCase(TestCase):
 
         self.assertEqual({
             'type': 'float',
+        }, field.to_dict())
+
+
+class ScaledFloatFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = ScaledFloatField(scaling_factor=100)
+
+        self.assertEqual({
+            'type': 'scaled_float',
+            'scaling_factor': 100,
         }, field.to_dict())
 
 
