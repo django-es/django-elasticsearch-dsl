@@ -228,17 +228,17 @@ class DocTypeTestCase(TestCase):
             pk=51,
             name="Car 57",
             price=5400000.0,
-            type="truck"
+            not_indexed="not_indexex"
         )
 
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
-            doc.update(car, update_fields=['name', 'price'])
+            doc.update(car, update_fields=['name', 'color'])
             actions = [{
                 '_id': car.pk,
                 '_op_type': 'index',
                 '_source': {
                     'name': car.name,
-                    'price': car.price
+                    'color': doc.prepare_color(None),
                 },
                 '_index': 'car_index'
             }]
