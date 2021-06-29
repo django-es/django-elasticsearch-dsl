@@ -3,18 +3,19 @@ from unittest import TestCase
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from elasticsearch_dsl import GeoPoint, MetaField
-from mock import patch, Mock, PropertyMock
+from elasticsearch_dsl import GeoPoint
+from mock import patch, Mock
 
 from django_elasticsearch_dsl import fields
-from django_elasticsearch_dsl.documents import DocType, Document
-from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
-                                                 RedeclaredFieldError)
+from django_elasticsearch_dsl.documents import DocType
+from django_elasticsearch_dsl.exceptions import (
+    ModelFieldNotMappedError,
+    RedeclaredFieldError,
+)
 from django_elasticsearch_dsl.registries import registry
 from tests import ES_MAJOR_VERSION
 
 from .models import Article
-from .documents import ArticleDocument, ArticleWithSlugAsIdDocument
 
 
 class Car(models.Model):
@@ -219,6 +220,31 @@ class DocTypeTestCase(TestCase):
             self.assertTrue(mock.call_args_list[0][1]['refresh'])
             self.assertEqual(
                 doc._index.connection, mock.call_args_list[0][1]['client']
+            )
+
+    def test_model_instance_partial_update(self):
+        doc = CarDocument()
+        car = Car(
+            pk=51,
+            name="Type 57",
+            price=5400000.0,
+            not_indexed="not_indexex"
+        )
+
+        with patch('django_elasticsearch_dsl.documents.bulk') as mock:
+            doc.update(car, update_fields=['name', 'price'])
+            actions = [{
+                '_id': car.pk,
+                '_op_type': 'index',
+                '_source': {
+                    'name': car.name,
+                    'price': car.price
+                },
+                '_index': 'car_index'
+            }]
+            self.assertEqual(1, mock.call_count)
+            self.assertEqual(
+                actions, list(mock.call_args_list[0][1]['actions'])
             )
 
     def test_model_instance_iterable_update(self):

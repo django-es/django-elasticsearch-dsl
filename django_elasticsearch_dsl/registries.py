@@ -127,7 +127,7 @@ class DocumentRegistry(object):
             if related is not None:
                 doc_instance.update(related, **kwargs)
 
-    def update(self, instance, **kwargs):
+    def update(self, instance, update_fields=None, **kwargs):
         """
         Update all the elasticsearch documents attached to this model (if their
         ignore_signals flag allows it)
@@ -138,7 +138,11 @@ class DocumentRegistry(object):
         if instance.__class__ in self._models:
             for doc in self._models[instance.__class__]:
                 if not doc.django.ignore_signals:
-                    doc().update(instance, **kwargs)
+                    doc().update(
+                        instance,
+                        update_fields=update_fields,
+                        **kwargs
+                    )
 
     def delete(self, instance, **kwargs):
         """

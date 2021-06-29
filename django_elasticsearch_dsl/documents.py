@@ -115,15 +115,20 @@ class DocType(DSLDocument):
 
         return fields
 
-    def prepare(self, instance):
+    def prepare(self, instance, update_fields=None):
         """
         Take a model instance, and turn it into a dict that can be serialized
         based on the fields defined on this DocType subclass
         """
-        data = {
-            name: prep_func(instance)
-                for name, field, prep_func in self._prepared_fields
-            }
+        data = {}
+
+        for name, field, prep_func in self._prepared_fields:
+            if isinstance(update_fields, (list, tuple, set)):
+                if name in update_fields:
+                    data.update({name: prep_func(instance)})
+            else:
+                data.update({name: prep_func(instance)})
+
         return data
 
     @classmethod
@@ -165,20 +170,26 @@ class DocType(DSLDocument):
         """
         return object_instance.pk
 
-    def _prepare_action(self, object_instance, action):
+    def _prepare_action(self, object_instance, action, update_fields=None):
         return {
             '_op_type': action,
             '_index': self._index._name,
             '_id': self.generate_id(object_instance),
             '_source': (
-                self.prepare(object_instance) if action != 'delete' else None
+                self.prepare(object_instance, update_fields=update_fields)
+                if action != 'delete'
+                else None
             ),
         }
 
-    def _get_actions(self, object_list, action):
+    def _get_actions(self, object_list, action, update_fields=None):
         for object_instance in object_list:
             if self.should_index_object(object_instance):
-                yield self._prepare_action(object_instance, action)
+                yield self._prepare_action(
+                    object_instance,
+                    action,
+                    update_fields=update_fields
+                )
 
     def _bulk(self, *args, **kwargs):
         """Helper for switching between normal and parallel bulk operation"""
@@ -190,12 +201,20 @@ class DocType(DSLDocument):
 
     def should_index_object(self, obj):
         """
-        Overwriting this method and returning a boolean value 
+        Overwriting this method and returning a boolean value
         should determine whether the object should be indexed.
         """
         return True
 
-    def update(self, thing, refresh=None, action='index', parallel=False, **kwargs):
+    def update(
+        self,
+        thing,
+        refresh=None,
+        action='index',
+        parallel=False,
+        update_fields=None,
+        **kwargs
+    ):
         """
         Update each document in ES for a model, iterable of models or queryset
         """
@@ -210,7 +229,11 @@ class DocType(DSLDocument):
             object_list = thing
 
         return self._bulk(
-            self._get_actions(object_list, action),
+            self._get_actions(
+                object_list,
+                action,
+                update_fields=update_fields
+            ),
             parallel=parallel,
             **kwargs
         )

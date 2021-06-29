@@ -48,13 +48,13 @@ class BaseSignalProcessor(object):
         elif action in ('pre_remove', 'pre_clear'):
             self.handle_pre_delete(sender, instance)
 
-    def handle_save(self, sender, instance, **kwargs):
+    def handle_save(self, sender, instance, update_fields=None, **kwargs):
         """Handle save.
 
         Given an individual model instance, update the object in the index.
         Update the related objects either.
         """
-        registry.update(instance)
+        registry.update(instance, update_fields=update_fields)
         registry.update_related(instance)
 
     def handle_pre_delete(self, sender, instance, **kwargs):

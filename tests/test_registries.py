@@ -75,8 +75,30 @@ class DocumentRegistryTestCase(WithFixturesMixin, TestCase):
 
         self.assertFalse(doc_a3.update.called)
         self.assertFalse(self.doc_b1.update.called)
-        self.doc_a1.update.assert_called_once_with(instance)
-        self.doc_a2.update.assert_called_once_with(instance)
+        self.doc_a1.update.assert_called_once_with(instance, update_fields=None)
+        self.doc_a2.update.assert_called_once_with(instance, update_fields=None)
+
+    def test_partial_update_instance(self):
+        doc_a3 = self._generate_doc_mock(
+            self.ModelA, self.index_1, _ignore_signals=True
+        )
+
+        instance = self.ModelA()
+        self.registry.update(
+            instance,
+            update_fields=['test_field', 'test_field_2']
+        )
+
+        self.assertFalse(doc_a3.update.called)
+        self.assertFalse(self.doc_b1.update.called)
+        self.doc_a1.update.assert_called_once_with(
+            instance,
+            update_fields=['test_field', 'test_field_2']
+        )
+        self.doc_a2.update.assert_called_once_with(
+            instance,
+            update_fields=['test_field', 'test_field_2']
+        )
 
     def test_update_related_instances(self):
         doc_d1 = self._generate_doc_mock(
@@ -133,8 +155,16 @@ class DocumentRegistryTestCase(WithFixturesMixin, TestCase):
 
         self.assertFalse(doc_a3.update.called)
         self.assertFalse(self.doc_b1.update.called)
-        self.doc_a1.update.assert_called_once_with(instance, action='delete')
-        self.doc_a2.update.assert_called_once_with(instance, action='delete')
+        self.doc_a1.update.assert_called_once_with(
+            instance,
+            update_fields=None,
+            action='delete'
+        )
+        self.doc_a2.update.assert_called_once_with(
+            instance,
+            update_fields=None,
+            action='delete'
+        )
 
     def test_autosync(self):
         settings.ELASTICSEARCH_DSL_AUTOSYNC = False
