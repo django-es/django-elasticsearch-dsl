@@ -226,9 +226,9 @@ class DocTypeTestCase(TestCase):
         doc = CarDocument()
         car = Car(
             pk=51,
-            name="Type 57",
+            name="Car 57",
             price=5400000.0,
-            not_indexed="not_indexex"
+            type="truck"
         )
 
         with patch('django_elasticsearch_dsl.documents.bulk') as mock:
@@ -242,9 +242,10 @@ class DocTypeTestCase(TestCase):
                 },
                 '_index': 'car_index'
             }]
-            self.assertEqual(1, mock.call_count)
+            self.assertEqual(mock.call_count, 1)
             self.assertEqual(
-                actions, list(mock.call_args_list[0][1]['actions'])
+                actions,
+                list(mock.call_args_list[0][1]['actions'])
             )
 
     def test_model_instance_iterable_update(self):
