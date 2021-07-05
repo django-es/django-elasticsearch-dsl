@@ -119,15 +119,20 @@ class DocType(DSLDocument):
         """
         Take a model instance, and turn it into a dict that can be serialized
         based on the fields defined on this DocType subclass
+        optionally, update_fields can be passed to index only specific fields
         """
-        data = {}
-
-        for name, field, prep_func in self._prepared_fields:
-            if isinstance(update_fields, (list, tuple, set)):
-                if name in update_fields:
-                    data.update({name: prep_func(instance)})
-            else:
-                data.update({name: prep_func(instance)})
+        if isinstance(update_fields, (list, tuple, set)):
+            # Only include `update_fields` for indexing
+            data = {
+                name: prep_func(instance)
+                for name, field, prep_func in self._prepared_fields
+                if name in update_fields
+            }
+        else:
+            data = {
+                name: prep_func(instance)
+                for name, field, prep_func in self._prepared_fields
+            }
 
         return data
 
