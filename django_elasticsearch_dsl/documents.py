@@ -46,6 +46,7 @@ model_field_class_to_field_class = {
     models.TextField: TextField,
     models.TimeField: LongField,
     models.URLField: TextField,
+    models.UUIDField: KeywordField,
 }
 
 class DocType(DSLDocument):

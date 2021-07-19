@@ -21,6 +21,7 @@ from elasticsearch_dsl.field import (
     Long,
     Nested,
     Object,
+    ScaledFloat,
     Short,
     Keyword,
     Text,
@@ -67,10 +68,12 @@ class DEDField(Field):
                         IndexError, ValueError,
                         KeyError, TypeError
                     ):
-                        raise VariableLookupError(
-                            "Failed lookup for key [{}] in "
-                            "{!r}".format(attr, instance)
-                        )
+                        if self._required:
+                            raise VariableLookupError(
+                                "Failed lookup for key [{}] in "
+                                "{!r}".format(attr, instance)
+                            )
+                        return None
 
             if isinstance(instance, models.manager.Manager):
                 instance = instance.all()
@@ -183,6 +186,10 @@ class DoubleField(DEDField, Double):
 
 
 class FloatField(DEDField, Float):
+    pass
+
+
+class ScaledFloatField(DEDField, ScaledFloat):
     pass
 
 
