@@ -1,9 +1,10 @@
 from unittest import TestCase
 
-from mock import patch
+from mock import Mock, patch
 
 from django_elasticsearch_dsl.documents import DocType
 from django_elasticsearch_dsl.registries import registry
+from django_elasticsearch_dsl.signals import post_index
 
 from .models import Car
 
@@ -12,8 +13,7 @@ class PostIndexSignalTestCase(TestCase):
 
     @patch('django_elasticsearch_dsl.documents.DocType._get_actions')
     @patch('django_elasticsearch_dsl.documents.bulk')
-    @patch('django_elasticsearch_dsl.documents.post_index')
-    def test_post_index_signal_sent(self, post_index, bulk, get_actions):
+    def test_post_index_signal_sent(self, bulk, get_actions):
 
         @registry.register_document
         class CarDocument(DocType):
@@ -23,17 +23,21 @@ class PostIndexSignalTestCase(TestCase):
 
         bulk.return_value = (1, [])
 
+        # register a mock signal receiver
+        mock_receiver = Mock()
+        post_index.connect(mock_receiver)
+
         doc = CarDocument()
         car = Car(
             pk=51,
             name="Type 57"
         )
-
         doc.update(car)
 
         bulk.assert_called_once()
 
-        post_index.send.assert_called_once_with(
+        mock_receiver.assert_called_once_with(
+            signal=post_index,
             sender=CarDocument,
             instance=doc,
             actions=get_actions(),
