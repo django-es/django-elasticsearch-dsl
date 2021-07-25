@@ -2,13 +2,13 @@
 Django Elasticsearch DSL
 ========================
 
-.. image:: https://travis-ci.org/sabricot/django-elasticsearch-dsl.png?branch=master
-    :target: https://travis-ci.org/sabricot/django-elasticsearch-dsl
-.. image:: https://codecov.io/gh/sabricot/django-elasticsearch-dsl/coverage.svg?branch=master
-    :target: https://codecov.io/gh/sabricot/django-elasticsearch-dsl
+.. image:: https://github.com/django-es/django-elasticsearch-dsl/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/django-es/django-elasticsearch-dsl/actions/workflows/ci.yml
+.. image:: https://codecov.io/gh/django-es/django-elasticsearch-dsl/coverage.svg?branch=master
+    :target: https://codecov.io/gh/django-es/django-elasticsearch-dsl
 .. image:: https://badge.fury.io/py/django-elasticsearch-dsl.svg
     :target: https://pypi.python.org/pypi/django-elasticsearch-dsl
-.. image:: https://readthedocs.org/projects/pip/badge/?version=latest&style=flat
+.. image:: https://readthedocs.org/projects/django-elasticsearch-dsl/badge/?version=latest&style=flat
     :target: https://django-elasticsearch-dsl.readthedocs.io/en/latest/
 
 Django Elasticsearch DSL is a package that allows indexing of django models in elasticsearch.
