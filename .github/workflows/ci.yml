@@ -15,7 +15,7 @@ jobs:
       matrix:
         python-version: ["2.7", "3.6", "3.7", "3.8"]
         django-version: ["1.11", "2.0", "2.2", "2.1", "3.0"]
-        es-dsl-version: ["6.4", "7"]
+        es-dsl-version: ["6.4", "7.4"]
         es-version: ["7.13.4"]
 
         exclude:
