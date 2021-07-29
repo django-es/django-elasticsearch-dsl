@@ -215,7 +215,7 @@ class Command(BaseCommand):
         self._create(models, options)
         self._populate(models, options)
 
-        if options['atomic'] is True:
+        if options['atomic']:
             es_conn = connections.get_connection()
             existing_aliases = []
             for index in es_conn.indices.get_alias().values():
