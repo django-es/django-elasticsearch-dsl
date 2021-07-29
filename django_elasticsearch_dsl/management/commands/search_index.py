@@ -187,7 +187,7 @@ class Command(BaseCommand):
                     alias, stdout_term, old_indices_str
                 )
             )
-            if alias_delete_actions and options['atomic_no_delete'] is False:
+            if alias_delete_actions and not options['atomic_no_delete']:
                 es_conn.indices.update_aliases(
                     {"actions": alias_delete_actions}
                 )
