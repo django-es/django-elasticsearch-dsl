@@ -196,7 +196,7 @@ class Command(BaseCommand):
                 )
 
     def _rebuild(self, models, options):
-        if options['atomic'] is False and not self._delete(models, options):
+        if not options['atomic'] and not self._delete(models, options):
             return
 
         if options['atomic'] is True:
