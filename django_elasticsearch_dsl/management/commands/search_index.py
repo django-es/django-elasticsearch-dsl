@@ -199,7 +199,7 @@ class Command(BaseCommand):
         if not options['atomic'] and not self._delete(models, options):
             return
 
-        if options['atomic'] is True:
+        if options['atomic']:
             alias_index_pairs = []
             index_suffix = "-" + datetime.now().strftime("%Y%m%d%H%M%S%f")
             for index in registry.get_indices(models):
