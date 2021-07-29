@@ -192,11 +192,11 @@ class DocTypeTestCase(TestCase):
             class Index:
                 name = 'car_index'
 
-        self.manufacturer = Manufacturer(
+        manufacturer = Manufacturer(
             name="Bugatti",
         )
 
-        car = Car(name="Type 57", price=5400000.0, manufacturer=self.manufacturer)
+        car = Car(name="Type 57", price=5400000.0, manufacturer=manufacturer)
         doc = CarDocumentWithInnerDoc()
         prepared_data = doc.prepare(car)
         self.assertEqual(
@@ -205,7 +205,7 @@ class DocTypeTestCase(TestCase):
                 'price': car.price,
                 'manufacturer': {
                     'name': car.manufacturer.name,
-                    'location': ManufacturerInnerDoc().prepare_location(self.manufacturer)
+                    'location': ManufacturerInnerDoc().prepare_location(manufacturer)
                 }
             }
         )

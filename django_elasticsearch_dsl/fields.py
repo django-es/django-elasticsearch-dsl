@@ -114,10 +114,10 @@ class ObjectField(DEDField, Object):
 
                 # This allows for retrieving data from an InnerDoc with prepare_field_name functions.
                 doc_instance = self._doc_class()
-                fn = getattr(doc_instance, 'prepare_%s' % name, None)
+                prep_func = getattr(doc_instance, 'prepare_%s' % name, None)
 
-                if fn:
-                    data[name] = fn(obj)
+                if prep_func:
+                    data[name] = prep_func(obj)
                 else:
                     data[name] = field.get_value_from_instance(
                         obj, field_value_to_ignore
