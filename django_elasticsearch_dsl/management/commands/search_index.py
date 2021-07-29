@@ -157,7 +157,7 @@ class Command(BaseCommand):
         alias_actions = [{"add": {"alias": alias, "index": new_index}}]
         old_indices = []
         alias_delete_actions = []
-        if alias_exists is True:
+        if alias_exists:
             # Elasticsearch will return an error if we search for
             # indices by alias but the alias doesn't exist. Therefore,
             # we want to be sure the alias exists.
