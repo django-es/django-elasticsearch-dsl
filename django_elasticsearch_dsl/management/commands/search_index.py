@@ -205,8 +205,11 @@ class Command(BaseCommand):
             for index in registry.get_indices(models):
                 # The alias takes the original index name value. The
                 # index name sent to Elasticsearch will be the alias
-                # plus the suffix from above.
-                new_index = index._name + index_suffix
+                # plus the suffix from above. In addition, the index
+                # name needs to be limited to 255 characters, of which
+                # 21 will always be taken by the suffix, leaving 234
+                # characters from the original index name value.
+                new_index = index._name[:234] + index_suffix
                 alias_index_pairs.append(
                     {'alias': index._name, 'index': new_index}
                 )
