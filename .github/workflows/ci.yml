@@ -36,13 +36,6 @@ jobs:
             django-version: "2.1"
 
     steps:
-      - name: Configure Sysctl Limits for Elasticsearch
-        run: |
-          sudo swapoff -a
-          sudo sysctl -w vm.swappiness=1
-          sudo sysctl -w fs.file-max=262144
-          sudo sysctl -w vm.max_map_count=262144
-
       - name: Install and Run Elasticsearch
         uses: elastic/elastic-github-actions/elasticsearch@master
         with:
