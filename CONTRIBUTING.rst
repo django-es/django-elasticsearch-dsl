@@ -101,6 +101,6 @@ Before you submit a pull request, check that it meets these guidelines:
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
 3. The pull request should work for Python 2.7, and 3.4, and for PyPy. Check
-   https://travis-ci.org/sabricot/django-elasticsearch-dsl/pull_requests
+   https://github.com/django-es/django-elasticsearch-dsl/actions
    and make sure that the tests pass for all supported Python versions.
 

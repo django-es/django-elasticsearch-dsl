@@ -50,7 +50,7 @@ class DEDFieldTestCase(TestCase):
         class Dummy:
             attr1 = "foo"
 
-        field = DEDField(attr='attr2')
+        field = DEDField(attr='attr2', required=True)
         self.assertRaises(
             VariableLookupError, field.get_value_from_instance, Dummy()
         )
