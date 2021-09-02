@@ -188,7 +188,7 @@ class DocType(DSLDocument):
 
     def _get_actions(self, object_list, action):
         for object_instance in object_list:
-            if self.should_index_object(object_instance):
+            if action == 'delete' or self.should_index_object(object_instance):
                 yield self._prepare_action(object_instance, action)
 
     def _bulk(self, *args, **kwargs):
@@ -201,7 +201,7 @@ class DocType(DSLDocument):
 
     def should_index_object(self, obj):
         """
-        Overwriting this method and returning a boolean value 
+        Overwriting this method and returning a boolean value
         should determine whether the object should be indexed.
         """
         return True
