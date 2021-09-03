@@ -51,8 +51,10 @@ model_field_class_to_field_class = {
     models.UUIDField: KeywordField,
 }
 
+
 class DocType(DSLDocument):
     _prepared_fields = []
+
     def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(DocType, self).__init__(**kwargs)
         self._related_instance_to_ignore = related_instance_to_ignore
@@ -125,8 +127,8 @@ class DocType(DSLDocument):
         """
         data = {
             name: prep_func(instance)
-                for name, field, prep_func in self._prepared_fields
-            }
+            for name, field, prep_func in self._prepared_fields
+        }
         return data
 
     @classmethod

@@ -124,11 +124,11 @@ class ObjectFieldTestCase(TestCase):
         )
 
         self.assertEqual(field.get_value_from_instance(instance),
-            {
-                'first_name': "foo",
-                'last_name': "bar"
-            }
-        )
+                         {
+                             'first_name': "foo",
+                             'last_name': "bar"
+                         }
+                         )
 
     def test_get_value_from_instance_with_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
@@ -167,12 +167,12 @@ class ObjectFieldTestCase(TestCase):
         ))
 
         self.assertEqual(field.get_value_from_instance(instance),
-            {
-                'first_name': "foo",
-                'last_name': "bar",
-                'additional': {'age': 12}
-            }
-        )
+                         {
+                             'first_name': "foo",
+                             'last_name': "bar",
+                             'additional': {'age': 12}
+                         }
+                         )
 
     def test_get_value_from_instance_with_none_inner_objectfield(self):
         field = ObjectField(attr='person', properties={
@@ -233,17 +233,17 @@ class ObjectFieldTestCase(TestCase):
         )
 
         self.assertEqual(field.get_value_from_instance(instance),
-            [
-                {
-                    'first_name': "foo1",
-                    'last_name': "bar1",
-                },
-                {
-                    'first_name': "foo2",
-                    'last_name': "bar2",
-                }
-            ]
-        )
+                         [
+                             {
+                                 'first_name': "foo1",
+                                 'last_name': "bar1",
+                             },
+                             {
+                                 'first_name': "foo2",
+                                 'last_name': "bar2",
+                             }
+                         ]
+                         )
 
 
 class NestedFieldTestCase(TestCase):
@@ -279,17 +279,6 @@ class DateFieldTestCase(TestCase):
 
         self.assertEqual({
             'type': 'date',
-        }, field.to_dict())
-
-
-class TextFieldTestCase(TestCase):
-    def test_get_mapping(self):
-        field = TextField()
-
-        expected_type = 'string' if ES_MAJOR_VERSION == 2 else 'text'
-
-        self.assertEqual({
-            'type': expected_type,
         }, field.to_dict())
 
 
