@@ -1,8 +1,5 @@
-from __future__ import unicode_literals, absolute_import
-
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from six.moves import input
 from ...registries import registry
 
 

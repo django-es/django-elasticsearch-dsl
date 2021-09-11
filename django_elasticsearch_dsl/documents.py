@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from collections import deque
 from functools import partial
 
@@ -7,7 +5,6 @@ from django import VERSION as DJANGO_VERSION
 from django.db import models
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Document as DSLDocument
-from six import iteritems
 
 from .exceptions import ModelFieldNotMappedError
 from .fields import (
@@ -51,8 +48,10 @@ model_field_class_to_field_class = {
     models.UUIDField: KeywordField,
 }
 
+
 class DocType(DSLDocument):
     _prepared_fields = []
+
     def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(DocType, self).__init__(**kwargs)
         self._related_instance_to_ignore = related_instance_to_ignore
@@ -97,7 +96,7 @@ class DocType(DSLDocument):
         """
         index_fields = getattr(self, '_fields', {})
         fields = []
-        for name, field in iteritems(index_fields):
+        for name, field in index_fields.items():
             if not isinstance(field, DEDField):
                 continue
 
@@ -201,7 +200,7 @@ class DocType(DSLDocument):
 
     def should_index_object(self, obj):
         """
-        Overwriting this method and returning a boolean value 
+        Overwriting this method and returning a boolean value
         should determine whether the object should be indexed.
         """
         return True

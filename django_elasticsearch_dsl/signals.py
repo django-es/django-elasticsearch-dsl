@@ -1,10 +1,7 @@
-# encoding: utf-8
 """
 A convenient way to attach django-elasticsearch-dsl to Django's signals and
 cause things to index.
 """
-
-from __future__ import absolute_import
 
 from django.db import models
 from django.dispatch import Signal

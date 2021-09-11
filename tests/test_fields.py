@@ -3,7 +3,6 @@ from unittest import TestCase
 from django.db.models.fields.files import FieldFile
 from django.utils.translation import ugettext_lazy as _
 from mock import Mock, NonCallableMock
-from six import string_types
 
 from django_elasticsearch_dsl.exceptions import VariableLookupError
 from django_elasticsearch_dsl.fields import (BooleanField, ByteField, CompletionField, DEDField,
@@ -63,9 +62,7 @@ class DEDFieldTestCase(TestCase):
     def test_get_value_from_lazy_object(self):
         field = DEDField(attr='translation')
         instance = NonCallableMock(translation=_("foo"))
-        self.assertIsInstance(
-            field.get_value_from_instance(instance), string_types
-        )
+        self.assertIsInstance(field.get_value_from_instance(instance), str)
         self.assertEqual(field.get_value_from_instance(instance), "foo")
 
 

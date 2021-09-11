@@ -1,11 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from six import python_2_unicode_compatible
 
 
-@python_2_unicode_compatible
 class Car(models.Model):
     TYPE_CHOICES = (
         ('se', "Sedan"),
@@ -41,7 +37,6 @@ COUNTRIES = {
 }
 
 
-@python_2_unicode_compatible
 class Manufacturer(models.Model):
     name = models.CharField(max_length=255, default=_("Test lazy tanslation"))
     country_code = models.CharField(max_length=2)
@@ -58,7 +53,6 @@ class Manufacturer(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class Category(models.Model):
     title = models.CharField(max_length=255)
     slug = models.CharField(max_length=255)
@@ -71,7 +65,6 @@ class Category(models.Model):
         return self.title
 
 
-@python_2_unicode_compatible
 class Ad(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -89,7 +82,6 @@ class Ad(models.Model):
         return self.title
 
 
-@python_2_unicode_compatible
 class Article(models.Model):
     slug = models.CharField(
         max_length=255,

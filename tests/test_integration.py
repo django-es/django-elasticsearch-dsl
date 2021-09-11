@@ -1,10 +1,10 @@
 from datetime import datetime
 import unittest
+from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
-from six import StringIO
 
 from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import Index as DSLIndex
@@ -17,7 +17,6 @@ from .documents import (
     car_index,
     CarDocument,
     CarWithPrepareDocument,
-    ManufacturerDocument,
     ArticleDocument,
     ArticleWithSlugAsIdDocument,
     index_settings
@@ -359,8 +358,8 @@ class IntegrationTestCase(ESTestCase, TestCase):
             slug=article_slug,
         )
 
-        # saving should create two documents (in the two indices): one with the 
-        # Django object's id as the ES doc _id, and the other with the slug 
+        # saving should create two documents (in the two indices): one with the
+        # Django object's id as the ES doc _id, and the other with the slug
         # as the ES _id
         article.save()
 
@@ -377,8 +376,8 @@ class IntegrationTestCase(ESTestCase, TestCase):
             slug=article_slug,
         )
 
-        # saving should create two documents (in the two indices): one with the 
-        # Django object's id as the ES doc _id, and the other with the slug 
+        # saving should create two documents (in the two indices): one with the
+        # Django object's id as the ES doc _id, and the other with the slug
         # as the ES _id
         article.save()
 

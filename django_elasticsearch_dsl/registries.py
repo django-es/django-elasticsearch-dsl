@@ -5,8 +5,7 @@ from itertools import chain
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ImproperlyConfigured
-from elasticsearch_dsl import Field, AttrDict
-from six import itervalues, iterkeys, iteritems
+from elasticsearch_dsl import AttrDict
 
 from django_elasticsearch_dsl.exceptions import RedeclaredFieldError
 from .apps import DEDConfig
@@ -28,7 +27,7 @@ class DocumentRegistry(object):
         for related in doc_class.django.related_models:
             self._related_models[related].add(doc_class.django.model)
 
-        for idx, docs in iteritems(self._indices):
+        for idx, docs in self._indices.items():
             if index._name == idx._name:
                 docs.add(doc_class)
                 return
@@ -154,13 +153,13 @@ class DocumentRegistry(object):
         if models is not None:
             return set(chain.from_iterable(self._models[model] for model in models
                                            if model in self._models))
-        return set(chain.from_iterable(itervalues(self._indices)))
+        return set(chain.from_iterable(self._indices.values()))
 
     def get_models(self):
         """
         Get all models in the registry
         """
-        return set(iterkeys(self._models))
+        return set(self._models.keys())
 
     def get_indices(self, models=None):
         """
@@ -168,11 +167,11 @@ class DocumentRegistry(object):
         """
         if models is not None:
             return set(
-                indice for indice, docs in iteritems(self._indices)
+                indice for indice, docs in self._indices.items()
                 for doc in docs if doc.django.model in models
             )
 
-        return set(iterkeys(self._indices))
+        return set(self._indices.keys())
 
 
 registry = DocumentRegistry()

@@ -1,4 +1,3 @@
-import collections
 from types import MethodType
 
 from django.core.exceptions import ObjectDoesNotExist

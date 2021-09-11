@@ -3,18 +3,17 @@ from unittest import TestCase
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from elasticsearch_dsl import GeoPoint, MetaField
-from mock import patch, Mock, PropertyMock
+from elasticsearch_dsl import GeoPoint
+from mock import patch, Mock
 
 from django_elasticsearch_dsl import fields
-from django_elasticsearch_dsl.documents import DocType, Document
+from django_elasticsearch_dsl.documents import DocType
 from django_elasticsearch_dsl.exceptions import (ModelFieldNotMappedError,
                                                  RedeclaredFieldError)
 from django_elasticsearch_dsl.registries import registry
 from tests import ES_MAJOR_VERSION
 
 from .models import Article
-from .documents import ArticleDocument, ArticleWithSlugAsIdDocument
 
 
 class Car(models.Model):
@@ -353,7 +352,7 @@ class DocTypeTestCase(TestCase):
 
         expect = {
             'color': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
-                    ("<class 'method'>", "<type 'instancemethod'>")), # py3, py2
+                    ("<class 'method'>", "<type 'instancemethod'>")),  # py3, py2
             'type': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
                     ("<class 'functools.partial'>","<type 'functools.partial'>")),
             'name': ("<class 'django_elasticsearch_dsl.fields.TextField'>",
@@ -375,8 +374,8 @@ class DocTypeTestCase(TestCase):
         car = Car()
         setattr(car, 'name', "Tusla")
         setattr(car, 'price', 340123.21)
-        setattr(car, 'color', "polka-dots") # Overwritten by prepare function
-        setattr(car, 'pk', 4701) # Ignored, not in document
+        setattr(car, 'color', "polka-dots")  # Overwritten by prepare function
+        setattr(car, 'pk', 4701)  # Ignored, not in document
         setattr(car, 'type', "imaginary")
 
         self.assertEqual(d.prepare(car), {'color': 'blue', 'type': 'imaginary', 'name': 'Tusla', 'price': 340123.21})
