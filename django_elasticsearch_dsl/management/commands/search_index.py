@@ -66,16 +66,16 @@ class Command(BaseCommand):
             help='Run populate/rebuild update single threaded'
         )
         parser.add_argument(
-            '--atomic',
+            '--use-alias',
             action='store_true',
-            dest='atomic',
+            dest='use_alias',
             help='Rebuild and replace indices with aliases'
         )
         parser.add_argument(
-            '--atomic-no-delete',
+            '--use-alias-keep-index',
             action='store_true',
-            dest='atomic_no_delete',
-            help="Do not delete replaced indices when used with '--atomic' arg"
+            dest='use_alias_keep_index',
+            help="Do not delete replaced indices when used with '--use-alias' arg"
         )
         parser.set_defaults(parallel=getattr(settings, 'ELASTICSEARCH_DSL_PARALLEL', False))
         parser.add_argument(
@@ -187,7 +187,7 @@ class Command(BaseCommand):
                     alias, stdout_term, old_indices_str
                 )
             )
-            if alias_delete_actions and not options['atomic_no_delete']:
+            if alias_delete_actions and not options['use_alias_keep_index']:
                 es_conn.indices.update_aliases(
                     {"actions": alias_delete_actions}
                 )
@@ -196,10 +196,10 @@ class Command(BaseCommand):
                 )
 
     def _rebuild(self, models, options):
-        if not options['atomic'] and not self._delete(models, options):
+        if not options['use_alias'] and not self._delete(models, options):
             return
 
-        if options['atomic']:
+        if options['use_alias']:
             alias_index_pairs = []
             index_suffix = "-" + datetime.now().strftime("%Y%m%d%H%M%S%f")
             for index in registry.get_indices(models):
@@ -218,7 +218,7 @@ class Command(BaseCommand):
         self._create(models, options)
         self._populate(models, options)
 
-        if options['atomic']:
+        if options['use_alias']:
             es_conn = connections.get_connection()
             existing_aliases = []
             for index in es_conn.indices.get_alias().values():
