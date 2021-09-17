@@ -114,9 +114,16 @@ class ObjectField(DEDField, Object):
                 if field._path == []:
                     field._path = [name]
 
-                data[name] = field.get_value_from_instance(
-                    obj, field_value_to_ignore
-                )
+                # This allows for retrieving data from an InnerDoc with prepare_field_name functions.
+                doc_instance = self._doc_class()
+                prep_func = getattr(doc_instance, 'prepare_%s' % name, None)
+
+                if prep_func:
+                    data[name] = prep_func(obj)
+                else:
+                    data[name] = field.get_value_from_instance(
+                        obj, field_value_to_ignore
+                    )
 
         # This allows for ObjectFields to be indexed from dicts with
         # dynamic keys (i.e. keys/fields not defined in 'properties')

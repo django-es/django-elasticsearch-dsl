@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from elasticsearch_dsl import GeoPoint
+from elasticsearch_dsl import GeoPoint, InnerDoc
 from mock import patch, Mock
 
 from django_elasticsearch_dsl import fields
@@ -168,6 +168,43 @@ class DocTypeTestCase(TestCase):
                 'type': car.type(),
                 'name': car.name,
                 'price': car.price
+            }
+        )
+
+    def test_innerdoc_prepare(self):
+        class ManufacturerInnerDoc(InnerDoc):
+            name = fields.TextField()
+            location = fields.TextField()
+
+            def prepare_location(self, instance):
+                return "USA"
+
+        @registry.register_document
+        class CarDocumentWithInnerDoc(DocType):
+            manufacturer = fields.ObjectField(doc_class=ManufacturerInnerDoc)
+
+            class Django:
+                model = Car
+                fields = ['name', 'price']
+
+            class Index:
+                name = 'car_index'
+
+        manufacturer = Manufacturer(
+            name="Bugatti",
+        )
+
+        car = Car(name="Type 57", price=5400000.0, manufacturer=manufacturer)
+        doc = CarDocumentWithInnerDoc()
+        prepared_data = doc.prepare(car)
+        self.assertEqual(
+            prepared_data, {
+                'name': car.name,
+                'price': car.price,
+                'manufacturer': {
+                    'name': car.manufacturer.name,
+                    'location': ManufacturerInnerDoc().prepare_location(manufacturer)
+                }
             }
         )
 
