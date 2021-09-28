@@ -1,5 +1,5 @@
 from elasticsearch_dsl import analyzer
-from django_elasticsearch_dsl import Document, Index, fields
+from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 
 from .models import Ad, Category, Car, Manufacturer, Article
@@ -159,6 +159,7 @@ class ArticleDocument(Document):
     class Index:
         name = 'test_articles'
         settings = index_settings
+
 
 @registry.register_document
 class ArticleWithSlugAsIdDocument(Document):
