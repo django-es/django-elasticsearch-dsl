@@ -131,15 +131,15 @@ class Command(BaseCommand):
     def _create(self, models, aliases, options):
         for index in registry.get_indices(models):
             alias_exists = index._name in aliases
-            if alias_exists:
-                self.stdout.write(
-                    "'{}' already exists as an alias. Run '--delete' with "
-                    "'--use-alias' arg to delete indices pointed at the alias"
-                    " to make index name available.".format(index._name)
-                )
-            else:
+            if not alias_exists:
                 self.stdout.write("Creating index '{}'".format(index._name))
                 index.create()
+            elif options['action'] == 'create':
+                self.stdout.write(
+                    "'{}' already exists as an alias. Run '--delete' with"
+                    " '--use-alias' arg to delete indices pointed at the "
+                    "alias to make index name available.".format(index._name)
+                )
 
     def _populate(self, models, options):
         parallel = options['parallel']
@@ -181,7 +181,7 @@ class Command(BaseCommand):
                 alias_exists = index in aliases
                 if alias_exists:
                     self._delete_alias_indices(index)
-                else:
+                elif self.es_conn.indices.exists(index=index):
                     self.stdout.write(
                         "'{}' refers to an index, not an alias. Run "
                         "'--delete' without '--use-alias' arg to delete "
@@ -193,15 +193,12 @@ class Command(BaseCommand):
                 if not alias_exists:
                     self.stdout.write("Deleting index '{}'".format(index._name))
                     index.delete(ignore=404)
-                else:
-                    if options['action'] == 'delete':
-                        self.stdout.write(
-                            "'{}' refers to an alias, not an index. Run "
-                            "'--delete' with '--use-alias' arg to delete "
-                            "indices pointed at the alias.".format(
-                                index._name
-                            )
-                        )
+                elif options['action'] == 'delete':
+                    self.stdout.write(
+                        "'{}' refers to an alias, not an index. Run "
+                        "'--delete' with '--use-alias' arg to delete indices "
+                        "pointed at the alias.".format(index._name)
+                    )
 
         return True
 
