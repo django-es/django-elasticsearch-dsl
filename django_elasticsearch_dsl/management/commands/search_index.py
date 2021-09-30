@@ -12,7 +12,7 @@ class Command(BaseCommand):
     help = 'Manage elasticsearch index.'
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(Command, self).__init__(*args, **kwargs)
         self.es_conn = connections.get_connection()
 
     def add_arguments(self, parser):
