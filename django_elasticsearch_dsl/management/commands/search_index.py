@@ -179,24 +179,17 @@ class Command(BaseCommand):
         )
 
         if old_indices:
-            if len(old_indices) == 1:
-                stdout_term = "index"
-            else:
-                stdout_term = "indices"
-
-            old_indices_str = ", ".join(old_indices)
-            self.stdout.write(
-                "Removed alias '{}' from {} '{}'".format(
-                    alias, stdout_term, old_indices_str
+            for index in old_indices:
+                self.stdout.write(
+                    "Removed alias '{}' from index '{}'".format(alias, index)
                 )
-            )
+
             if alias_delete_actions and not options['use_alias_keep_index']:
                 es_conn.indices.update_aliases(
                     {"actions": alias_delete_actions}
                 )
-                self.stdout.write(
-                    "Deleted {} '{}'".format(stdout_term, old_indices_str)
-                )
+                for index in old_indices:
+                    self.stdout.write("Deleted index '{}'".format(index))
 
     def _rebuild(self, models, options):
         if not options['use_alias'] and not self._delete(models, options):
