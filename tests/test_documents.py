@@ -485,5 +485,5 @@ class DocTypeTestCase(TestCase):
 
         # Get the data from the elasticsearch low level API because
         # The generator get executed there.
-        data = json.loads(mock_bulk.call_args[0][0].split("\n")[0])
+        data = json.loads(mock_bulk.call_args[1]['body'].split("\n")[0])
         assert data["index"]["_id"] == article.slug
