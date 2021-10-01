@@ -7,6 +7,7 @@ cause things to index.
 from __future__ import absolute_import
 
 from django.db import models
+from django.dispatch import Signal
 
 from .registries import registry
 
@@ -94,3 +95,7 @@ class RealTimeSignalProcessor(BaseSignalProcessor):
         models.signals.post_delete.disconnect(self.handle_delete)
         models.signals.m2m_changed.disconnect(self.handle_m2m_changed)
         models.signals.pre_delete.disconnect(self.handle_pre_delete)
+
+
+# Sent after document indexing is completed
+post_index = Signal()

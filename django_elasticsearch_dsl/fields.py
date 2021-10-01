@@ -1,4 +1,3 @@
-import collections
 from types import MethodType
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,6 +20,7 @@ from elasticsearch_dsl.field import (
     Long,
     Nested,
     Object,
+    ScaledFloat,
     Short,
     Keyword,
     Text,
@@ -67,10 +67,12 @@ class DEDField(Field):
                         IndexError, ValueError,
                         KeyError, TypeError
                     ):
-                        raise VariableLookupError(
-                            "Failed lookup for key [{}] in "
-                            "{!r}".format(attr, instance)
-                        )
+                        if self._required:
+                            raise VariableLookupError(
+                                "Failed lookup for key [{}] in "
+                                "{!r}".format(attr, instance)
+                            )
+                        return None
 
             if isinstance(instance, models.manager.Manager):
                 instance = instance.all()
@@ -105,16 +107,23 @@ class ObjectField(DEDField, Object):
                     obj, field_value_to_ignore
                 )
         else:
-            for name, field in self._doc_class._doc_type.mapping.properties._params.get('properties', {}).items(): # noqa
+            for name, field in self._doc_class._doc_type.mapping.properties._params.get('properties', {}).items():  # noqa
                 if not isinstance(field, DEDField):
                     continue
 
                 if field._path == []:
                     field._path = [name]
 
-                data[name] = field.get_value_from_instance(
-                    obj, field_value_to_ignore
-                )
+                # This allows for retrieving data from an InnerDoc with prepare_field_name functions.
+                doc_instance = self._doc_class()
+                prep_func = getattr(doc_instance, 'prepare_%s' % name, None)
+
+                if prep_func:
+                    data[name] = prep_func(obj)
+                else:
+                    data[name] = field.get_value_from_instance(
+                        obj, field_value_to_ignore
+                    )
 
         # This allows for ObjectFields to be indexed from dicts with
         # dynamic keys (i.e. keys/fields not defined in 'properties')
@@ -183,6 +192,10 @@ class DoubleField(DEDField, Double):
 
 
 class FloatField(DEDField, Float):
+    pass
+
+
+class ScaledFloatField(DEDField, ScaledFloat):
     pass
 
 
