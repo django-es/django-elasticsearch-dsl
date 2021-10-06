@@ -187,6 +187,7 @@ class Command(BaseCommand):
                         "'--delete' without '--use-alias' arg to delete "
                         "index.".format(index)
                     )
+                    return False
         else:
             for index in registry.get_indices(models):
                 alias_exists = index._name in aliases
@@ -201,6 +202,7 @@ class Command(BaseCommand):
                         "'--delete' with '--use-alias' arg to delete indices "
                         "pointed at the alias.".format(index._name)
                     )
+                    return False
 
         return True
 
