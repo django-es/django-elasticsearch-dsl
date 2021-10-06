@@ -295,6 +295,9 @@ class Command(BaseCommand):
         action = options['action']
         models = self._get_models(options['models'])
 
+        # We need to know if and which aliases exist to mitigate naming
+        # conflicts with indices, therefore this is needed regardless
+        # of using the '--use-alias' arg.
         aliases = []
         for index in self.es_conn.indices.get_alias().values():
             aliases += index['aliases'].keys()
