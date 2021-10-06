@@ -193,6 +193,8 @@ class Command(BaseCommand):
                 if not alias_exists:
                     self.stdout.write("Deleting index '{}'".format(index._name))
                     index.delete(ignore=404)
+                elif options['action'] == 'rebuild':
+                    self._delete_alias_indices(index._name)
                 elif options['action'] == 'delete':
                     self.stdout.write(
                         "'{}' refers to an alias, not an index. Run "
@@ -268,11 +270,6 @@ class Command(BaseCommand):
                     {'alias': index._name, 'index': new_index}
                 )
                 index._name = new_index
-        else:
-            for index in registry.get_indices(models):
-                alias_exists = index._name in aliases
-                if alias_exists:
-                    self._delete_alias_indices(index._name)
 
         self._create(models, aliases, options)
         self._populate(models, options)
