@@ -30,6 +30,7 @@ try:
                                             '127.0.0.1:9200')
                 },
             },
+            DEFAULT_AUTO_FIELD="django.db.models.BigAutoField",
         )
 
         try:
