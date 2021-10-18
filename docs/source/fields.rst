@@ -221,7 +221,7 @@ Available Fields
   - ``IpField(attr=None, **elasticsearch_properties)``
   - ``KeywordField(attr=None, **elasticsearch_properties)``
   - ``GeoPointField(attr=None, **elasticsearch_properties)``
-  - ``GeoShapField(attr=None, **elasticsearch_properties)``
+  - ``GeoShapeField(attr=None, **elasticsearch_properties)``
   - ``ShortField(attr=None, **elasticsearch_properties)``
   - ``TextField(attr=None, **elasticsearch_properties)``
 
