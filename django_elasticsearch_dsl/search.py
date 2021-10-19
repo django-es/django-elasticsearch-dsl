@@ -1,4 +1,5 @@
 from django.db.models import Case, When
+from django.db.models.fields import IntegerField
 
 from elasticsearch_dsl import Search as DSLSearch
 
@@ -32,7 +33,8 @@ class Search(DSLSearch):
 
         if keep_order:
             preserved_order = Case(
-                *[When(pk=pk, then=pos) for pos, pk in enumerate(pks)]
+                *[When(pk=pk, then=pos) for pos, pk in enumerate(pks)],
+                output_field=IntegerField()
             )
             qs = qs.order_by(preserved_order)
 
