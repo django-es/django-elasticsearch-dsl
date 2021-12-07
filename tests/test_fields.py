@@ -1,7 +1,11 @@
 from unittest import TestCase
 
+import django
 from django.db.models.fields.files import FieldFile
-from django.utils.translation import ugettext_lazy as _
+if django.VERSION < (4, 0):
+    from django.utils.translation import ugettext_lazy as _
+else:
+    from django.utils.translation import gettext_lazy as _
 from mock import Mock, NonCallableMock
 from six import string_types
 
