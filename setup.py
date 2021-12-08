@@ -30,7 +30,7 @@ LONG_DESCRIPTION = (
     + codecs.open(os.path.join(DIRNAME, 'docs/CHANGELOG.md'), encoding='utf-8').read()
 )
 REQUIREMENTS = [
-    'opeansearch-dsl~=1.0.0',
+    'opensearch-dsl~=1.0.0',
     'six',
     'dateutils'
 ]

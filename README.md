@@ -10,7 +10,7 @@ Django Opensearch DSL
 [![codecov](https://codecov.io/gh/qcoumes/django-opensearch-dsl/branch/master/graph/badge.svg)](https://codecov.io/gh/qcoumes/django-opensearch-dsl)
 [![CodeFactor](https://www.codefactor.io/repository/github/qcoumes/django-opensearch-dsl/badge)](https://www.codefactor.io/repository/github/qcoumes/django-opensearch-dsl)
 
-**Django Opeansearch DSL** is a package that allows the indexing of Django models in opensearch. It is built as a thin
+**Django Opensearch DSL** is a package that allows the indexing of Django models in opensearch. It is built as a thin
 wrapper around [`opensearch-dsl-py`](https://github.com/opensearch-project/opensearch-dsl-py)
 so you can use all the features developed by the `opensearch-dsl` team.
 
