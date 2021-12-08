@@ -1,9 +1,13 @@
 from datetime import datetime
 import unittest
 
+import django
 from django.core.management import call_command
 from django.test import TestCase
-from django.utils.translation import ugettext_lazy as _
+if django.VERSION < (4, 0):
+    from django.utils.translation import ugettext_lazy as _
+else:
+    from django.utils.translation import gettext_lazy as _
 from six import StringIO
 
 from elasticsearch.exceptions import NotFoundError
