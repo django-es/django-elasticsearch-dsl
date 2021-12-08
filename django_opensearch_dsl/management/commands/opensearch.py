@@ -73,7 +73,8 @@ class Command(BaseCommand):
         if indices:
             # Ensure every given indices exists
             known_name = [i._name for i in known]  # noqa
-            if unknown := set(indices) - set(known_name):
+            unknown = set(indices) - set(known_name)
+            if unknown:
                 self.stderr.write(f"Unknown indices '{list(unknown)}', choices are: '{known_name}'")
                 exit(1)
 
@@ -144,7 +145,8 @@ class Command(BaseCommand):
         if indices:
             # Ensure every given indices exists
             known_name = [i._name for i in known]  # noqa
-            if unknown := set(indices) - set(known_name):
+            unknown = set(indices) - set(known_name)
+            if unknown:
                 self.stderr.write(f"Unknown indices '{list(unknown)}', choices are: '{known_name}'")
                 exit(1)
 

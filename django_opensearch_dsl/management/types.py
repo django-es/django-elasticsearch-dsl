@@ -61,6 +61,7 @@ def parse(value: str) -> Values:
         [none_parser, int_parser, float_parser, datetime_parser, list_parser]
     )
     for parser in parsers:
-        if (v := parser(value)) != ...:  # noqa
+        v = parser(value)
+        if v != ...:  # noqa
             return v
     return value
