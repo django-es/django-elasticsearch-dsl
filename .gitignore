@@ -1,5 +1,7 @@
+.idea/
 *.py[cod]
 __pycache__
+coverage.xml
 
 # C extensions
 *.so

@@ -1,0 +1,14 @@
+version: '3.7'
+
+services:
+
+  opensearch_test:
+    container_name: opensearch_test
+    image: opensearchproject/opensearch:1.2.0
+    ports:
+      - "9201:9200"
+      - "9601:9600"
+    environment:
+      - plugins.security.disabled=true
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"

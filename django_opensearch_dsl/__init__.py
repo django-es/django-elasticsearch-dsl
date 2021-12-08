@@ -1,0 +1,16 @@
+import django
+
+from django.utils.module_loading import autodiscover_modules
+
+from .documents import Document  # noqa
+from .fields import *  # noqa
+
+__version__ = '7.1.1'
+
+
+def autodiscover():
+    autodiscover_modules('documents')
+
+
+if django.VERSION < (3, 2):  # pragma: no cover
+    default_app_config = 'django_opensearch_dsl.apps.DEDConfig'

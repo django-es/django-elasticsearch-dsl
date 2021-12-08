@@ -1,72 +1,53 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Setuptools entry point."""
+import codecs
 import os
-import sys
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
-version = '7.2.1'
-
-if sys.argv[-1] == 'publish':
-    try:
-        import wheel
-        print("Wheel version: ", wheel.__version__)
-    except ImportError:
-        print('Wheel library missing. Please run "pip install wheel"')
-        sys.exit()
-    os.system('python setup.py sdist upload')
-    os.system('python setup.py bdist_wheel upload')
-    sys.exit()
-
-if sys.argv[-1] == 'tag':
-    print("Tagging the version on git:")
-    os.system("git tag -a %s -m 'version %s'" % (version, version))
-    os.system("git push --tags")
-    sys.exit()
-
-readme = open('README.rst').read()
-history = open('HISTORY.rst').read().replace('.. :changelog:', '')
+DIRNAME = os.path.dirname(__file__)
+CLASSIFIERS = [
+    'Development Status :: 4 - Beta',
+    'Framework :: Django',
+    'Framework :: Django :: 2.0',
+    'Framework :: Django :: 2.1',
+    'Framework :: Django :: 2.2',
+    'Framework :: Django :: 3.0',
+    'Framework :: Django :: 3.1',
+    'Framework :: Django :: 3.2',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: Apache Software License',
+    'Natural Language :: English',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+]
+LONG_DESCRIPTION = (
+    codecs.open(os.path.join(DIRNAME, 'README.md'), encoding='utf-8').read()
+    + '\n'
+    + codecs.open(os.path.join(DIRNAME, 'docs/CHANGELOG.md'), encoding='utf-8').read()
+)
+REQUIREMENTS = [
+    'opeansearch-dsl~=1.0.0',
+    'six',
+    'dateutils'
+]
 
 setup(
-    name='django-elasticsearch-dsl',
-    version=version,
-    description="""Wrapper around elasticsearch-dsl-py for django models""",
-    long_description=readme + '\n\n' + history,
-    author='Sabricot',
-    url='https://github.com/sabricot/django-elasticsearch-dsl',
-    packages=[
-        'django_elasticsearch_dsl',
-    ],
+    name='django-opensearch-dsl',
+    version='0.1.0',
+    description="""Wrapper around opensearch-dsl-py for django models""",
+    long_description=LONG_DESCRIPTION,
+    long_description_content_type='text/markdown',
+    author='Quentin Coumes (Codoc)',
+    author_email='coumes.quentin@gmail.com',
+    url='https://github.com/qcoumes/django-opensearch-dsl',
+    packages=['django_opensearch_dsl'],
     include_package_data=True,
-    install_requires=[
-        'elasticsearch-dsl>=7.2.0<8.0.0',
-        'six',
-    ],
+    install_requires=REQUIREMENTS,
     license="Apache Software License 2.0",
-    zip_safe=False,
-    keywords='django elasticsearch elasticsearch-dsl',
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Framework :: Django',
-        'Framework :: Django :: 1.11',
-        'Framework :: Django :: 2.0',
-        'Framework :: Django :: 2.1',
-        'Framework :: Django :: 2.2',
-        'Framework :: Django :: 3.0',
-        'Framework :: Django :: 3.1',
-        'Framework :: Django :: 3.2',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Natural Language :: English',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-    ],
+    keywords='django elasticsearch elasticsearch-dsl opensearch opensearch-dsl',
+    classifiers=CLASSIFIERS,
 )

@@ -1,0 +1,28 @@
+site_name: Django Opensearch DSL
+site_author: qcoumes
+repo_url: https://github.com/qcoumes/django-opensearch-dsl/
+docs_dir: docs/
+use_directory_urls: true
+
+nav:
+  - Introduction: index.md
+
+  - "Getting Started":
+      - Quickstart: getting_start.md
+      - Settings: settings.md
+      - Document Class: document.md
+      - Document Field Reference: fields.md
+      - Management Command: management.md
+      - Signals: signals.md
+
+  - "Other":
+      - Authors: AUTHORS.md
+      - Changelog: CHANGELOG.md
+      - Contributing: CONTRIBUTING.md
+      - License: LICENSE.md
+      - Github: https://github.com/qcoumes/django-opensearch-dsl/
+
+extra_css:
+  - css/misc.css
+
+theme: readthedocs
