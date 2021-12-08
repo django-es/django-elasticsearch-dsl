@@ -33,8 +33,7 @@ for more information.
 Default: `False`
 
 Set to `True` to force
-an [index refresh](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-refresh.html>) with every
-save.
+an [index refresh](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-refresh.html>) with update.
 
 ## `OPENSEARCH_DSL_PARALLEL`
 

@@ -8,7 +8,7 @@ nav:
   - Introduction: index.md
 
   - "Getting Started":
-      - Quickstart: getting_start.md
+      - Quickstart: getting_started.md
       - Settings: settings.md
       - Document Class: document.md
       - Document Field Reference: fields.md
