@@ -19,6 +19,7 @@ from ..enums import OpensearchAction
 from ..types import parse
 
 
+
 class Command(BaseCommand):
     help = (
         "Allow to create and delete indices, as well as indexing, updating or deleting specific "

@@ -2,6 +2,7 @@ from django.db.models import Case, When
 from django.db.models.fields import IntegerField
 
 from opensearch_dsl import Search as DSLSearch
+from opensearch_dsl.connections import connections
 
 
 class Search(DSLSearch):
@@ -39,3 +40,19 @@ class Search(DSLSearch):
             qs = qs.order_by(preserved_order)
 
         return qs
+
+    def validate(self, explain=False):
+        response = connections.get_connection().indices.validate_query(
+            body=self.to_dict(), index=self._index._name, explain=True
+        )
+
+        if not explain:
+            return response["valid"]
+
+        if response["valid"]:
+            return True, []
+
+        try:
+            return False, [response["error"]]
+        except KeyError:
+            return False, response["explanations"]
