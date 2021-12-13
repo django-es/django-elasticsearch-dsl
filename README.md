@@ -3,12 +3,12 @@ Django Opensearch DSL
 
 [![PyPI Version](https://badge.fury.io/py/django-opensearch-dsl.svg)](https://badge.fury.io/py/django-opensearch-dsl)
 [![Documentation Status](https://readthedocs.org/projects/django-opensearch-dsl/badge/?version=latest)](https://django-opensearch-dsl.readthedocs.io/en/latest/?badge=latest)
-![Tests](https://github.com/qcoumes/django-opensearch-dsl/workflows/Tests/badge.svg)
+![Tests](https://github.com/Codoc-os/django-opensearch-dsl/workflows/Tests/badge.svg)
 [![Python 3.6+](https://img.shields.io/badge/Python-3.6+-brightgreen.svg)](#)
-[![Django 2.0+, 3.0+](https://img.shields.io/badge/Django-2.0+,%203.0+-brightgreen.svg)](#)
-[![License MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/qcoumes/django-opensearch-dsl/blob/master/LICENSE)
-[![codecov](https://codecov.io/gh/qcoumes/django-opensearch-dsl/branch/master/graph/badge.svg)](https://codecov.io/gh/qcoumes/django-opensearch-dsl)
-[![CodeFactor](https://www.codefactor.io/repository/github/qcoumes/django-opensearch-dsl/badge)](https://www.codefactor.io/repository/github/qcoumes/django-opensearch-dsl)
+[![Django 2.1+, 3.0+](https://img.shields.io/badge/Django-2.1+,%203.0+-brightgreen.svg)](#)
+[![License Apache 2](https://img.shields.io/badge/license-Apache 2-brightgreen.svg)](https://github.com/Codoc-os/django-opensearch-dsl/blob/master/LICENSE)
+[![codecov](https://codecov.io/gh/Codoc-os/django-opensearch-dsl/branch/master/graph/badge.svg)](https://codecov.io/gh/Codoc-os/django-opensearch-dsl)
+[![CodeFactor](https://www.codefactor.io/repository/github/Codoc-os/django-opensearch-dsl/badge)](https://www.codefactor.io/repository/github/Codoc-os/django-opensearch-dsl)
 
 **Django Opensearch DSL** is a package that allows the indexing of Django models in opensearch. It is built as a thin
 wrapper around [`opensearch-dsl-py`](https://github.com/opensearch-project/opensearch-dsl-py)

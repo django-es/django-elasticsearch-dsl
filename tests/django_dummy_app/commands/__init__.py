@@ -221,7 +221,7 @@ class ManagementUtility:
                 # following line will retrigger an ImproperlyConfigured exception
                 # (get_commands() swallows the original one) so the user is
                 # informed about it.
-                settings.INSTALLED_APPS
+                settings.INSTALLED_APPS  # noqa
             else:
                 sys.stderr.write("No Django settings specified.\n")
             possible_matches = get_close_matches(subcommand, commands)

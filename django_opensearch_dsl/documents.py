@@ -208,8 +208,7 @@ class Document(DSLDocument):
         """Helper for switching between normal and parallel bulk operation"""
         if parallel:
             return self.parallel_bulk(*args, **kwargs)
-        else:
-            return self.bulk(*args, **kwargs)
+        return self.bulk(*args, **kwargs)
 
     def should_index_object(self, obj):
         """

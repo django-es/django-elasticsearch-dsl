@@ -1,7 +1,7 @@
-from django.test import TestCase, override_settings
 from unittest.mock import patch, Mock
 
 from django.db import models
+from django.test import TestCase, override_settings
 from django.utils.translation import gettext_lazy as _
 from opensearch_dsl import GeoPoint, InnerDoc
 
@@ -533,4 +533,3 @@ class DocumentTestCase(TestCase):
                 }
 
         self.assertEqual(ArticleDocument._index._settings, {'codec': 'default', 'hidden': True})
-

@@ -95,7 +95,7 @@ and to populate the indices, use the `opensearch document` management command :
 
 * `python3 manage.py opensearch document index`
 
-See [management commands](../management.md) for more information.
+See [management commands](/management/) for more information.
 
 ## Search
 
