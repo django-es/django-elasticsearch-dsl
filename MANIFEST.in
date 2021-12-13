@@ -1,5 +1,5 @@
-include AUTHORS.md
 include CONTRIBUTING.md
 include LICENSE
 include README.md
+include docs/CHANGELOG.md
 recursive-include django_opensearch_dsl *.html *.png *.gif *js *.css *jpg *jpeg *svg *py

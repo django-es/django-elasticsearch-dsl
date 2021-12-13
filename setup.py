@@ -37,7 +37,7 @@ REQUIREMENTS = [
 
 setup(
     name='django-opensearch-dsl',
-    version='0.1.0',
+    version='0.1.1',
     description="""Wrapper around opensearch-dsl-py for django models""",
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
