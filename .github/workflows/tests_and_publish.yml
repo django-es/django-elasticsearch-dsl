@@ -11,6 +11,9 @@ on:
       - master
       - '*.*.*'
 
+  release:
+    types: [ published ]
+
 jobs:
 
   test:
@@ -55,7 +58,7 @@ jobs:
 
   publish:
     needs: test
-    if: github.event_name == 'release' && github.event.action == 'created'
+    if: github.event_name == 'release' && github.event.action == 'published'
     runs-on: ubuntu-latest
     continue-on-error: true
 
