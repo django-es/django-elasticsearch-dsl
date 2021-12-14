@@ -43,7 +43,7 @@ class Search(DSLSearch):
 
     def validate(self, explain=False):
         response = connections.get_connection().indices.validate_query(
-            body=self.to_dict(), index=self._index._name, explain=True
+            body=self.to_dict(), index=self._index[0], explain=True
         )
 
         if not explain:
