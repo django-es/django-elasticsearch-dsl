@@ -15,7 +15,7 @@ wrapper around [`opensearch-dsl-py`](https://github.com/opensearch-project/opens
 so you can use all the features developed by the `opensearch-dsl` team.
 
 You can view the full documentation
-at [https://django-opensearch-dsl.readthedocs.io](https://django-opensearch-dsl.readthedocs.io.).
+at [https://django-opensearch-dsl.readthedocs.io](https://django-opensearch-dsl.readthedocs.io/en/latest/).
 
 ## Features
 
