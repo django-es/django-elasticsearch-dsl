@@ -13,9 +13,12 @@ class DocumentRegistry:
 
     def __init__(self):
         self._indices = defaultdict(set)
+        self._models = defaultdict(set)
 
     def register(self, index, doc_class):
         """Register the model with the registry."""
+        self._models[doc_class.django.model].add(doc_class)
+
         for idx, docs in self._indices.items():
             if index._name == idx._name:  # noqa pragma: no cover
                 docs.add(doc_class)
@@ -35,7 +38,11 @@ class DocumentRegistry:
             'model': getattr(document.Django, 'model'),
             'queryset_pagination': getattr(
                 document.Django, 'queryset_pagination', DEDConfig.default_queryset_pagination()
-            )
+            ),
+            'ignore_signals': getattr(django_meta, 'ignore_signals', False),
+            'auto_refresh': getattr(
+                django_meta, 'auto_refresh', DEDConfig.auto_refresh_enabled()
+            ),
         })
         if not django_attr.model:  # pragma: no cover
             raise ImproperlyConfigured("You must specify the django model")
@@ -70,6 +77,26 @@ class DocumentRegistry:
         self.register(index=document._index, doc_class=document)  # noqa
 
         return document
+
+    def update(self, instance, action='index', **kwargs):
+        """
+        Update all the elasticsearch documents attached to this model (if their
+        ignore_signals flag allows it)
+        """
+        if not DEDConfig.autosync_enabled():
+            return
+
+        if instance.__class__ in self._models:
+            for doc in self._models[instance.__class__]:
+                if not doc.django.ignore_signals:
+                    doc().update(instance, action, **kwargs)
+
+    def delete(self, instance, **kwargs):
+        """
+        Delete all the elasticsearch documents attached to this model (if their
+        ignore_signals flag allows it)
+        """
+        self.update(instance, action='delete', **kwargs)
 
     def get_indices(self):
         """Get all indices in the registry."""
