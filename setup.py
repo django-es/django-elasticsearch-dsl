@@ -31,7 +31,6 @@ LONG_DESCRIPTION = (
 )
 REQUIREMENTS = [
     'opensearch-dsl~=1.0.0',
-    'six',
     'dateutils'
 ]
 

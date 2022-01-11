@@ -9,7 +9,6 @@ from django.db import models
 from django.db.models import QuerySet, Q
 from opensearch_dsl import Document as DSLDocument
 from opensearchpy.helpers import bulk, parallel_bulk
-from six import iteritems
 
 from . import fields
 from .apps import DEDConfig
@@ -117,7 +116,7 @@ class Document(DSLDocument):
         """
         index_fields = getattr(self, '_fields', {})
         preparers = []
-        for name, field in iteritems(index_fields):
+        for name, field in iter(index_fields.items()):
             if not isinstance(field, fields.DEDField):  # pragma: no cover
                 continue
 

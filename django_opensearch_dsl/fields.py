@@ -220,7 +220,7 @@ class SearchAsYouTypeField(DEDField, fields.SearchAsYouType):
     pass
 
 
-class FileFieldMixin(object):
+class FileFieldMixin:
 
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
         _file = super(FileFieldMixin, self).get_value_from_instance(

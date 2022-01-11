@@ -8,7 +8,7 @@ from .apps import DEDConfig
 from .exceptions import RedeclaredFieldError
 
 
-class DocumentRegistry(object):
+class DocumentRegistry:
     """Registry of models classes to a set of Document classes."""
 
     def __init__(self):
