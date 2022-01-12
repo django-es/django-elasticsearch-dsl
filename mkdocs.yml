@@ -16,9 +16,9 @@ nav:
       - Signals: signals.md
 
   - "Other":
-      - Authors: AUTHORS.md
-      - Changelog: CHANGELOG.md
       - Contributing: CONTRIBUTING.md
+      - Changelog: CHANGELOG.md
+      - Authors: AUTHORS.md
       - License: LICENSE.md
       - Github: https://github.com/qcoumes/django-opensearch-dsl/
 
