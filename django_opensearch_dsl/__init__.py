@@ -5,7 +5,7 @@ from django.utils.module_loading import autodiscover_modules
 from .documents import Document  # noqa
 from .fields import *  # noqa
 
-__version__ = '0.1.2'
+__version__ = '0.2.0'
 
 
 def autodiscover():

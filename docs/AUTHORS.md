@@ -1,17 +1,22 @@
 # Credits
 
-### Development Lead
+## Development Lead
 
 * qcoumes - Quentin Coumes (Codoc)
 
-### Original [`django-opensearch-dsl`](https://github.com/qcoumes/django-opensearch-dsl) project
+### Contributors
 
-#### Development Lead
+* [David Guillot](https://github.com/David-Guillot)
+
+
+## Original [`django-opensearch-dsl`](https://github.com/qcoumes/django-opensearch-dsl) project
+
+### Development Lead
 
 * sabricot
 * safwanrahman - Safwan Rahman
 
-#### Contributors
+### Contributors
 
 * markotibold
 * HansAdema - Devhouse Spindle

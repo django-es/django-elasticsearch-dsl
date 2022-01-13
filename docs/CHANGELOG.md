@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0 (2022-01-13)
+
+* Restore auto-sync feature (still undocumented - Contributed by [David Guillot](https://github.com/David-Guillot))
+* Add support to Django 4.0q (Contributed by [David Guillot](https://github.com/David-Guillot))
+* Remove so python2 leftovers (Contributed by [David Guillot](https://github.com/David-Guillot))
+
+## 0.1.2 (2021-12-14)
+
+* Fixed 'Search.validate()'
+
+## 0.1.0 (2021-12-11)
+
+* Migrated to **Opensearch**
+* Drop some feature such as auto-syncing signals and related models
+* Replace `search_index` management command with `opensearch`.
+
 ## 0.1.0 (2021-12-11)
 
 * Migrated to **Opensearch**

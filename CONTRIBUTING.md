@@ -69,13 +69,13 @@ Ready to contribute? Here's how to set up `django-opensearch-dsl` for local deve
 
 ## Testing your changes
 
-Tests must be written inside the `tests/` project. This project contains three directory :
+Tests must be written inside the `tests/` Django's project. This project contains three directory :
 
 * `project` - "settings" directory containing the usual stuff (`settings.py`, `wsgi.py`, `urls.py`, ...)
-* `django_dummy_app` - Django application you can use for testing. It contains already contains some models.
+* `django_dummy_app` - Django application you can use for testing. It already contains some models.
 * `tests` - Where you should write your tests.
 
-You can interact with this project using root-level `manage.py`.
+You can interact with this project using the root-level `manage.py`.
 
 If you need to manually tests some of your feature, you can create a `sqlite3`
 database with `python3 manage.py migrate`. You can also load some geographic data with
