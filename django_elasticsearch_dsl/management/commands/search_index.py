@@ -8,7 +8,6 @@ from six.moves import input
 from functools import partial
 from math import ceil
 from ...registries import registry
-from ...documents import CHUNK_SIZE
 
 
 class Command(BaseCommand):
@@ -126,7 +125,7 @@ class Command(BaseCommand):
                 doc.django.model.__name__,
                 "(parallel)" if parallel else "")
             )
-            max_chunk_id = int(ceil(doc().get_max_id() / CHUNK_SIZE))
+            max_chunk_id = int(ceil(doc().get_max_id() / doc().django.queryset_pagination))
             populate_docs = partial(doc().update, parallel=parallel, refresh=options['refresh'])
             pool.map(populate_docs, [doc().get_qs_chunk(chunk) for chunk in range(0, max_chunk_id + 1)])
             pool.close()
