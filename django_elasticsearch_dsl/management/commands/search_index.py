@@ -1,9 +1,14 @@
 from __future__ import unicode_literals, absolute_import
 
+import multiprocessing
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from six.moves import input
+from functools import partial
+from math import ceil
 from ...registries import registry
+from ...documents import CHUNK_SIZE
 
 
 class Command(BaseCommand):
@@ -114,14 +119,18 @@ class Command(BaseCommand):
 
     def _populate(self, models, options):
         parallel = options['parallel']
+        pool = multiprocessing.Pool(processes=args.processes)
         for doc in registry.get_documents(models):
             self.stdout.write("Indexing {} '{}' objects {}".format(
                 doc().get_queryset().count() if options['count'] else "all",
                 doc.django.model.__name__,
                 "(parallel)" if parallel else "")
             )
-            qs = doc().get_indexing_queryset()
-            doc().update(qs, parallel=parallel, refresh=options['refresh'])
+            max_chunk_id = int(ceil(doc().get_max_id() / CHUNK_SIZE))
+            populate_docs = partial(doc().update, parallel=parallel, refresh=options['refresh'])
+            pool.map(populate_docs, [doc().get_qs_chunk(chunk) for chunk in range(0, max_chunk_id + 1)])
+            pool.close()
+            pool.join()
 
     def _delete(self, models, options):
         index_names = [index._name for index in registry.get_indices(models)]

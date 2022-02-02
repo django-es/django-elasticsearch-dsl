@@ -51,6 +51,8 @@ model_field_class_to_field_class = {
     models.UUIDField: KeywordField,
 }
 
+CHUNK_SIZE = 1000
+
 
 class DocType(DSLDocument):
     _prepared_fields = []
@@ -73,6 +75,15 @@ class DocType(DSLDocument):
             index=cls._default_index(index),
             doc_type=[cls],
             model=cls.django.model
+        )
+
+    def get_max_id(self):
+        return self.get_queryset().last().pk
+
+    def get_qs_chunk(self, chunk_id):
+        return self.get_queryset().filter(
+            pk__gt=chunk_id * CHUNK_SIZE,
+            pk__lte=(chunk_id + 1) * CHUNK_SIZE
         )
 
     def get_queryset(self):
@@ -127,8 +138,8 @@ class DocType(DSLDocument):
         """
         data = {
             name: prep_func(instance)
-            for name, field, prep_func in self._prepared_fields
-        }
+                for name, field, prep_func in self._prepared_fields
+            }
         return data
 
     @classmethod
@@ -203,7 +214,7 @@ class DocType(DSLDocument):
 
     def should_index_object(self, obj):
         """
-        Overwriting this method and returning a boolean value
+        Overwriting this method and returning a boolean value 
         should determine whether the object should be indexed.
         """
         return True
