@@ -51,8 +51,6 @@ model_field_class_to_field_class = {
     models.UUIDField: KeywordField,
 }
 
-CHUNK_SIZE = 1000
-
 
 class DocType(DSLDocument):
     _prepared_fields = []
@@ -82,8 +80,8 @@ class DocType(DSLDocument):
 
     def get_qs_chunk(self, chunk_id):
         return self.get_queryset().filter(
-            pk__gt=chunk_id * CHUNK_SIZE,
-            pk__lte=(chunk_id + 1) * CHUNK_SIZE
+            pk__gt=chunk_id * self.django.queryset_pagination,
+            pk__lte=(chunk_id + 1) * self.django.queryset_pagination
         )
 
     def get_queryset(self):
