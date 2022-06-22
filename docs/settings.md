@@ -47,5 +47,5 @@ do not play well with this option.
 Default: `4096`
 
 Size of the chunk used when indexing data. Can be overriden by setting `queryset_pagination` inside `Document`'
-s [`Django` subclass](document.md#document-id).
+s [`Django` subclass](document.md).
 
