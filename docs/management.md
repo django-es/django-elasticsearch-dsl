@@ -149,7 +149,7 @@ action on using the `--indices` option.
 ***Choosing data***
 
 The data used for the action will retrieve using the `get_indexing_queryset()` and `get_queryset()` method of your
-`Document` subclass (see [Indexing data](/document/#indexing-data)). You can use the `--filters` and `--excludes`
+`Document` subclass (see [Indexing data](document.md#indexing-data)). You can use the `--filters` and `--excludes`
 options to filter down the queryset. These options take argument formatted like *kwargs* given to the `filter()`
 and `exclude()` `QuerySet`'s method (`[lookup]=[value]`).
 

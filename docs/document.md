@@ -7,9 +7,9 @@ The `Django` subclass contains parameters related to Django's side of the docume
 
 * `model` (*required*) - Model that will be used for the indexing.
 * `fields` (*optional*) - List model's field name that should be indexed. Do not add the fields you manually declare
-  into this list. See [Document Field Reference](/fields/) for how to manually define fields.
+  into this list. See [Document Field Reference](fields.md) for how to manually define fields.
 * `queryset_pagination` (*optional*) - Size of the chunk when indexing,
-  override [`OPENSEARCH_DSL_QUERYSET_PAGINATION`](/settings#opensearch_dsl_queryset_pagination.md).
+  override [`OPENSEARCH_DSL_QUERYSET_PAGINATION`](settings.md#opensearch_dsl_queryset_pagination.md).
 
 ```python
 class Country(models.Model):
@@ -46,9 +46,9 @@ This subclass contains parameters about Opensearch :
 
 * `name` (*required*) - Name of the index.
 * `auto_refresh` (*required*) - Perform an index refresh after every update if `True` (
-  overrides [`OPENSEARCH_DSL_AUTO_REFRESH`](/settings/#opensearch_dsl_auto_refresh))
+  overrides [`OPENSEARCH_DSL_AUTO_REFRESH`](settings.md#opensearch_dsl_auto_refresh))
 * `settings` (*optional*) - Settings of the index, will be merged
-  with [`OPENSEARCH_DSL_INDEX_SETTINGS`](/settings/#opensearch_dsl_index_settings) (settings define here prevail over
+  with [`OPENSEARCH_DSL_INDEX_SETTINGS`](settings.md#opensearch_dsl_index_settings) (settings define here prevail over
   the ones defined in `OPENSEARCH_DSL_INDEX_SETTINGS`).
 
   For a list of settings,
@@ -58,7 +58,7 @@ This subclass contains parameters about Opensearch :
 ## Manually defined fields
 
 In addition to `Document.Django.fields`, you can manually define any number of fields. For more information about
-fields, see the [Document Field Reference](/fields/).
+fields, see the [Document Field Reference](fields.md).
 
 ## Indexing data
 

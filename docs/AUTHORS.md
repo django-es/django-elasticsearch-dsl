@@ -2,12 +2,13 @@
 
 ## Development Lead
 
-* qcoumes - Quentin Coumes (Codoc)
+* [Quentin Coumes (Codoc)](https://github.com/qcoumes)
 
 ### Contributors
 
 * [David Guillot](https://github.com/David-Guillot)
 
+---
 
 ## Original [`django-opensearch-dsl`](https://github.com/qcoumes/django-opensearch-dsl) project
 

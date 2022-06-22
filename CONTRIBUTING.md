@@ -97,19 +97,19 @@ You can run all the tests for supported django versions by running `tox` (`pip i
 
 1. Ensure your code is correctly formatted and documented:
 
-   ```shell
-   ./bin/pre_commit.sh
-   ```
+```sh
+./bin/pre_commit.sh
+```
 
-2Commit your changes and push your branch to GitHub:
+2. Commit your changes and push your branch to GitHub:
 
-   ```shell
-   git add .
-   git commit -m "Your detailed description of your changes."
-   git push origin name-of-your-bugfix-or-feature
-   ```
+```sh
+git add .
+git commit -m "Your detailed description of your changes."
+git push origin name-of-your-bugfix-or-feature
+```
 
-4. Submit a pull request through the GitHub website.
+3. Submit a pull request through the GitHub website.
 
 ## Pull Request Guidelines
 

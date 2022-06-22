@@ -47,7 +47,7 @@ class Car(models.Model):
     ])
 ```
 
-First create a subclass of [`django_opensearch_dsl.Document`](/document/) containing the subclasses `Index`
+First create a subclass of [`django_opensearch_dsl.Document`](document.md) containing the subclasses `Index`
 (which define the index' settings) and `Django` (which contains settings related to your django `Model`). Finally,
 register the class using `registry.register_document()` decorator.
 
@@ -97,7 +97,7 @@ and to populate the indices, use the `opensearch document` management command :
 
 * `python3 manage.py opensearch document index`
 
-See [management commands](/management/) for more information.
+See [management commands](management.md) for more information.
 
 ## Search
 
