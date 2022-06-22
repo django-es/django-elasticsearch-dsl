@@ -25,8 +25,14 @@ class DocumentTestCase(TestCase):
         call_command("opensearch", "index", "create", CountryDocument.Index.name, verbosity=0, force=True)
         with self.assertRaises(SystemExit):
             call_command(
-                "opensearch", "document", "index", f"-i{CountryDocument.Index.name}", verbosity=0, force=True,
-                filters=[("unknown_field", "value")], refresh=True
+                "opensearch",
+                "document",
+                "index",
+                f"-i{CountryDocument.Index.name}",
+                verbosity=0,
+                force=True,
+                filters=[("unknown_field", "value")],
+                refresh=True,
             )
 
     def test_index_all(self):
@@ -71,12 +77,18 @@ class DocumentTestCase(TestCase):
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)
         call_command(
-            "opensearch", "document", "index", f"-i{CountryDocument.Index.name}", verbosity=0, force=True,
-            filters=[("continent__name", "Europe")], refresh=True
+            "opensearch",
+            "document",
+            "index",
+            f"-i{CountryDocument.Index.name}",
+            verbosity=0,
+            force=True,
+            filters=[("continent__name", "Europe")],
+            refresh=True,
         )
         self.assertEqual(
             CountryDocument.search().count(),
-            Country.objects.select_related('continent').filter(continent__name="Europe").count()
+            Country.objects.select_related("continent").filter(continent__name="Europe").count(),
         )
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)
@@ -88,12 +100,18 @@ class DocumentTestCase(TestCase):
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)
         call_command(
-            "opensearch", "document", "index", f"-i{CountryDocument.Index.name}", verbosity=0, force=True,
-            filters=[("population__gte", 1000000)], refresh=True
+            "opensearch",
+            "document",
+            "index",
+            f"-i{CountryDocument.Index.name}",
+            verbosity=0,
+            force=True,
+            filters=[("population__gte", 1000000)],
+            refresh=True,
         )
         self.assertEqual(
             CountryDocument.search().count(),
-            Country.objects.select_related('continent').filter(population__gte=1000000).count()
+            Country.objects.select_related("continent").filter(population__gte=1000000).count(),
         )
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)
@@ -105,12 +123,18 @@ class DocumentTestCase(TestCase):
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)
         call_command(
-            "opensearch", "document", "index", f"-i{CountryDocument.Index.name}", verbosity=0, force=True,
-            excludes=[("population__gte", 1000000)], refresh=True
+            "opensearch",
+            "document",
+            "index",
+            f"-i{CountryDocument.Index.name}",
+            verbosity=0,
+            force=True,
+            excludes=[("population__gte", 1000000)],
+            refresh=True,
         )
         self.assertEqual(
             CountryDocument.search().count(),
-            Country.objects.select_related('continent').exclude(population__gte=1000000).count()
+            Country.objects.select_related("continent").exclude(population__gte=1000000).count(),
         )
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)
@@ -122,14 +146,20 @@ class DocumentTestCase(TestCase):
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)
         call_command(
-            "opensearch", "document", "index", f"-i{CountryDocument.Index.name}", verbosity=0, force=True,
-            filters=[("population__gte", 1000000), ("population__lte", 10000000)], refresh=True
+            "opensearch",
+            "document",
+            "index",
+            f"-i{CountryDocument.Index.name}",
+            verbosity=0,
+            force=True,
+            filters=[("population__gte", 1000000), ("population__lte", 10000000)],
+            refresh=True,
         )
         self.assertEqual(
             CountryDocument.search().count(),
-            Country.objects.select_related('continent').filter(
-                population__gte=1000000, population__lte=10000000
-            ).count()
+            Country.objects.select_related("continent")
+            .filter(population__gte=1000000, population__lte=10000000)
+            .count(),
         )
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)
@@ -141,14 +171,20 @@ class DocumentTestCase(TestCase):
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)
         call_command(
-            "opensearch", "document", "index", f"-i{CountryDocument.Index.name}", verbosity=0, force=True,
-            excludes=[("population__gte", 1000000), ("population__lte", 10000000)], refresh=True
+            "opensearch",
+            "document",
+            "index",
+            f"-i{CountryDocument.Index.name}",
+            verbosity=0,
+            force=True,
+            excludes=[("population__gte", 1000000), ("population__lte", 10000000)],
+            refresh=True,
         )
         self.assertEqual(
             CountryDocument.search().count(),
-            Country.objects.select_related('continent').exclude(
-                population__gte=1000000, population__lte=10000000
-            ).count()
+            Country.objects.select_related("continent")
+            .exclude(population__gte=1000000, population__lte=10000000)
+            .count(),
         )
         self.assertEqual(ContinentDocument.search().count(), 0)
         self.assertEqual(EventDocument.search().count(), 0)

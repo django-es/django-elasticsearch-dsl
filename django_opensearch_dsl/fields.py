@@ -11,39 +11,53 @@ from opensearch_dsl import field as fields
 from .exceptions import VariableLookupError
 
 __all__ = [
-    'DEDField', 'ObjectField', 'ListField', 'BooleanField', 'ByteField', 'CompletionField', 'DateField', 'DoubleField',
-    'FloatField', 'ScaledFloatField', 'GeoPointField', 'GeoShapeField', 'IntegerField', 'IpField', 'LongField',
-    'NestedField', 'ShortField', 'KeywordField', 'TextField', 'SearchAsYouTypeField', 'FileFieldMixin', 'FileField',
+    "DODField",
+    "ObjectField",
+    "ListField",
+    "BooleanField",
+    "ByteField",
+    "CompletionField",
+    "DateField",
+    "DoubleField",
+    "FloatField",
+    "ScaledFloatField",
+    "GeoPointField",
+    "GeoShapeField",
+    "IntegerField",
+    "IpField",
+    "LongField",
+    "NestedField",
+    "ShortField",
+    "KeywordField",
+    "TextField",
+    "SearchAsYouTypeField",
+    "FileFieldMixin",
+    "FileField",
 ]
 
 
-class DEDField(fields.Field):
+class DODField(fields.Field):
+    """Field allowing to retrieve a value from a `Model` instance."""
 
     def __init__(self, attr=None, **kwargs):
-        super(DEDField, self).__init__(**kwargs)
-        self._path = attr.split('.') if attr else []
+        super(DODField, self).__init__(**kwargs)
+        self._path = attr.split(".") if attr else []
 
     def __setattr__(self, key, value):
-        if key == 'get_value_from_instance':
+        if key == "get_value_from_instance":
             self.__dict__[key] = value
         else:
-            super(DEDField, self).__setattr__(key, value)
+            super(DODField, self).__setattr__(key, value)
 
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
-        """
-        Given an model instance to index with ES, return the value that
-        should be put into ES for this field.
-        """
+        """Retrieve the value to index for the given instance."""
         if instance is None:
             return None
 
         for attr in self._path:
             try:
                 instance = instance[attr]
-            except (
-                TypeError, AttributeError,
-                KeyError, ValueError, IndexError
-            ):
+            except (TypeError, AttributeError, KeyError, ValueError, IndexError):
                 try:
                     instance = getattr(instance, attr)
                 except ObjectDoesNotExist:  # pragma: no cover
@@ -51,15 +65,9 @@ class DEDField(fields.Field):
                 except (TypeError, AttributeError):
                     try:
                         instance = instance[int(attr)]
-                    except (
-                        IndexError, ValueError,
-                        KeyError, TypeError
-                    ):
+                    except (IndexError, ValueError, KeyError, TypeError):
                         if self._required:
-                            raise VariableLookupError(
-                                "Failed lookup for key [{}] in "
-                                "{!r}".format(attr, instance)
-                            )
+                            raise VariableLookupError("Failed lookup for key [{}] in " "{!r}".format(attr, instance))
                         return None
 
             if isinstance(instance, models.manager.Manager):
@@ -79,16 +87,16 @@ class DEDField(fields.Field):
         return instance
 
 
-class ObjectField(DEDField, fields.Object):
+class ObjectField(DODField, fields.Object):
+    """Allow indexing of `OneToOneRel`, `OneToOneField` or `ForeignKey`."""
 
     def _get_inner_field_data(self, obj, field_value_to_ignore=None):
+        """Compute the dictionary to index according to the field parameters."""
         data = {}
 
-        properties = self._doc_class._doc_type.mapping.properties._params.get(  # noqa
-            'properties', {}
-        ).items()
+        properties = self._doc_class._doc_type.mapping.properties._params.get("properties", {}).items()  # noqa
         for name, field in properties:
-            if not isinstance(field, DEDField):  # pragma: no cover
+            if not isinstance(field, DODField):  # pragma: no cover
                 continue
 
             if field._path == []:  # noqa
@@ -97,14 +105,12 @@ class ObjectField(DEDField, fields.Object):
             # This allows for retrieving data from an InnerDoc with
             # 'prepare_field_[name]' functions.
             doc_instance = self._doc_class()
-            prep_func = getattr(doc_instance, 'prepare_%s' % name, None)
+            prep_func = getattr(doc_instance, "prepare_%s" % name, None)
 
             if prep_func:
                 data[name] = prep_func(obj)
             else:
-                data[name] = field.get_value_from_instance(
-                    obj, field_value_to_ignore
-                )
+                data[name] = field.get_value_from_instance(obj, field_value_to_ignore)
 
         # This allows for ObjectFields to be indexed from dicts with
         # dynamic keys (i.e. keys/fields not defined in 'properties')
@@ -114,9 +120,8 @@ class ObjectField(DEDField, fields.Object):
         return data
 
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
-        objs: Iterable = super(ObjectField, self).get_value_from_instance(
-            instance, field_value_to_ignore
-        )
+        """Return the dictionary to index."""
+        objs: Iterable = super(ObjectField, self).get_value_from_instance(instance, field_value_to_ignore)
 
         if objs is None:
             return {}
@@ -129,18 +134,15 @@ class ObjectField(DEDField, fields.Object):
         # their full data is indexed
         if is_iterable and not isinstance(objs, dict):
             return [
-                self._get_inner_field_data(obj, field_value_to_ignore)
-                for obj in objs if obj != field_value_to_ignore
+                self._get_inner_field_data(obj, field_value_to_ignore) for obj in objs if obj != field_value_to_ignore
             ]
 
         return self._get_inner_field_data(objs, field_value_to_ignore)
 
 
-def ListField(field):
-    """
-    This wraps a field so that when get_value_from_instance
-    is called, the field's values are iterated over
-    """
+def ListField(field):  # noqa
+    """Wrap a field so that its value is iterated over."""
+
     original_get_value_from_instance = field.get_value_from_instance
 
     def get_value_from_instance(self, instance):
@@ -152,85 +154,113 @@ def ListField(field):
     return field
 
 
-class BooleanField(DEDField, fields.Boolean):
-    pass
+class BooleanField(DODField, fields.Boolean):
+    """Allow indexing of `bool`."""
 
 
-class ByteField(DEDField, fields.Byte):
-    pass
+class ByteField(DODField, fields.Byte):
+    """Allow indexing of byte.
+
+    Should be used for integer with a minimum value of -128 and a maximum value
+    of 127.
+    """
 
 
-class CompletionField(DEDField, fields.Completion):
-    pass
+class CompletionField(DODField, fields.Completion):
+    """Used for auto-complete suggestions."""
 
 
-class DateField(DEDField, fields.Date):
-    pass
+class DateField(DODField, fields.Date):
+    """Allow indexing of date and timestamp."""
 
 
-class DoubleField(DEDField, fields.Double):
-    pass
+class DoubleField(DODField, fields.Double):
+    """Allow indexing of double.
+
+    Should be used for double-precision 64-bit IEEE 754 floating point number,
+    restricted to finite values.
+    """
 
 
-class FloatField(DEDField, fields.Float):
-    pass
+class FloatField(DODField, fields.Float):
+    """Allow indexing of float.
+
+    Should be used for single-precision 32-bit IEEE 754 floating point number,
+    restricted to finite values.
+    """
 
 
-class ScaledFloatField(DEDField, fields.ScaledFloat):
-    pass
+class ScaledFloatField(DODField, fields.ScaledFloat):
+    """Allow indexing of scaled float.
+
+    Should be used for floating point number that is backed by a long,
+    scaled by a fixed double scaling factor. .
+    """
 
 
-class GeoPointField(DEDField, fields.GeoPoint):
-    pass
+class GeoPointField(DODField, fields.GeoPoint):
+    """Allow indexing of latitude and longitude points."""
 
 
-class GeoShapeField(DEDField, fields.GeoShape):
-    pass
+class GeoShapeField(DODField, fields.GeoShape):
+    """Allow indexing of complex shapes, such as polygons."""
 
 
-class IntegerField(DEDField, fields.Integer):
-    pass
+class IntegerField(DODField, fields.Integer):
+    """Allow indexing of integer.
+
+    Should be used for integer with a minimum value of -2^31 and a maximum value
+    of 2^31 - 1.
+    """
 
 
-class IpField(DEDField, fields.Ip):
-    pass
+class IpField(DODField, fields.Ip):
+    """Allow indexing of IPv4 and IPv6 addresses."""
 
 
-class LongField(DEDField, fields.Long):
-    pass
+class LongField(DODField, fields.Long):
+    """Allow indexing of long.
+
+    Should be used for integer with a minimum value of -2^63 and a
+    maximum value of 2^63 - 1.
+    """
 
 
 class NestedField(fields.Nested, ObjectField):
-    pass
+    """Allow indexing of ManyToOneRel, ManyToManyField or ManyToManyRel."""
 
 
-class ShortField(DEDField, fields.Short):
-    pass
+class ShortField(DODField, fields.Short):
+    """Allow indexing or long.
+
+    Should be used for integer with a minimum value of -32768 and a maximum
+    value of 32767.
+    """
 
 
-class KeywordField(DEDField, fields.Keyword):
-    pass
+class KeywordField(DODField, fields.Keyword):
+    """Allow indexing of structured text (ID, zip codes, tags, ...)."""
 
 
-class TextField(DEDField, fields.Text):
-    pass
+class TextField(DODField, fields.Text):
+    """Allow indexing of unstructured text."""
 
 
-class SearchAsYouTypeField(DEDField, fields.SearchAsYouType):
-    pass
+class SearchAsYouTypeField(DODField, fields.SearchAsYouType):
+    """Allow indexing of text-like type for as-you-type completion."""
 
 
 class FileFieldMixin:
+    """Mixin allowing the indexing of Django `FileField`."""
 
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
-        _file = super(FileFieldMixin, self).get_value_from_instance(
-            instance, field_value_to_ignore
-        )
+        """Retrieve the url from the `FileField`."""
+        _file = super(FileFieldMixin, self).get_value_from_instance(instance, field_value_to_ignore)
 
         if isinstance(_file, FieldFile):
-            return _file.url if _file else ''
-        return _file if _file else ''
+            return _file.url if _file else ""
+        return _file if _file else ""
 
 
-class FileField(FileFieldMixin, DEDField, fields.Text):
-    pass
+class FileField(FileFieldMixin, DODField, fields.Text):
+    """Index the URL associated with a Django `FileField`."""

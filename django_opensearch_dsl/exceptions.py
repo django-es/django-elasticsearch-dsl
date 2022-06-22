@@ -1,14 +1,14 @@
 class DjangoOpensearchDslError(Exception):
-    pass
+    """Base Exception for Django Opensearch DSL."""
 
 
 class VariableLookupError(DjangoOpensearchDslError):
-    pass
+    """Raised when a value could not be retrieved using field's definition."""
 
 
 class RedeclaredFieldError(DjangoOpensearchDslError):
-    pass
+    """Raised when a field is redeclared within a `Document`."""
 
 
 class ModelFieldNotMappedError(DjangoOpensearchDslError):
-    pass
+    """Raised when no Opensearch's field could be mapped to a Django's field."""

@@ -58,7 +58,7 @@ Ready to contribute? Here's how to set up `django-opensearch-dsl` for local deve
    ```bash
    python3 -m venv venv
    source venv/bin/activate
-   python setup.py develop
+   pip3 install -r develop_requirements.txt
    ```
 
 4. Create a branch for local development:
@@ -95,7 +95,13 @@ You can run all the tests for supported django versions by running `tox` (`pip i
 
 ### Submitting your changes
 
-1. Commit your changes and push your branch to GitHub:
+1. Ensure your code is correctly formatted and documented:
+
+   ```shell
+   ./bin/pre_commit.sh
+   ```
+
+2Commit your changes and push your branch to GitHub:
 
    ```shell
    git add .
@@ -103,7 +109,7 @@ You can run all the tests for supported django versions by running `tox` (`pip i
    git push origin name-of-your-bugfix-or-feature
    ```
 
-2. Submit a pull request through the GitHub website.
+4. Submit a pull request through the GitHub website.
 
 ## Pull Request Guidelines
 
@@ -111,8 +117,7 @@ Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests
 
-2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a
-   docstring.
+2. If the pull request adds functionality, the documentation should be updated.
 
 3. The pull request should work for and 3.6 and above. Check
    https://github.com/qcoumes/django-opensearch-dsl/actions

@@ -1,1 +1,1 @@
-# File is needed for 'DEDConfig.config()' to be called.
+# File is needed for 'DODConfig.config()' to be called.
