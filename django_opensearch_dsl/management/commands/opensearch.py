@@ -30,9 +30,6 @@ class Command(BaseCommand):
     def __init__(self, *args, **kwargs):  # noqa
         super(Command, self).__init__()
         self.usage = None
-        if settings.TESTING:  # pragma: no cover
-            self.stderr = OutputWrapper(open(os.devnull, "w"))
-            self.stdout = OutputWrapper(open(os.devnull, "w"))
 
     def db_filter(self, parser: ArgumentParser) -> Callable[[str], Any]:
         """Return a function to parse the filters."""

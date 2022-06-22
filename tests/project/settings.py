@@ -26,7 +26,6 @@ SECRET_KEY = "&l0633!(*u(rb#7^cu(+)-2@)tc+cgs96a4&^dmvov3q#g4wup"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-TESTING = sys.argv[1:2] == ["test"] or "pytest" in sys.modules
 
 ALLOWED_HOSTS = []
 
