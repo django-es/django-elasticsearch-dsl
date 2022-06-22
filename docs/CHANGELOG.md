@@ -1,10 +1,15 @@
 # Changelog
 
+## 0.3.0 (2022-06-22)
+
+* Fixes internal links in documentation.
+* Remove the need to declare a `TESTING` boolean in `settings.py`.
+
 ## 0.2.0 (2022-01-13)
 
 * Restore auto-sync feature (still undocumented - Contributed by [David Guillot](https://github.com/David-Guillot))
-* Add support to Django 4.0q (Contributed by [David Guillot](https://github.com/David-Guillot))
-* Remove so python2 leftovers (Contributed by [David Guillot](https://github.com/David-Guillot))
+* Add support to Django 4.0 (Contributed by [David Guillot](https://github.com/David-Guillot))
+* Remove some python2 leftovers (Contributed by [David Guillot](https://github.com/David-Guillot))
 
 ## 0.1.2 (2021-12-14)
 
