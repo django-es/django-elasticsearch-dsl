@@ -111,6 +111,7 @@ class ObjectField(DEDField, Object):
                     obj, field_value_to_ignore
                 )
         else:
+            doc_instance = self._doc_class()
             for name, field in self._doc_class._doc_type.mapping.properties._params.get('properties', {}).items():  # noqa
                 if not isinstance(field, DEDField):
                     continue
@@ -119,7 +120,6 @@ class ObjectField(DEDField, Object):
                     field._path = [name]
 
                 # This allows for retrieving data from an InnerDoc with prepare_field_name functions.
-                doc_instance = self._doc_class()
                 prep_func = getattr(doc_instance, 'prepare_%s' % name, None)
 
                 if prep_func:
