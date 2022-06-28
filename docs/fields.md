@@ -102,6 +102,29 @@ class CarDocument(Document):
         return " ".join(instance.foos)
 ```
 
+## Using `prepare_[field]_with_related`
+
+Allows you to do extra prepping before a field with related models should be saved to Opensearch. This ensures that
+the index is updated appropriately. You can add a `prepare_[field]_with_related(self, instance)` method to a 
+`Document` (where `foo` is the name of the field), and that method will be called when the field needs to be saved.
+
+```python
+# documents.py
+
+class CarDocument(Document):
+    # ... #
+
+    class Django:
+        fields = ["name", "price"]
+        model = Car
+        related_models = [Manufacturer]
+
+    foo = TextField()
+
+    def prepare_foo_with_related(self, instance):
+        return " ".join(instance.foos)
+```
+
 ## Handle relationship with `NestedField` / `ObjectField`
 
 To represent relationships, you can use `NestedField` for :

@@ -1,6 +1,7 @@
 from collections import defaultdict
 from copy import deepcopy
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ImproperlyConfigured
 from opensearch_dsl import AttrDict
 
@@ -14,10 +15,14 @@ class DocumentRegistry:
     def __init__(self):
         self._indices = defaultdict(set)
         self._models = defaultdict(set)
+        self._related_models = defaultdict(set)
 
     def register(self, index, doc_class):
         """Register the model with the registry."""
         self._models[doc_class.django.model].add(doc_class)
+
+        for related in doc_class.django.related_models:
+            self._related_models[related].add(doc_class.django.model)
 
         for idx, docs in self._indices.items():
             if index._name == idx._name:  # noqa pragma: no cover
@@ -43,6 +48,7 @@ class DocumentRegistry:
                 ),
                 "ignore_signals": getattr(django_meta, "ignore_signals", False),
                 "auto_refresh": getattr(django_meta, "auto_refresh", DODConfig.auto_refresh_enabled()),
+                "related_models": getattr(django_meta, "related_models", []),
             }
         )
         if not django_attr.model:  # pragma: no cover
@@ -79,6 +85,52 @@ class DocumentRegistry:
 
         return document
 
+    def _get_related_doc(self, instance):
+        for model in self._related_models.get(instance.__class__, []):
+            for doc in self._models[model]:
+                if instance.__class__ in doc.django.related_models:
+                    yield doc
+
+    def update_related(self, instance, **kwargs):
+        """Update documents related to `instance`.
+
+        Related documents are found using the `get_instances_from_related()`
+        method of each Document classes including the instance's Model is
+        including within their `related_models`.
+        """
+        if not DODConfig.autosync_enabled():
+            return
+
+        for doc in self._get_related_doc(instance):
+            doc_instance = doc()
+            try:
+                related = doc_instance.get_instances_from_related(instance)
+            except ObjectDoesNotExist:
+                related = None
+
+            if related is not None:
+                doc_instance.update(related, **kwargs)
+
+    def delete_related(self, instance, **kwargs):
+        """Remove `instance` from related models.
+
+        `related_instance_to_ignore` ensures that `instance` is only removed
+        from related models. We don't want to update the indexed value for
+        `instance` in this method. Prevents potential orphaned objects.
+        """
+        if not DODConfig.autosync_enabled():
+            return
+
+        for doc in self._get_related_doc(instance):
+            doc_instance = doc(related_instance_to_ignore=instance)
+            try:
+                related = doc_instance.get_instances_from_related(instance)
+            except ObjectDoesNotExist:
+                related = None
+
+            if related is not None:
+                doc_instance.update(related, **kwargs)
+
     def update(self, instance, action="index", **kwargs):
         """Update all the opensearch documents attached to this model.
 
@@ -101,8 +153,11 @@ class DocumentRegistry:
         """
         self.update(instance, action="delete", **kwargs)
 
-    def get_indices(self):
-        """Get all indices in the registry."""
+    def get_indices(self, models=None):
+        """Get all indices in the registry or the indices for a list of models."""
+        if models is not None:
+            return set(index for index, docs in self._indices.items() for doc in docs if doc.django.model in models)
+
         return set(self._indices.keys())
 
 

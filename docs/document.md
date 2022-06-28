@@ -10,6 +10,8 @@ The `Django` subclass contains parameters related to Django's side of the docume
   into this list. See [Document Field Reference](fields.md) for how to manually define fields.
 * `queryset_pagination` (*optional*) - Size of the chunk when indexing,
   override [`OPENSEARCH_DSL_QUERYSET_PAGINATION`](settings.md#opensearch_dsl_queryset_pagination.md).
+* `related_models` (*optional*) - List of related Django models. Specifies a relation between models that allows for
+  index updating based on these defined relationships.
 
 ```python
 class Country(models.Model):
@@ -29,6 +31,7 @@ class CountryDocument(Document):
             'area',
             'population',
         ]
+        related_models = []
 
     id = fields.LongField()
     continent = fields.ObjectField(properties={

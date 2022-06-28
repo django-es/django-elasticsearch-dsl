@@ -49,6 +49,15 @@ class BaseSignalProcessor(object):
         Update the related objects either.
         """
         registry.update(instance)
+        registry.update_related(instance)
+
+    def handle_pre_delete(self, sender, instance, **kwargs):
+        """Handle removing of instance object from related models instance.
+
+        We need to do this before the real delete otherwise the relation
+        doesn't exists anymore and we can't get the related models instance.
+        """
+        registry.delete_related(instance)
 
     def handle_delete(self, sender, instance, **kwargs):
         """Handle delete.
@@ -73,6 +82,7 @@ class RealTimeSignalProcessor(BaseSignalProcessor):
 
         # Use to manage related objects update
         models.signals.m2m_changed.connect(self.handle_m2m_changed)
+        models.signals.pre_delete.connect(self.handle_pre_delete)
 
     def teardown(self):
         """Tear down the SignalProcessor."""
@@ -80,6 +90,7 @@ class RealTimeSignalProcessor(BaseSignalProcessor):
         models.signals.post_save.disconnect(self.handle_save)
         models.signals.post_delete.disconnect(self.handle_delete)
         models.signals.m2m_changed.disconnect(self.handle_m2m_changed)
+        models.signals.pre_delete.disconnect(self.handle_pre_delete)
 
 
 # Sent after document indexing is completed

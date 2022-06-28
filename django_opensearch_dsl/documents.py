@@ -49,8 +49,11 @@ class Document(DSLDocument):
 
     _prepared_fields = []
 
-    def __init__(self, **kwargs):
+    def __init__(self, related_instance_to_ignore=None, **kwargs):
         super(Document, self).__init__(**kwargs)
+        # related instances to ignore is required to remove the instance
+        # from related models on deletion.
+        self._related_instance_to_ignore = related_instance_to_ignore
         self._prepared_fields = self.init_prepare()
 
     @classmethod
@@ -132,8 +135,15 @@ class Document(DSLDocument):
             if not field._path:  # noqa
                 field._path = [name]
 
-            prep_func = getattr(self, "prepare_%s" % name, None)
-            fn = prep_func if prep_func else partial(field.get_value_from_instance)
+            prep_func = getattr(self, "prepare_%s_with_related" % name, None)
+            if prep_func:
+                fn = partial(prep_func, related_to_ignore=self._related_instance_to_ignore)
+            else:
+                prep_func = getattr(self, "prepare_%s" % name, None)
+                if prep_func:
+                    fn = prep_func
+                else:
+                    fn = partial(field.get_value_from_instance, field_value_to_ignore=self._related_instance_to_ignore)
 
             preparers.append((name, field, fn))
 

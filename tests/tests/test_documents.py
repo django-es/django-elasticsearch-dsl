@@ -61,6 +61,7 @@ class CarDocument(Document):
     class Django:
         fields = ["name", "price"]
         model = Car
+        related_models = [Manufacturer]
 
     class Index:
         name = "car_index"
@@ -99,6 +100,10 @@ class DocumentTestCase(TestCase):
     def test_fields_populated(self):
         mapping = CarDocument._doc_type.mapping
         self.assertEqual(set(mapping.properties.properties.to_dict().keys()), {"color", "name", "price", "type"})
+
+    def test_related_models_added(self):
+        related_models = CarDocument.django.related_models
+        self.assertEqual([Manufacturer], related_models)
 
     def test_duplicate_field_names_not_allowed(self):
         with self.assertRaises(RedeclaredFieldError):
