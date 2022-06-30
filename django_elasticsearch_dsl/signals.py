@@ -6,8 +6,10 @@ cause things to index.
 
 from __future__ import absolute_import
 
+from celery.exceptions import ImproperlyConfigured
 from django.db import models
 from django.dispatch import Signal
+from django.apps import apps
 
 from .registries import registry
 
@@ -73,13 +75,10 @@ class BaseSignalProcessor(object):
         registry.delete(instance, raise_on_error=False)
 
 
-class RealTimeSignalProcessor(BaseSignalProcessor):
-    """Real-time signal processor.
-
-    Allows for observing when saves/deletes fire and automatically updates the
-    search engine appropriately.
+class DjangoSignalsMixin(object):
     """
-
+    Enable Django signals integration
+    """
     def setup(self):
         # Listen to all model saves.
         models.signals.post_save.connect(self.handle_save)
@@ -99,3 +98,66 @@ class RealTimeSignalProcessor(BaseSignalProcessor):
 
 # Sent after document indexing is completed
 post_index = Signal()
+class RealTimeSignalProcessor(DjangoSignalsMixin, BaseSignalProcessor):
+    """Real-time signal processor.
+
+    Allows for observing when saves/deletes fire and automatically updates the
+    search engine appropriately.
+    """
+    pass
+
+try:
+    from celery import shared_task
+except ImportError:
+    pass
+else:
+    class CelerySignalProcessor(DjangoSignalsMixin, BaseSignalProcessor):
+        """Celery signal processor.
+
+        Allows automatic updates on the index as delayed background tasks using
+        Celery.
+
+        NB: We cannot process deletes as background tasks.
+        By the time the Celery worker would pick up the delete job, the
+        model instance would already deleted. We can get around this by
+        setting Celery to use `pickle` and sending the object to the worker,
+        but using `pickle` opens the application up to security concerns.
+        """
+
+        def handle_save(self, sender, instance, **kwargs):
+            """Handle save with a Celery task.
+
+            Given an individual model instance, update the object in the index.
+            Update the related objects either.
+            """
+            pk = instance.pk
+            app_label = instance._meta.app_label
+            model_name = instance._meta.concrete_model.__name__
+
+            if instance._meta.concrete_model not in registry:
+                self.registry_update_task.delay(pk, app_label, model_name)
+                self.registry_update_related_task.delay(pk, app_label, model_name)
+
+        @shared_task()
+        def registry_update_task(pk, app_label, model_name):
+            """Handle the update on the registry as a Celery task."""
+            try:
+                model = apps.get_model(app_label, model_name)
+            except LookupError:
+                pass
+            else:
+                registry.update(
+                    model.objects.get(pk=pk)
+                )
+
+        @shared_task()
+        def registry_update_related_task(pk, app_label, model_name):
+            """Handle the related update on the registry as a Celery task."""
+            try:
+                model = apps.get_model(app_label, model_name)
+            except LookupError:
+                pass
+            else:
+                registry.update_related(
+                    model.objects.get(pk=pk)
+                )
