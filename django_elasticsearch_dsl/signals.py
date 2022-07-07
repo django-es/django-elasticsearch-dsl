@@ -126,6 +126,37 @@ else:
 
             self.registry_update_task.delay(pk, app_label, model_name)
             self.registry_update_related_task.delay(pk, app_label, model_name)
+    
+        def handle_pre_delete(self, sender, instance, **kwargs):
+            """Handle removing of instance object from related models instance.
+            We need to do this before the real delete otherwise the relation
+            doesn't exists anymore and we can't get the related models instance.
+            """
+            registry.delete_related(instance)
+
+        def handle_delete(self, sender, instance, **kwargs):
+            """Handle delete.
+
+            Given an individual model instance, delete the object from index.
+            """
+            registry.delete(instance, raise_on_error=False)
+        
+        @shared_task()
+        def registry_delete_related_task():
+            for doc in self._get_related_doc(instance):
+                doc_instance = doc(related_instance_to_ignore=instance)
+                try:
+                    related = doc_instance.get_instances_from_related(instance)
+                except ObjectDoesNotExist:
+                    related = None
+
+                if related is not None:
+                    doc_instance.update(related, **kwargs)
+            #registry.delete_related(instance)
+        
+        @shared_task()
+        def registry_delete_task():
+            registry.delete(instance, raise_on_error=False)
 
         @shared_task()
         def registry_update_task(pk, app_label, model_name):
