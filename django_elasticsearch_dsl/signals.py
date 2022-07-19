@@ -10,7 +10,7 @@ from django.db import models
 from django.apps import apps
 
 from .registries import registry
-
+from django.core.exceptions import ObjectDoesNotExist
 
 class BaseSignalProcessor(object):
     """Base signal processor.
@@ -126,7 +126,7 @@ else:
 
             self.registry_update_task.delay(pk, app_label, model_name)
             self.registry_update_related_task.delay(pk, app_label, model_name)
-    
+
         def handle_pre_delete(self, sender, instance, **kwargs):
             """Handle removing of instance object from related models instance.
             We need to do this before the real delete otherwise the relation
@@ -140,23 +140,51 @@ else:
             Given an individual model instance, delete the object from index.
             """
             registry.delete(instance, raise_on_error=False)
-        
+
+        # wait to split apart.
         @shared_task()
-        def registry_delete_related_task():
-            for doc in self._get_related_doc(instance):
+        def registry_delete_related_task(instance):
+            """
+            Select its related instance before this instance was deleted.
+            And pass that to celery.
+            """
+            for doc in registry._get_related_doc(instance):
                 doc_instance = doc(related_instance_to_ignore=instance)
                 try:
                     related = doc_instance.get_instances_from_related(instance)
                 except ObjectDoesNotExist:
                     related = None
-
+                kwargs = dict()
                 if related is not None:
-                    doc_instance.update(related, **kwargs)
-            #registry.delete_related(instance)
-        
+                    if isinstance(related, models.Model):
+                        object_list = [related]
+                    else:
+                        object_list = related
+                    action = 'index'
+                    parallel = True
+                    doc_instance._bulk(doc_instance._get_actions(
+                        object_list, action),
+                                       parallel=parallel,
+                                       **kwargs)
+
+        # wait to split apart.
         @shared_task()
-        def registry_delete_task():
-            registry.delete(instance, raise_on_error=False)
+        def registry_delete_task(instance):
+            """
+            Get the prepare did before database record deleted.
+            """
+            action = 'delete'
+            kwargs = {}
+            if instance.__class__ in registry._models:
+                for doc in registry._models[instance.__class__]:
+                    if not doc.django.ignore_signals:
+                        doc_instance = doc()
+                        doc_instance.update(instance, action=action, **kwargs)
+                        parallel = True
+                        doc_instance._bulk(doc_instance._get_actions(
+                            [instance], action),
+                                           parallel=parallel,
+                                           **kwargs)
 
         @shared_task()
         def registry_update_task(pk, app_label, model_name):
