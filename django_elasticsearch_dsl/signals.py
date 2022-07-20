@@ -11,6 +11,7 @@ from django.apps import apps
 
 from .registries import registry
 from django.core.exceptions import ObjectDoesNotExist
+from importlib import import_module
 
 class BaseSignalProcessor(object):
     """Base signal processor.
@@ -132,7 +133,8 @@ else:
             We need to do this before the real delete otherwise the relation
             doesn't exists anymore and we can't get the related models instance.
             """
-            registry.delete_related(instance)
+            #registry.delete_related(instance)
+            self.prepare_registry_delete_related_task(instance)
 
         def handle_delete(self, sender, instance, **kwargs):
             """Handle delete.
@@ -141,50 +143,60 @@ else:
             """
             registry.delete(instance, raise_on_error=False)
 
-        # wait to split apart.
-        @shared_task()
-        def registry_delete_related_task(instance):
+        def prepare_registry_delete_related_task(self, instance):
             """
             Select its related instance before this instance was deleted.
             And pass that to celery.
             """
+            bulk_data = {}
+            action = 'index'
             for doc in registry._get_related_doc(instance):
                 doc_instance = doc(related_instance_to_ignore=instance)
                 try:
                     related = doc_instance.get_instances_from_related(instance)
                 except ObjectDoesNotExist:
                     related = None
-                kwargs = dict()
                 if related is not None:
                     if isinstance(related, models.Model):
                         object_list = [related]
                     else:
                         object_list = related
-                    action = 'index'
-                    parallel = True
-                    doc_instance._bulk(doc_instance._get_actions(
-                        object_list, action),
-                                       parallel=parallel,
-                                       **kwargs)
+                    bulk_data[
+                        doc_instance.__name__] = doc_instance._get_actions(
+                            object_list, action)
+            self.registry_delete_related_task.delay(bulk_data)
 
-        # wait to split apart.
         @shared_task()
-        def registry_delete_task(instance):
+        def registry_delete_related_task(data):
+            for doc_label, bulk_data in data:
+                doc_instance = import_module(doc_label)
+                kwargs = dict()
+                parallel = True
+                doc_instance._bulk(bulk_data, parallel=parallel, **kwargs)
+
+        def prepare_registry_delete_task(self, instance):
             """
             Get the prepare did before database record deleted.
             """
             action = 'delete'
-            kwargs = {}
             if instance.__class__ in registry._models:
+                bulk_data = {}
                 for doc in registry._models[instance.__class__]:
                     if not doc.django.ignore_signals:
                         doc_instance = doc()
-                        doc_instance.update(instance, action=action, **kwargs)
-                        parallel = True
-                        doc_instance._bulk(doc_instance._get_actions(
-                            [instance], action),
-                                           parallel=parallel,
-                                           **kwargs)
+                        bulk_data[
+                            doc_instance.__name__] = doc_instance._get_actions(
+                                [instance], action)
+                if bulk_data:
+                    self.registry_delete_task.delay(bulk_data)
+
+        @shared_task()
+        def registry_delete_task(data):
+            for doc_label, bulk_data in data:
+                doc_instance = import_module(doc_label)
+                kwargs = dict()
+                parallel = True
+                doc_instance._bulk(bulk_data, parallel=parallel, **kwargs)
 
         @shared_task()
         def registry_update_task(pk, app_label, model_name):
