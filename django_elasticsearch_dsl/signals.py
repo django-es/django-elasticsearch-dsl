@@ -8,10 +8,12 @@ from __future__ import absolute_import
 
 from django.db import models
 from django.apps import apps
-
+from django.dispatch import Signal
 from .registries import registry
 from django.core.exceptions import ObjectDoesNotExist
 from importlib import import_module
+# Sent after document indexing is completed
+post_index = Signal()
 
 class BaseSignalProcessor(object):
     """Base signal processor.
