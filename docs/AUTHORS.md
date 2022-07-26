@@ -7,6 +7,7 @@
 ### Contributors
 
 * [David Guillot](https://github.com/David-Guillot)
+* [Colin Seifer](https://github.com/Colin-Seifer)
 
 ---
 

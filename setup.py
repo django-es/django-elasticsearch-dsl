@@ -8,17 +8,13 @@ DIRNAME = os.path.dirname(__file__)
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
     'Framework :: Django',
-    'Framework :: Django :: 2.1',
-    'Framework :: Django :: 2.2',
-    'Framework :: Django :: 3.0',
-    'Framework :: Django :: 3.1',
     'Framework :: Django :: 3.2',
     'Framework :: Django :: 4.0',
+    'Framework :: Django :: 4.1',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: Apache Software License',
     'Natural Language :: English',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
@@ -30,7 +26,7 @@ LONG_DESCRIPTION = (
     + codecs.open(os.path.join(DIRNAME, 'docs/CHANGELOG.md'), encoding='utf-8').read()
 )
 REQUIREMENTS = [
-    'opensearch-dsl~=1.0.0',
+    'opensearch-dsl>=1.0.0, <3.0.0',
     'dateutils'
 ]
 

@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.0 (YYYY-MM-DD)
+
+* Add support for related models. See [Document Classes](document.md#django-subclass) and
+  [Document Field Reference](fields.md#using-prepare_field_with_related) for more information
+  (Contributed by [Colin Seifer](https://github.com/Colin-Seifer)).
+* `django-opensearch-dsl` now only tests supported version of Python and Django (mainstream and LTS). 
+  This choice is made to:
+    * Speed up development.
+    * Speed up tests.
+    * Reduce actions on github.
+    * Encourage people to update their stack to supported (thus safer) versions.
+* Drop support for Python 3.6.
+* Drop support for Django 2.1, 2.2, 3.1.
+* Now supports Django 4.1.
+* Now supports `opensearch-dsl>=2.0 <3.00`.
+
 ## 0.3.0 (2022-06-22)
 
 * Fixes internal links in documentation.

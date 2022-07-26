@@ -2,12 +2,23 @@ version: '3.7'
 
 services:
 
-  opensearch_test:
-    container_name: opensearch_test
-    image: opensearchproject/opensearch:1.2.0
+  opensearch_test_10:
+    container_name: opensearch_test_10
+    image: opensearchproject/opensearch:1.3.4
     ports:
-      - "9201:9200"
-      - "9601:9600"
+      - "9210:9200"
+      - "9610:9600"
+    environment:
+      - plugins.security.disabled=true
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  opensearch_test_20:
+    container_name: opensearch_test_20
+    image: opensearchproject/opensearch:2.1.0
+    ports:
+      - "9220:9200"
+      - "9620:9600"
     environment:
       - plugins.security.disabled=true
       - discovery.type=single-node
