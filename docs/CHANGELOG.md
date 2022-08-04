@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0 (YYYY-MM-DD)
+## 0.4.0 (2022-08-04)
 
 * Add support for related models. See [Document Classes](document.md#django-subclass) and
   [Document Field Reference](fields.md#using-prepare_field_with_related) for more information
