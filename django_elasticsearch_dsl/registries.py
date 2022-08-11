@@ -138,7 +138,10 @@ class DocumentRegistry(object):
         if instance.__class__ in self._models:
             for doc in self._models[instance.__class__]:
                 if not doc.django.ignore_signals:
-                    doc().update(instance, **kwargs)
+                    if not doc().should_index_object(instance):
+                        doc().update(instance, action="delete")
+                    else:
+                        doc().update(instance, **kwargs)
 
     def delete(self, instance, **kwargs):
         """
