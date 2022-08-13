@@ -134,7 +134,25 @@ LOGGING = {
 }
 
 OPENSEARCH_DSL = {
-    "default": {"hosts": "localhost:%s" % os.getenv("DJANGO_OS_PORT", "9220")},
+    "default": {
+        "hosts": [
+            {
+                "scheme": "http",
+                "host": "localhost",
+                "port": os.getenv("DJANGO_OS_PORT", "9220"),
+            }
+        ],
+    },
+    # Dummy connection to test `using` interactions
+    "dummy": {
+        "hosts": [
+            {
+                "scheme": "none",
+                "host": "dummy",
+                "port": 0,
+            }
+        ],
+    },
 }
 
 # Internationalization

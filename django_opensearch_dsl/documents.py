@@ -166,17 +166,17 @@ class Document(DSLDocument):
         except KeyError:  # pragma: no cover
             raise ModelFieldNotMappedError(f"Cannot convert model field {field_name} to an Opensearch field!")
 
-    def bulk(self, actions, **kwargs):
+    def bulk(self, actions, using=None, **kwargs):
         """Execute given actions in bulk."""
-        response = bulk(client=self._get_connection(), actions=actions, **kwargs)
+        response = bulk(client=self._get_connection(using), actions=actions, **kwargs)
         # send post index signal
         post_index.send(sender=self.__class__, instance=self, actions=actions, response=response)
         return response
 
-    def parallel_bulk(self, actions, **kwargs):
+    def parallel_bulk(self, actions, using=None, **kwargs):
         """Parallel version of `bulk`."""
         kwargs.setdefault("chunk_size", self.django.queryset_pagination)
-        bulk_actions = parallel_bulk(client=self._get_connection(), actions=actions, **kwargs)
+        bulk_actions = parallel_bulk(client=self._get_connection(using), actions=actions, **kwargs)
         # As the `parallel_bulk` is lazy, we need to get it into `deque` to run
         # it instantly.
         # See https://discuss.elastic.co/t/helpers-parallel-bulk-in-python-not-working/39498/2  # noqa
@@ -208,11 +208,11 @@ class Document(DSLDocument):
             if action == "delete" or self.should_index_object(object_instance):
                 yield self._prepare_action(object_instance, action)
 
-    def _bulk(self, *args, parallel=False, **kwargs):
+    def _bulk(self, *args, parallel=False, using=None, **kwargs):
         """Helper for switching between normal and parallel bulk operation."""
         if parallel:
-            return self.parallel_bulk(*args, **kwargs)
-        return self.bulk(*args, **kwargs)
+            return self.parallel_bulk(*args, using=using, **kwargs)
+        return self.bulk(*args, using=using, **kwargs)
 
     def should_index_object(self, obj):
         """Whether given object should be indexed.
@@ -222,7 +222,7 @@ class Document(DSLDocument):
         """
         return True
 
-    def update(self, thing, action, *args, refresh=None, **kwargs):  # noqa
+    def update(self, thing, action, *args, refresh=None, using=None, **kwargs):  # noqa
         """Update document in OS for a model, iterable of models or queryset."""
         if refresh is None:
             refresh = getattr(self.Index, "auto_refresh", DODConfig.auto_refresh_enabled())
@@ -232,4 +232,4 @@ class Document(DSLDocument):
         else:
             object_list = thing
 
-        return self._bulk(self._get_actions(object_list, action), *args, refresh=refresh, **kwargs)
+        return self._bulk(self._get_actions(object_list, action), *args, refresh=refresh, using=using, **kwargs)

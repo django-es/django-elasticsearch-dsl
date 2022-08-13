@@ -1,9 +1,11 @@
 from unittest.mock import patch, Mock
 
+from django.conf import settings
 from django.db import models
 from django.test import TestCase, override_settings
 from django.utils.translation import gettext_lazy as _
 from opensearch_dsl import GeoPoint, InnerDoc
+from opensearchpy import OpenSearch
 
 from django_opensearch_dsl import fields
 from django_opensearch_dsl.apps import DODConfig
@@ -306,6 +308,22 @@ class DocumentTestCase(TestCase):
         with patch("django_opensearch_dsl.documents.bulk") as mock:
             doc.update(car, "index", refresh=False)
             self.assertEqual(mock.call_args_list[0][1]["refresh"], False)
+
+    def test_model_instance_update_using(self):
+        doc = CarDocument()
+        car = Car()
+
+        with patch("django_opensearch_dsl.documents.bulk") as mock:
+            doc.update(car, "index")
+            doc.update(car, "index", using="dummy")
+            self.assertEqual(
+                mock.call_args_list[0][1]["client"].transport.hosts,
+                settings.OPENSEARCH_DSL["default"]["hosts"],
+            )
+            self.assertEqual(
+                mock.call_args_list[1][1]["client"].transport.hosts,
+                settings.OPENSEARCH_DSL["dummy"]["hosts"],
+            )
 
     def test_model_instance_iterable_update_with_pagination(self):
         class CarDocument2(Document):
