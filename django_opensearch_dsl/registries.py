@@ -91,7 +91,7 @@ class DocumentRegistry:
                 if instance.__class__ in doc.django.related_models:
                     yield doc
 
-    def update_related(self, instance, **kwargs):
+    def update_related(self, instance, action="index", **kwargs):
         """Update documents related to `instance`.
 
         Related documents are found using the `get_instances_from_related()`
@@ -109,9 +109,9 @@ class DocumentRegistry:
                 related = None
 
             if related is not None:
-                doc_instance.update(related, **kwargs)
+                doc_instance.update(related, action, **kwargs)
 
-    def delete_related(self, instance, **kwargs):
+    def delete_related(self, instance, action="index", **kwargs):
         """Remove `instance` from related models.
 
         `related_instance_to_ignore` ensures that `instance` is only removed
@@ -129,7 +129,7 @@ class DocumentRegistry:
                 related = None
 
             if related is not None:
-                doc_instance.update(related, **kwargs)
+                doc_instance.update(related, action, **kwargs)
 
     def update(self, instance, action="index", **kwargs):
         """Update all the opensearch documents attached to this model.

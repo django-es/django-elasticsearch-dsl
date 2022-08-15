@@ -41,6 +41,8 @@ class BaseSignalProcessor(object):
         """Handle changes in ManyToMany relations."""
         if action in ("post_add", "post_remove", "post_clear"):
             self.handle_save(sender, instance)
+        elif action in ("pre_remove", "pre_clear"):
+            self.handle_pre_delete(sender, instance)
 
     def handle_save(self, sender, instance, **kwargs):
         """Handle save.
