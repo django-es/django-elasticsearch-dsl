@@ -1,5 +1,14 @@
 # Changelog
 
+### 0.4.1 (2022-08-16)
+
+* `Document.update()` method now take an optional `using` argument allowing to specify an alternate
+  OpenSearch connection defined in `OPENSEARCH_DSL`.
+* Fix related document automatic indexation and deletion
+  (Contributed by [Colin Seifer](https://github.com/Colin-Seifer)).
+* Add `pre-delete` back into `BaseSignalProcessor.handle_m2m_changed()` to  properly update the
+  index on M2M interactions (Contributed by [Colin Seifer](https://github.com/Colin-Seifer)).
+
 ## 0.4.0 (2022-08-04)
 
 * Add support for related models. See [Document Classes](document.md#django-subclass) and
