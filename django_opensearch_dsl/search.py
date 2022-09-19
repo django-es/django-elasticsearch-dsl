@@ -17,7 +17,7 @@ class Search(DSLSearch):
         s._model = self._model
         return s
 
-    def to_queryset(self, keep_order=False):
+    def to_queryset(self, keep_order=True):
         """Return a django queryset corresponding to the opensearch result."""
         s = self
 
