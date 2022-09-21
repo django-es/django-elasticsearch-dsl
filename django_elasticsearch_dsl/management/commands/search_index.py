@@ -1,5 +1,7 @@
 from __future__ import unicode_literals, absolute_import
 from datetime import datetime
+from sys import stdout
+from time import sleep
 
 from elasticsearch_dsl import connections
 from django.conf import settings
@@ -69,22 +71,9 @@ class Command(BaseCommand):
             dest='parallel',
             help='Run populate/rebuild update single threaded'
         )
-        parser.add_argument(
-            '--use-alias',
-            action='store_true',
-            dest='use_alias',
-            help='Use alias with indices'
+        parser.set_defaults(
+            parallel=getattr(settings, "ELASTICSEARCH_DSL_PARALLEL", False)
         )
-        parser.add_argument(
-            '--use-alias-keep-index',
-            action='store_true',
-            dest='use_alias_keep_index',
-            help="""
-                Do not delete replaced indices when used with '--rebuild' and
-                '--use-alias' args
-            """
-        )
-        parser.set_defaults(parallel=getattr(settings, 'ELASTICSEARCH_DSL_PARALLEL', False))
         parser.add_argument(
             '--refresh',
             action='store_true',
@@ -100,6 +89,9 @@ class Command(BaseCommand):
             help='Do not include a total count in the summary log line'
         )
 
+    def _get_index_suffix(index):
+        return '-' + datetime.now().strftime('%Y%m%d%H%M%S%f')
+
     def _get_models(self, args):
         """
         Get Models from registry that match the --models args
@@ -114,10 +106,13 @@ class Command(BaseCommand):
                     if model._meta.app_label == arg:
                         models.append(model)
                         match_found = True
-                    elif '{}.{}'.format(
+                    elif (
+                        "{}.{}".format(
                         model._meta.app_label.lower(),
-                        model._meta.model_name.lower()
-                    ) == arg:
+                            model._meta.model_name.lower(),
+                        )
+                        == arg
+                    ):
                         models.append(model)
                         match_found = True
 
@@ -129,18 +124,40 @@ class Command(BaseCommand):
         return set(models)
 
     def _create(self, models, aliases, options):
+        class AliasIndexPair:
+            def __init__(self, alias, index):
+                self.alias = alias
+                self.index = index
+        alias_index_pairs = []
         for index in registry.get_indices(models):
-            alias_exists = index._name in aliases
-            if not alias_exists:
-                self.stdout.write("Creating index '{}'".format(index._name))
-                index.create()
-            elif options['action'] == 'create':
+            # The alias takes the original index name value. The
+            # index name sent to Elasticsearch will be the alias
+            # plus the suffix from above. In addition, the index
+            # name needs to be limited to 255 characters, of which
+            # 21 will always be taken by the suffix, leaving 234
+            # characters from the original index name value.
+            alias_name=index._name
+            try:
+                alias = list(index.get_alias()[alias_name]['aliases'].keys())
+            except:
+                alias = False
+            if not alias or ('without-aliases' in options and options['without-aliases']):
+                index._name = index._name[:234] + self._get_index_suffix()
+            else:
                 self.stdout.write(
                     "'{}' already exists as an alias. Run '--delete' with"
                     " '--use-alias' arg to delete indices pointed at the "
                     "alias to make index name available.".format(index._name)
                 )
-
+                return
+            self.stdout.write("Creating index '{}'".format(alias_name))
+            index.create()
+            if 'without-aliases' in options and options['without-aliases']:
+                alias_index_pairs.append(AliasIndexPair(alias_name, index))
+                continue
+            self.es_conn.indices.update_aliases({"actions": [{"add": {"alias": alias_name, "index": index._name}}]})
+        if 'without-aliases' in options and options['without-aliases']:
+            return alias_index_pairs
     def _populate(self, models, options):
         parallel = options['parallel']
         for doc in registry.get_documents(models):
@@ -171,119 +188,64 @@ class Command(BaseCommand):
         if not options['force']:
             response = input(
                 "Are you sure you want to delete "
-                "the '{}' indices? [y/N]: ".format(", ".join(index_names)))
+                "the '{}' indices? [y/N]: ".format(", ".join(index_names))
+            )
             if response.lower() != 'y':
                 self.stdout.write('Aborted')
                 return False
 
-        if options['use_alias']:
             for index in index_names:
                 alias_exists = index in aliases
                 if alias_exists:
                     self._delete_alias_indices(index)
                 elif self.es_conn.indices.exists(index=index):
                     self.stdout.write(
-                        "'{}' refers to an index, not an alias. Run "
-                        "'--delete' without '--use-alias' arg to delete "
-                        "index.".format(index)
-                    )
-                    return False
-        else:
-            for index in registry.get_indices(models):
-                alias_exists = index._name in aliases
-                if not alias_exists:
-                    self.stdout.write("Deleting index '{}'".format(index._name))
-                    index.delete(ignore=404)
-                elif options['action'] == 'rebuild':
-                    self._delete_alias_indices(index._name)
-                elif options['action'] == 'delete':
-                    self.stdout.write(
-                        "'{}' refers to an alias, not an index. Run "
-                        "'--delete' with '--use-alias' arg to delete indices "
-                        "pointed at the alias.".format(index._name)
+                    "'{}' refers to an index, not an alias. ".format(index)
                     )
                     return False
 
         return True
 
-    def _update_alias(self, alias, new_index, alias_exists, options):
-        alias_actions = [{"add": {"alias": alias, "index": new_index}}]
-
-        delete_existing_index = False
-        if not alias_exists and self.es_conn.indices.exists(index=alias):
-            # Elasticsearch will return an error if an index already
-            # exists with the desired alias name. Therefore, we need to
-            # delete that index.
-            delete_existing_index = True
-            alias_actions.append({"remove_index": {"index": alias}})
-
-        old_indices = []
-        alias_delete_actions = []
-        if alias_exists:
-            # Elasticsearch will return an error if we search for
-            # indices by alias but the alias doesn't exist. Therefore,
-            # we want to be sure the alias exists.
-            old_indices = self._get_alias_indices(alias)
-            alias_actions.append(
-                {"remove": {"alias": alias, "indices": old_indices}}
-            )
-            alias_delete_actions = [
-                {"remove_index": {"index": index}} for index in old_indices
-            ]
-
-        self.es_conn.indices.update_aliases({"actions": alias_actions})
-        if delete_existing_index:
-             self.stdout.write("Deleted index '{}'".format(alias))
-
-        self.stdout.write(
-            "Added alias '{}' to index '{}'".format(alias, new_index)
-        )
-
-        if old_indices:
-            for index in old_indices:
-                self.stdout.write(
-                    "Removed alias '{}' from index '{}'".format(alias, index)
-                )
-
-            if alias_delete_actions and not options['use_alias_keep_index']:
-                self.es_conn.indices.update_aliases(
-                    {"actions": alias_delete_actions}
-                )
-                for index in old_indices:
-                    self.stdout.write("Deleted index '{}'".format(index))
-
     def _rebuild(self, models, aliases, options):
-        if (not options['use_alias']
-            and not self._delete(models, aliases, options)):
-            return
-
-        if options['use_alias']:
-            alias_index_pairs = []
-            index_suffix = "-" + datetime.now().strftime("%Y%m%d%H%M%S%f")
-            for index in registry.get_indices(models):
-                # The alias takes the original index name value. The
-                # index name sent to Elasticsearch will be the alias
-                # plus the suffix from above. In addition, the index
-                # name needs to be limited to 255 characters, of which
-                # 21 will always be taken by the suffix, leaving 234
-                # characters from the original index name value.
-                new_index = index._name[:234] + index_suffix
-                alias_index_pairs.append(
-                    {'alias': index._name, 'index': new_index}
-                )
-                index._name = new_index
-
-        self._create(models, aliases, options)
+        options['without-aliases']=True
+        new_indices = self._create(models, aliases, options)
         self._populate(models, options)
-
-        if options['use_alias']:
-            for alias_index_pair in alias_index_pairs:
-                alias = alias_index_pair['alias']
+        for new_index in new_indices:
+            try:
+                action_list = []
+                alias = new_index.alias
                 alias_exists = alias in aliases
-                self._update_alias(
-                    alias, alias_index_pair['index'], alias_exists, options
-                )
+                alias_delete_actions = []
+                if not alias_exists and self.es_conn.indices.exists(index=alias):
+                    raise
+                action_list.append({"add": {"alias": alias, "index": new_index.index._name}})
+                alias_delete_actions=[]
+                try:
+                    alias_indices = self._get_alias_indices(alias)
+                except:
+                    alias_indices = []
+                for old_index in alias_indices:
+                    action_list.append({"remove": {"alias": alias, "indices": old_index}})
+                    alias_delete_actions.append({"remove_index": {"index": old_index}})
 
+                self.stdout.write("Rebuild '{}'".format(alias))
+                try:
+                    self.es_conn.indices.update_aliases({"actions": action_list})
+                except Exception as e:
+                    self.stdout.write("Failed to run action")
+                    if alias_indices:
+                        self.es_conn.indices.update_aliases({"actions": [{"add": {"alias": alias, "index": old_index}}for old_index in alias_indices]})
+                    raise
+                if alias_delete_actions:
+                    self.stdout.write("Remove old indices")
+                    if alias_delete_actions:
+                        self.es_conn.indices.update_aliases({"actions": alias_delete_actions})
+            except:
+                self.stdout.write("Failed to rebuild index '{}'".format(new_index.index._name))
+                self.stdout.write("Remove new indices".format(new_index.index._name))
+                self.es_conn.indices.delete(index=new_index.index._name,ignore=[400, 404])
+                alias_delete_actions=[]
+                continue
     def handle(self, *args, **options):
         if not options['action']:
             raise CommandError(
