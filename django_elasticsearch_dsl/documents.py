@@ -88,6 +88,15 @@ class DocType(DSLDocument):
             model=cls.django.model
         )
 
+    def get_max_id(self):
+        return self.get_queryset().last().pk
+
+    def get_qs_chunk(self, chunk_id):
+        return self.get_queryset().filter(
+            pk__gt=chunk_id * self.django.queryset_pagination,
+            pk__lte=(chunk_id + 1) * self.django.queryset_pagination
+        )
+
     def get_queryset(self):
         """
         Return the queryset that should be indexed by this doc type.

@@ -4,7 +4,9 @@ from datetime import datetime
 from elasticsearch_dsl import connections
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.utils.module_loading import import_string
 from six.moves import input
+from math import ceil
 from ...registries import registry
 
 
@@ -143,14 +145,31 @@ class Command(BaseCommand):
 
     def _populate(self, models, options):
         parallel = options['parallel']
+        celery_task = import_string(getattr(settings,'ELASTICSEARCH_DSL_CELERY_TASK'))
+        celery_queue = getattr(settings, 'ELASTICSEARCH_DSL_CELERY_QUEUE')
         for doc in registry.get_documents(models):
-            self.stdout.write("Indexing {} '{}' objects {}".format(
-                doc().get_queryset().count() if options['count'] else "all",
-                doc.django.model.__name__,
-                "(parallel)" if parallel else "")
+            max_chunk_id = int(ceil(doc().get_max_id() / doc().django.queryset_pagination))
+            self.stdout.write(
+                "Indexing {} '{}' objects {}, processing in {} chunks".format(
+                    doc().get_queryset().count() if options['count'] else "all",
+                    doc.django.model.__name__,
+                    "(parallel)" if parallel else "",
+                    max_chunk_id
+                )
             )
-            qs = doc().get_indexing_queryset()
-            doc().update(qs, parallel=parallel, refresh=options['refresh'])
+            for chunk_id in range(0, max_chunk_id):
+                celery_task.apply_async(
+                    kwargs={
+                        "document": "{path}.{name}".format(
+                            path=doc.__module__,
+                            name=doc.__name__
+                        ),
+                        "chunk_id": chunk_id,
+                        "parallel": parallel,
+                        "refresh": options['refresh'],
+                    },
+                    queue=celery_queue
+                )
 
     def _get_alias_indices(self, alias):
         alias_indices = self.es_conn.indices.get_alias(name=alias)
