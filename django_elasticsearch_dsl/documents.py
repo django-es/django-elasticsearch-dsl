@@ -62,10 +62,10 @@ class DocType(DSLDocument):
         self._prepared_fields = self.init_prepare()
 
     def __eq__(self, other):
-        return id(self) == id(other)
+        return self.pk == other.pk
 
     def __hash__(self):
-        return id(self)
+        return self.pk
 
     @classmethod
     def _matches(cls, hit):
