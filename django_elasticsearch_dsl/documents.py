@@ -20,7 +20,7 @@ from .fields import (
     KeywordField,
     LongField,
     ShortField,
-    TextField,
+    TextField, TimeField,
 )
 from .search import Search
 from .signals import post_index
@@ -46,7 +46,7 @@ model_field_class_to_field_class = {
     models.SlugField: KeywordField,
     models.SmallIntegerField: ShortField,
     models.TextField: TextField,
-    models.TimeField: LongField,
+    models.TimeField: TimeField,
     models.URLField: TextField,
     models.UUIDField: KeywordField,
 }
