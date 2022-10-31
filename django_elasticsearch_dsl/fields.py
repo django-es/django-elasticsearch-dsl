@@ -4,6 +4,7 @@ import django
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.fields.files import FieldFile
+
 if django.VERSION < (4, 0):
     from django.utils.encoding import force_text as force_str
 else:
@@ -112,7 +113,8 @@ class ObjectField(DEDField, Object):
                 )
         else:
             doc_instance = self._doc_class()
-            for name, field in self._doc_class._doc_type.mapping.properties._params.get('properties', {}).items():  # noqa
+            for name, field in self._doc_class._doc_type.mapping.properties._params.get(
+                'properties', {}).items():  # noqa
                 if not isinstance(field, DEDField):
                     continue
 
@@ -255,3 +257,12 @@ class FileFieldMixin(object):
 
 class FileField(FileFieldMixin, DEDField, Text):
     pass
+
+
+class TimeField(KeywordField):
+    def get_value_from_instance(self, instance, field_value_to_ignore=None):
+        time = super(TimeField, self).get_value_from_instance(instance,
+                                                              field_value_to_ignore)
+
+        if time:
+            return time.isoformat()

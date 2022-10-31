@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from collections import deque
+from fnmatch import fnmatch
 from functools import partial
 
 from django import VERSION as DJANGO_VERSION
@@ -20,7 +21,7 @@ from .fields import (
     KeywordField,
     LongField,
     ShortField,
-    TextField,
+    TextField, TimeField,
 )
 from .search import Search
 from .signals import post_index
@@ -46,7 +47,7 @@ model_field_class_to_field_class = {
     models.SlugField: KeywordField,
     models.SmallIntegerField: ShortField,
     models.TextField: TextField,
-    models.TimeField: LongField,
+    models.TimeField: TimeField,
     models.URLField: TextField,
     models.UUIDField: KeywordField,
 }
@@ -65,6 +66,18 @@ class DocType(DSLDocument):
 
     def __hash__(self):
         return id(self)
+
+    @classmethod
+    def _matches(cls, hit):
+        """
+        Determine which index or indices in a pattern to be used in a hit.
+        Overrides DSLDocument _matches function to match indices in a pattern,
+        which is needed in case of using aliases. This is needed as the
+        document class will not be used to deserialize the documents. The
+        documents will have the index set to the concrete index, whereas the
+        class refers to the alias.
+        """
+        return fnmatch(hit.get("_index", ""), cls._index._name + "*")
 
     @classmethod
     def search(cls, using=None, index=None):
