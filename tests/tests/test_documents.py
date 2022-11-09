@@ -13,6 +13,9 @@ from django_opensearch_dsl.documents import Document
 from django_opensearch_dsl.exceptions import ModelFieldNotMappedError, RedeclaredFieldError
 from django_opensearch_dsl.registries import DocumentRegistry
 
+from django_dummy_app.models import Continent
+from django_dummy_app.documents import ContinentDocument
+
 registry = DocumentRegistry()
 
 
@@ -72,6 +75,8 @@ class CarDocument(Document):
 
 
 class DocumentTestCase(TestCase):
+    fixtures = ["tests/django_dummy_app/geography_data.json"]
+
     def test_model_class_added(self):
         self.assertEqual(CarDocument.django.model, Car)
 
@@ -149,6 +154,16 @@ class DocumentTestCase(TestCase):
         qs = CarDocument().get_queryset()
         self.assertIsInstance(qs, models.QuerySet)
         self.assertEqual(qs.model, Car)
+
+    def test_get_indexing_queryset(self):
+        doc = ContinentDocument()
+        unordered_qs = doc.get_queryset().order_by("?")
+
+        with patch("django_opensearch_dsl.documents.Document.get_queryset") as mock_qs:
+            mock_qs.return_value = unordered_qs
+            ordered_continents = list(doc.get_queryset().order_by("pk"))
+            indexing_continents = list(doc.get_indexing_queryset())
+            self.assertEqual(ordered_continents, indexing_continents)
 
     def test_prepare(self):
         car = Car(name="Type 57", price=5400000.0, not_indexed="not_indexex")

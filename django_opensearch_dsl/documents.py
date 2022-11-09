@@ -98,6 +98,7 @@ class Document(DSLDocument):
         """Divide the queryset into chunks."""
         chunk_size = self.django.queryset_pagination
         qs = self.get_queryset(filter_=filter_, exclude=exclude, count=count)
+        qs = qs.order_by("pk") if not qs.query.is_sliced else qs
         count = qs.count()
         model = self.django.model.__name__
         action = action.present_participle.title()
