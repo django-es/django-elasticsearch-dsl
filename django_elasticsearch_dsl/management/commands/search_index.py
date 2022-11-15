@@ -148,7 +148,12 @@ class Command(BaseCommand):
         celery_task = import_string(getattr(settings,'ELASTICSEARCH_DSL_CELERY_TASK'))
         celery_queue = getattr(settings, 'ELASTICSEARCH_DSL_CELERY_QUEUE')
         for doc in registry.get_documents(models):
+            min_chunk_id = 0
+            if options['docs_start']:
+                min_chunk_id = options['docs_start']
             max_chunk_id = int(ceil(doc().get_max_id() / doc().django.queryset_pagination))
+            if options['docs_end']:
+                max_chunk_id = options['docs_end']
             self.stdout.write(
                 "Indexing {} '{}' objects {}, processing in {} chunks".format(
                     doc().get_queryset().count() if options['count'] else "all",
@@ -157,7 +162,7 @@ class Command(BaseCommand):
                     max_chunk_id
                 )
             )
-            for chunk_id in range(0, max_chunk_id):
+            for chunk_id in range(min_chunk_id, max_chunk_id):
                 celery_task.apply_async(
                     kwargs={
                         "document": "{path}.{name}".format(
