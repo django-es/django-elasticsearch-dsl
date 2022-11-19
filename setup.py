@@ -19,6 +19,7 @@ CLASSIFIERS = [
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
 ]
 LONG_DESCRIPTION = (
     codecs.open(os.path.join(DIRNAME, 'README.md'), encoding='utf-8').read()
