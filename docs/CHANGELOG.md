@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0 (2022-11-19)
+
+* `get_indexing_queryset()` now order unordered QuerySet by their PK.
+  ([#29](https://github.com/Codoc-os/django-opensearch-dsl/issues/29), Contributed by [Cédric Raud](https://github.com/cedricraud)).
+* `keep_order` argument of `django_opensearch_dsl.search.Search.to_queryset` now default to `True`
+  to be in line with the documentation ([#27](https://github.com/Codoc-os/django-opensearch-dsl/issues/27)).
+
 ### 0.4.1 (2022-08-16)
 
 * `Document.update()` method now take an optional `using` argument allowing to specify an alternate
