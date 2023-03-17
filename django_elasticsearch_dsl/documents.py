@@ -42,6 +42,7 @@ model_field_class_to_field_class = {
     models.ImageField: FileField,
     models.IntegerField: IntegerField,
     models.NullBooleanField: BooleanField,
+    models.PositiveBigIntegerField: LongField,
     models.PositiveIntegerField: IntegerField,
     models.PositiveSmallIntegerField: ShortField,
     models.SlugField: KeywordField,
