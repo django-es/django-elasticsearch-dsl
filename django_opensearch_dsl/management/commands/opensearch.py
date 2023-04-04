@@ -137,13 +137,36 @@ class Command(BaseCommand):
                     self.stdout.write(f"{pp} index '{index._name}'... {self.style.SUCCESS('OK')}")  # noqa
 
     def _manage_document(
-        self, action, indices, force, filters, excludes, verbosity, parallel, count, refresh, missing, **options
+        self,
+        action,
+        indices,
+        objects,
+        force,
+        filters,
+        excludes,
+        verbosity,
+        parallel,
+        count,
+        refresh,
+        missing,
+        **options,
     ):  # noqa
         """Manage the creation and deletion of indices."""
         action = OpensearchAction(action)
         known = registry.get_indices()
         filter_ = functools.reduce(operator.and_, (Q(**{k: v}) for k, v in filters)) if filters else None
         exclude = functools.reduce(operator.and_, (Q(**{k: v}) for k, v in excludes)) if excludes else None
+
+        # Filter existing objects
+        valid_models = []
+        registered_models = [m.__name__.lower() for m in registry.get_models()]
+        if objects:
+            for model in objects:
+                if model.lower() in registered_models:
+                    valid_models.append(model)
+                else:
+                    self.stderr.write(f"Unknown object '{model}', choices are: '{registered_models}'")
+                    exit(1)
 
         # Filter indices
         if indices:
@@ -169,23 +192,51 @@ class Command(BaseCommand):
         # Check field, preparing to display expected actions
         s = f"The following documents will be {action.past}:"
         kwargs_list = []
-        for index in indices:
+
+        if objects:
+            django_models = [m for m in registry.get_models() if m.__name__.lower() in valid_models]
+            all_os_models = []
+            selected_os_models = []
+            indices = registry.get_indices_raw()
+
+            for k, v in indices.items():
+                for model in list(v):
+                    all_os_models.append(model)
+
+            for os_model in all_os_models:
+                if os_model.django.model in django_models:
+                    selected_os_models.append(os_model)
+
             # Handle --missing
             exclude_ = exclude
-            if missing and action == OpensearchAction.INDEX:
-                q = Q(pk__in=[h.meta.id for h in index.search().extra(stored_fields=[]).scan()])
-                exclude_ = exclude_ & q if exclude_ is not None else q
+            for model in selected_os_models:
+                try:
+                    kwargs_list.append({"filter_": filter_, "exclude": exclude_, "count": count})
+                    qs = model().get_queryset(filter_=filter_, exclude=exclude_, count=count).count()
+                except FieldError as e:
+                    self.stderr.write(f"Error while filtering on '{model.django.model.__name__}':\n{e}'")  # noqa
+                    exit(1)
+                else:
+                    s += f"\n\t- {qs} {model.django.model.__name__}."
 
-            document = index._doc_types[0]()  # noqa
-            try:
-                kwargs_list.append({"filter_": filter_, "exclude": exclude_, "count": count})
-                qs = document.get_queryset(filter_=filter_, exclude=exclude_, count=count).count()
-            except FieldError as e:
-                model = index._doc_types[0].django.model.__name__  # noqa
-                self.stderr.write(f"Error while filtering on '{model}' (from index '{index._name}'):\n{e}'")  # noqa
-                exit(1)
-            else:
-                s += f"\n\t- {qs} {document.django.model.__name__}."
+        else:
+            for index in indices:
+                # Handle --missing
+                exclude_ = exclude
+                if missing and action == OpensearchAction.INDEX:
+                    q = Q(pk__in=[h.meta.id for h in index.search().extra(stored_fields=[]).scan()])
+                    exclude_ = exclude_ & q if exclude_ is not None else q
+
+                document = index._doc_types[0]()  # noqa
+                try:
+                    kwargs_list.append({"filter_": filter_, "exclude": exclude_, "count": count})
+                    qs = document.get_queryset(filter_=filter_, exclude=exclude_, count=count).count()
+                except FieldError as e:
+                    model = index._doc_types[0].django.model.__name__  # noqa
+                    self.stderr.write(f"Error while filtering on '{model}' (from index '{index._name}'):\n{e}'")  # noqa
+                    exit(1)
+                else:
+                    s += f"\n\t- {qs} {document.django.model.__name__}."
 
         # Display expected actions
         if verbosity or not force:
@@ -202,28 +253,53 @@ class Command(BaseCommand):
                     exit(1)
 
         result = "\n"
-        for index, kwargs in zip(indices, kwargs_list):
-            document = index._doc_types[0]()  # noqa
-            qs = document.get_indexing_queryset(stdout=self.stdout._out, verbose=verbosity, action=action, **kwargs)
-            success, errors = document.update(
-                qs, parallel=parallel, refresh=refresh, action=action, raise_on_error=False
-            )
+        if objects:
+            for model, kwargs in zip(selected_os_models, kwargs_list):
+                document = model()  # noqa
+                qs = document.get_indexing_queryset(stdout=self.stdout._out, verbose=verbosity, action=action, **kwargs)
+                success, errors = document.update(
+                    qs, parallel=parallel, refresh=refresh, action=action, raise_on_error=False
+                )
 
-            success_str = self.style.SUCCESS(success) if success else success
-            errors_str = self.style.ERROR(len(errors)) if errors else len(errors)
-            model = document.django.model.__name__
+                success_str = self.style.SUCCESS(success) if success else success
+                errors_str = self.style.ERROR(len(errors)) if errors else len(errors)
+                model = document.django.model.__name__
 
-            if verbosity == 1:
-                result += f"{success_str} {model} successfully {action.past}, {errors_str} errors:\n"
-                reasons = defaultdict(int)
-                for e in errors:  # Count occurrence of each error
-                    error = e.get(action, {"result": "unknown error"}).get("result", "unknown error")
-                    reasons[error] += 1
-                for reasons, total in reasons.items():
-                    result += f"    - {reasons} : {total}\n"
+                if verbosity == 1:
+                    result += f"{success_str} {model} successfully {action.past}, {errors_str} errors:\n"
+                    reasons = defaultdict(int)
+                    for e in errors:  # Count occurrence of each error
+                        error = e.get(action, {"result": "unknown error"}).get("result", "unknown error")
+                        reasons[error] += 1
+                    for reasons, total in reasons.items():
+                        result += f"    - {reasons} : {total}\n"
 
-            if verbosity > 1:
-                result += f"{success_str} {model} successfully {action}d, {errors_str} errors:\n {errors}\n"
+                if verbosity > 1:
+                    result += f"{success_str} {model} successfully {action}d, {errors_str} errors:\n {errors}\n"
+
+        else:
+            for index, kwargs in zip(indices, kwargs_list):
+                document = index._doc_types[0]()  # noqa
+                qs = document.get_indexing_queryset(stdout=self.stdout._out, verbose=verbosity, action=action, **kwargs)
+                success, errors = document.update(
+                    qs, parallel=parallel, refresh=refresh, action=action, raise_on_error=False
+                )
+
+                success_str = self.style.SUCCESS(success) if success else success
+                errors_str = self.style.ERROR(len(errors)) if errors else len(errors)
+                model = document.django.model.__name__
+
+                if verbosity == 1:
+                    result += f"{success_str} {model} successfully {action.past}, {errors_str} errors:\n"
+                    reasons = defaultdict(int)
+                    for e in errors:  # Count occurrence of each error
+                        error = e.get(action, {"result": "unknown error"}).get("result", "unknown error")
+                        reasons[error] += 1
+                    for reasons, total in reasons.items():
+                        result += f"    - {reasons} : {total}\n"
+
+                if verbosity > 1:
+                    result += f"{success_str} {model} successfully {action}d, {errors_str} errors:\n {errors}\n"
 
         if verbosity:
             self.stdout.write(result + "\n")
@@ -319,6 +395,7 @@ class Command(BaseCommand):
         subparser.add_argument(
             "-i", "--indices", type=str, nargs="*", help="Only update documents on the given indices."
         )
+        subparser.add_argument("-o", "--objects", type=str, nargs="*", help="Only update selected objects.")
         subparser.add_argument(
             "-c", "--count", type=int, default=None, help="Update at most COUNT objects (0 to index everything)."
         )

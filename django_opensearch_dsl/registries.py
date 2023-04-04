@@ -88,10 +88,7 @@ class DocumentRegistry:
     def _get_related_doc(self, instance):
         for model in self._related_models.get(instance.__class__, []):
             for doc in self._models[model]:
-                if (
-                    instance.__class__ in doc.django.related_models
-                    or instance.__class__.__base__ in doc.django.related_models
-                ):
+                if instance.__class__ in doc.django.related_models:
                     yield doc
 
     def update_related(self, instance, action="index", **kwargs):
@@ -148,11 +145,6 @@ class DocumentRegistry:
                 if not doc.django.ignore_signals:
                     doc().update(instance, action, **kwargs)
 
-        if instance.__class__.__base__ in self._models:
-            for doc in self._models[instance.__class__.__base__]:
-                if not doc.django.ignore_signals:
-                    doc().update(instance, action, **kwargs)
-
     def delete(self, instance, **kwargs):
         """Delete all the opensearch documents attached to this model.
 
@@ -167,6 +159,16 @@ class DocumentRegistry:
             return set(index for index, docs in self._indices.items() for doc in docs if doc.django.model in models)
 
         return set(self._indices.keys())
+
+    def get_indices_raw(self, models=None):
+        """Get all indices as they are store in the registry or the indices for a list of models."""
+        if models is not None:
+            return list(index for index in self._indices for doc in docs if doc.django.model in models)
+        return self._indices
+
+    def get_models(self):
+        """Get all registered models in the registry."""
+        return set(self._models.keys())
 
 
 registry = DocumentRegistry()

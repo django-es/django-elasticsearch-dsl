@@ -218,6 +218,10 @@ class IpField(DODField, fields.Ip):
     """Allow indexing of IPv4 and IPv6 addresses."""
 
 
+class JoinField(DODField, fields.Join):
+    """Allow indexing of Join fields (with parent/child relation)."""
+
+
 class LongField(DODField, fields.Long):
     """Allow indexing of long.
 
