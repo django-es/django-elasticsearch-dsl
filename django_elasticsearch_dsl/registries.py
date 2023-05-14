@@ -5,6 +5,7 @@ from itertools import chain
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ImproperlyConfigured
+from django.db import models
 from elasticsearch_dsl import AttrDict
 from six import itervalues, iterkeys, iteritems
 
@@ -88,22 +89,47 @@ class DocumentRegistry(object):
         return document
 
     def _get_related_doc(self, instance):
-        for model in self._related_models.get(instance.__class__, []):
+        instance_cls = self._get_cls_from_instance(instance)
+        for model in self._related_models.get(instance_cls, []):
             for doc in self._models[model]:
-                if instance.__class__ in doc.django.related_models:
+                if instance_cls in doc.django.related_models:
                     yield doc
+
+    def _get_cls_from_instance(self, instance):
+        """
+        Get class from instance.
+
+        Supports getting a class from a model, list, or queryset.
+        """
+        if isinstance(instance, models.Model):
+            return instance.__class__
+        elif isinstance(instance, list):
+            return instance[0].__class__
+        elif isinstance(instance, models.QuerySet):
+            return instance.model
+        else:
+            return None
 
     def update_related(self, instance, **kwargs):
         """
         Update docs that have related_models.
+
+        The `many` flag has been introduced to handle mass updates of objects.
         """
         if not DEDConfig.autosync_enabled():
             return
 
+        many = kwargs.pop("many", False)
         for doc in self._get_related_doc(instance):
             doc_instance = doc()
             try:
-                related = doc_instance.get_instances_from_related(instance)
+                if many:
+                    related = doc_instance.get_instances_from_many_related(
+                        self._get_cls_from_instance(instance),
+                        instance
+                    )
+                else:
+                    related = doc_instance.get_instances_from_related(instance)
             except ObjectDoesNotExist:
                 related = None
 
@@ -113,14 +139,23 @@ class DocumentRegistry(object):
     def delete_related(self, instance, **kwargs):
         """
         Remove `instance` from related models.
+
+        The `many` flag has been introduced to handle mass updates of objects.
         """
         if not DEDConfig.autosync_enabled():
             return
 
+        many = kwargs.pop("many", False)
         for doc in self._get_related_doc(instance):
             doc_instance = doc(related_instance_to_ignore=instance)
             try:
-                related = doc_instance.get_instances_from_related(instance)
+                if many:
+                    related = doc_instance.get_instances_from_many_related(
+                        self._get_cls_from_instance(instance),
+                        instance
+                    )
+                else:
+                    related = doc_instance.get_instances_from_related(instance)
             except ObjectDoesNotExist:
                 related = None
 
@@ -135,8 +170,9 @@ class DocumentRegistry(object):
         if not DEDConfig.autosync_enabled():
             return
 
-        if instance.__class__ in self._models:
-            for doc in self._models[instance.__class__]:
+        instance_cls = self._get_cls_from_instance(instance)
+        if instance_cls in self._models:
+            for doc in self._models[instance_cls]:
                 if not doc.django.ignore_signals:
                     doc().update(instance, **kwargs)
 
