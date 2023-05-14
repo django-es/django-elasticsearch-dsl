@@ -28,6 +28,7 @@ Features
 - Elasticsearch auto mapping from django models fields.
 - Complex field type support (ObjectField, NestedField).
 - Index fast using `parallel` indexing.
+- Bulk operations support.
 - Requirements
 
    - Django >= 1.11
