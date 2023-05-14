@@ -1,4 +1,4 @@
-from .managers import (
+from .managers import (  # noqa
     DjangoElasticsearchDslManagerMixin,
     DjangoElasticsearchDslModelManager
 )

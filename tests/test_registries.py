@@ -214,10 +214,14 @@ class DocumentRegistryBulkOperationsTestCase(WithFixturesMixin, TestCase):
         doc_d1.get_instances_from_many_related.return_value = related_instances
         self.registry.update_related(instances_e, many=True)
 
-        doc_d1.get_instances_from_many_related.assert_called_once_with(self.ModelE, instances_e)
+        doc_d1.get_instances_from_many_related.assert_called_once_with(
+            self.ModelE, instances_e
+        )
         doc_d1.get_instances_from_related.assert_not_called()
         doc_d1.update.assert_called_once_with(related_instances)
-        doc_d2.get_instances_from_many_related.assert_called_once_with(self.ModelE, instances_e)
+        doc_d2.get_instances_from_many_related.assert_called_once_with(
+            self.ModelE, instances_e
+        )
         doc_d2.get_instances_from_related.assert_not_called()
         doc_d2.update.assert_called_once_with(related_instances)
 
@@ -227,7 +231,9 @@ class DocumentRegistryBulkOperationsTestCase(WithFixturesMixin, TestCase):
         doc_d2.update.reset_mock()
 
         self.registry.update_related(instances_b, many=True)
-        doc_d1.get_instances_from_many_related.assert_called_once_with(self.ModelB, instances_b)
+        doc_d1.get_instances_from_many_related.assert_called_once_with(
+            self.ModelB, instances_b
+        )
         doc_d1.get_instances_from_related.assert_not_called()
         doc_d1.update.assert_called_once_with(related_instances)
         doc_d2.get_instances_from_many_related.assert_not_called()
@@ -288,10 +294,14 @@ class DocumentRegistryBulkOperationsTestCase(WithFixturesMixin, TestCase):
         doc_d1.get_instances_from_many_related.return_value = related_instances
         self.registry.delete_related(instances_e, many=True)
 
-        doc_d1.get_instances_from_many_related.assert_called_once_with(self.ModelE, instances_e)
+        doc_d1.get_instances_from_many_related.assert_called_once_with(
+            self.ModelE, instances_e
+        )
         doc_d1.get_instances_from_related.assert_not_called()
         doc_d1.update.assert_called_once_with(related_instances)
-        doc_d2.get_instances_from_many_related.assert_called_once_with(self.ModelE, instances_e)
+        doc_d2.get_instances_from_many_related.assert_called_once_with(
+            self.ModelE, instances_e
+        )
         doc_d2.get_instances_from_related.assert_not_called()
         doc_d2.update.assert_called_once_with(related_instances)
 
@@ -301,7 +311,9 @@ class DocumentRegistryBulkOperationsTestCase(WithFixturesMixin, TestCase):
         doc_d2.update.reset_mock()
 
         self.registry.delete_related(instances_b, many=True)
-        doc_d1.get_instances_from_many_related.assert_called_once_with(self.ModelB, instances_b)
+        doc_d1.get_instances_from_many_related.assert_called_once_with(
+            self.ModelB, instances_b
+        )
         doc_d1.get_instances_from_related.assert_not_called()
         doc_d1.update.assert_called_once_with(related_instances)
         doc_d2.get_instances_from_many_related.assert_not_called()

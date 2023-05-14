@@ -25,7 +25,7 @@ from .documents import (
     ArticleWithSlugAsIdDocument,
     index_settings,
     CarBulkDocument,
-    AdBulkDocument, ManufacturerBulkDocument
+    ManufacturerBulkDocument
 )
 from .models import (
     Car,
@@ -502,7 +502,9 @@ class IntegrationBulkOperationConfTestCase(ESTestCase, TestCase):
         car3_doc = s.execute()[0]
         self.assertEqual(car3_doc.manufacturer.name, None)
 
-        CarBulkManager.objects.filter(id=self.car3.id).update(manufacturer_id=self.manufacturer.pk)
+        CarBulkManager.objects.filter(
+            id=self.car3.id
+        ).update(manufacturer_id=self.manufacturer.pk)
 
         s = CarBulkDocument.search().query("match", name=self.car3.name)
         car3_doc = s.execute()[0]
@@ -553,7 +555,9 @@ class IntegrationBulkOperationConfTestCase(ESTestCase, TestCase):
         car2_doc = s.execute()[0]
         self.assertEqual(len(car2_doc.ads), 0)
 
-        ManufacturerBulkManager.objects.filter(id=self.manufacturer.id).delete()
+        ManufacturerBulkManager.objects.filter(
+            id=self.manufacturer.id
+        ).delete()
         s = CarBulkDocument.search().query("match", name=self.car2.name)
         car2_doc = s.execute()[0]
 

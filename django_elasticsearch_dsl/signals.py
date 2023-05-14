@@ -63,7 +63,8 @@ class BaseSignalProcessor(object):
         We need to do this before the real delete otherwise the relation
         doesn't exists anymore and we can't get the related models instance.
 
-        Disabling distribution for deletion cases other than deletion by entity.
+        Disabling distribution for deletion cases other
+        than deletion by entity.
         """
         if isinstance(kwargs.get("origin"), models.Model):
             registry.delete_related(instance)
@@ -73,7 +74,8 @@ class BaseSignalProcessor(object):
 
         Given an individual model instance, delete the object from index.
 
-        Disabling distribution for deletion cases other than deletion by entity.
+        Disabling distribution for deletion cases other
+        than deletion by entity.
         """
         if isinstance(kwargs.get("origin"), models.Model):
             registry.delete(instance, raise_on_error=False)

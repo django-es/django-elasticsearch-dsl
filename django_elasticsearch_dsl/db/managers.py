@@ -1,5 +1,3 @@
-from typing import List, Union
-
 from django.db import models
 
 from .utils import get_queryset_by_ids
@@ -16,7 +14,7 @@ class DjangoElasticsearchDslManagerMixin(object):
     """
     _registry = registry
 
-    def _normalize_results(self, result) -> Union[List[models.Model], models.QuerySet]:
+    def _normalize_results(self, result):
         if isinstance(result, models.Model):
             return [result]
         elif isinstance(result, (list, models.QuerySet)):
@@ -24,7 +22,8 @@ class DjangoElasticsearchDslManagerMixin(object):
         else:
             raise TypeError(
                 "Incorrect results type. "
-                "Expected 'django.db.models.Model', <class 'list'> or 'django.db.models.Queryset', "
+                "Expected 'django.db.models.Model', "
+                "<class 'list'> or 'django.db.models.Queryset', "
                 "but got %s" % type(result)
             )
 
@@ -66,7 +65,8 @@ class DjangoElasticsearchDslManagerMixin(object):
         )
 
 
-class DjangoElasticsearchDslModelManager(models.QuerySet, DjangoElasticsearchDslManagerMixin):
+class DjangoElasticsearchDslModelManager(models.QuerySet,
+                                         DjangoElasticsearchDslManagerMixin):
     """Django Elasticsearch Dsl model manager.
 
     Working with possible bulk operations, updates documents accordingly.
@@ -109,7 +109,10 @@ class DjangoElasticsearchDslModelManager(models.QuerySet, DjangoElasticsearchDsl
 
         After deleting it causes `handle_delete`.
         """
-        objs = get_queryset_by_ids(self.model, list(self.values_list("id", flat=True)))
+        objs = get_queryset_by_ids(
+            self.model,
+            list(self.values_list("id", flat=True))
+        )
         self._handle_pre_delete(objs)
         objs = list(objs)
 

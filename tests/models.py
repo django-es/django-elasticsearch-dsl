@@ -184,7 +184,10 @@ class AdBulkManager(models.Model):
     modified = models.DateField(auto_now=True)
     url = models.URLField()
     car = models.ForeignKey(
-        'CarBulkManager', related_name='ads',  null=True, on_delete=models.SET_NULL
+        'CarBulkManager',
+        related_name='ads',
+        null=True,
+        on_delete=models.SET_NULL
     )
 
     class Meta:
