@@ -88,6 +88,15 @@ class DEDField(Field):
 
         if instance == field_value_to_ignore:
             return None
+        elif isinstance(field_value_to_ignore, models.QuerySet) and \
+            isinstance(instance, models.Model) and \
+            field_value_to_ignore.contains(instance):
+            return None
+        elif isinstance(field_value_to_ignore, models.QuerySet) and \
+            isinstance(instance, models.QuerySet):
+            instance = instance.exclude(
+                id__in=field_value_to_ignore.values_list("id", flat=True)
+            )
 
         # convert lazy object like lazy translations to string
         if isinstance(instance, Promise):
