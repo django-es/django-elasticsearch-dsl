@@ -42,7 +42,6 @@ model_field_class_to_field_class = {
     models.ImageField: FileField,
     models.IntegerField: IntegerField,
     models.NullBooleanField: BooleanField,
-    models.PositiveBigIntegerField: LongField,
     models.PositiveIntegerField: IntegerField,
     models.PositiveSmallIntegerField: ShortField,
     models.SlugField: KeywordField,
@@ -52,6 +51,9 @@ model_field_class_to_field_class = {
     models.URLField: TextField,
     models.UUIDField: KeywordField,
 }
+
+if DJANGO_VERSION >= (3.1,):
+    model_field_class_to_field_class[models.PositiveBigIntegerField] = LongField
 
 
 class DocType(DSLDocument):
