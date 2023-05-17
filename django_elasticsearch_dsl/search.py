@@ -14,12 +14,17 @@ class Search(DSLSearch):
         s._model = self._model
         return s
 
-    def to_queryset(self, keep_order=True):
+    def filter_queryset(self, queryset, keep_search_order=True):
         """
-        This method return a django queryset from the an elasticsearch result.
-        It cost a query to the sql db.
+        Filter an existing django queryset using the elasticsearch result.
+        It costs a query to the sql db.
         """
         s = self
+        if s._model is not queryset.model:
+            raise TypeError(
+                'Unexpected queryset model '
+                '(should be: %s, got: %s)' % (s._model, queryset.model)
+            )
 
         # Do not query again if the es result is already cached
         if not hasattr(self, '_response'):
@@ -28,14 +33,27 @@ class Search(DSLSearch):
             s = s.execute()
 
         pks = [result.meta.id for result in s]
+        queryset = queryset.filter(pk__in=pks)
 
-        qs = self._model.objects.filter(pk__in=pks)
-
-        if keep_order:
+        if keep_search_order:
             preserved_order = Case(
                 *[When(pk=pk, then=pos) for pos, pk in enumerate(pks)],
                 output_field=IntegerField()
             )
-            qs = qs.order_by(preserved_order)
+            queryset = queryset.order_by(preserved_order)
 
-        return qs
+        return queryset
+
+    def _get_queryset(self):
+        """
+        Return a django queryset that will be filtered by to_queryset method.
+        """
+        return self._model._default_manager.all()
+
+    def to_queryset(self, keep_order=True):
+        """
+        Return a django queryset from the elasticsearch result.
+        It costs a query to the sql db.
+        """
+        qs = self._get_queryset()
+        return self.filter_queryset(qs, keep_order)
