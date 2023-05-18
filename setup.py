@@ -8,7 +8,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-version = '7.2.2'
+version = '7.3'
 
 if sys.argv[-1] == 'publish':
     try:
@@ -42,7 +42,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        'elasticsearch-dsl>=7.2.0<8.0.0',
+        'elasticsearch-dsl>=7.2.0,<8.0.0',
         'six',
     ],
     license="Apache Software License 2.0",

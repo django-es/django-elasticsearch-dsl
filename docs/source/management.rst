@@ -14,7 +14,7 @@ Create the indices and their mapping in Elasticsearch:
 
     $ search_index --create [--models [app[.model] app[.model] ...]]
 
-Populate the Elasticsearch mappings with the django models data (index need to be existing):
+Populate the Elasticsearch mappings with the Django models data (index need to be existing):
 
 ::
 
@@ -26,3 +26,14 @@ Recreate and repopulate the indices:
 
     $ search_index --rebuild [-f] [--models [app[.model] app[.model] ...]] [--parallel] [--refresh]
 
+Recreate and repopulate the indices using aliases:
+
+::
+
+    $ search_index --rebuild --use-alias [--models [app[.model] app[.model] ...]] [--parallel] [--refresh]
+
+Recreate and repopulate the indices using aliases, but not deleting the indices that previously pointed to the aliases:
+
+::
+
+    $ search_index --rebuild --use-alias --use-alias-keep-index [--models [app[.model] app[.model] ...]] [--parallel] [--refresh]

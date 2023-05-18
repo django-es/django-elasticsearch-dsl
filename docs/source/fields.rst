@@ -234,16 +234,40 @@ Available Fields
 instance.
 
 
+Field Mapping
+=============
+Django Elasticsearch DSL maps most of the django fields
+appropriate Elasticsearch Field. You can find the field
+mapping on `documents.py` file in the `model_field_class_to_field_class`
+variable. If you need to change the behavior of this mapping, or add mapping
+for your custom field, you can do so by overwriting the classmethod
+`get_model_field_class_to_field_class`. Remember, you need to inherit
+`django_elasticsearch_dsl.fields.DEDField` for your custom field.
+Like following
+
+.. code-block:: python
+
+    from django_elasticsearch_dsl.fields import DEDField
+
+    class MyCustomDEDField(DEDField, ElasticsearchField):
+        pass
+
+    @classmethod
+    def get_model_field_class_to_field_class(cls):
+        field_mapping = super().get_model_field_class_to_field_class()
+        field_mapping[MyCustomDjangoField] = MyCustomDEDField
+
+
 Document id
 ===========
 
-The elasticsearch document id (``_id``) is not strictly speaking a field, as it is not 
+The elasticsearch document id (``_id``) is not strictly speaking a field, as it is not
 part of the document itself. The default behavior of ``django_elasticsearch_dsl``
 is to use the primary key of the model as the document's id (``pk`` or ``id``).
 Nevertheless, it can sometimes be useful to change this default behavior. For this, one
 can redefine the ``generate_id(cls, instance)`` class method of the ``Document`` class.
 
-For example, to use an article's slug as the elasticsearch ``_id`` instead of the 
+For example, to use an article's slug as the elasticsearch ``_id`` instead of the
 article's integer id, one could use:
 
 .. code-block:: python

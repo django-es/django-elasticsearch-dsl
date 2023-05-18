@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from collections import deque
+from fnmatch import fnmatch
 from functools import partial
 
 from django import VERSION as DJANGO_VERSION
@@ -20,7 +21,7 @@ from .fields import (
     KeywordField,
     LongField,
     ShortField,
-    TextField,
+    TextField, TimeField,
 )
 from .search import Search
 from .signals import post_index
@@ -46,10 +47,13 @@ model_field_class_to_field_class = {
     models.SlugField: KeywordField,
     models.SmallIntegerField: ShortField,
     models.TextField: TextField,
-    models.TimeField: LongField,
+    models.TimeField: TimeField,
     models.URLField: TextField,
     models.UUIDField: KeywordField,
 }
+
+if DJANGO_VERSION >= (3.1,):
+    model_field_class_to_field_class[models.PositiveBigIntegerField] = LongField
 
 
 class DocType(DSLDocument):
@@ -65,6 +69,18 @@ class DocType(DSLDocument):
 
     def __hash__(self):
         return id(self)
+
+    @classmethod
+    def _matches(cls, hit):
+        """
+        Determine which index or indices in a pattern to be used in a hit.
+        Overrides DSLDocument _matches function to match indices in a pattern,
+        which is needed in case of using aliases. This is needed as the
+        document class will not be used to deserialize the documents. The
+        documents will have the index set to the concrete index, whereas the
+        class refers to the alias.
+        """
+        return fnmatch(hit.get("_index", ""), cls._index._name + "*")
 
     @classmethod
     def search(cls, using=None, index=None):
@@ -132,6 +148,17 @@ class DocType(DSLDocument):
         return data
 
     @classmethod
+    def get_model_field_class_to_field_class(cls):
+        """
+        Returns dict of relationship from model field class to elasticsearch
+        field class
+
+        You may want to override this if you have model field class not included
+        in model_field_class_to_field_class.
+        """
+        return model_field_class_to_field_class
+
+    @classmethod
     def to_field(cls, field_name, model_field):
         """
         Returns the elasticsearch field instance appropriate for the model
@@ -139,7 +166,7 @@ class DocType(DSLDocument):
         model field to ES field logic
         """
         try:
-            return model_field_class_to_field_class[
+            return cls.get_model_field_class_to_field_class()[
                 model_field.__class__](attr=field_name)
         except KeyError:
             raise ModelFieldNotMappedError(

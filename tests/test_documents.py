@@ -5,6 +5,7 @@ from unittest import SkipTest
 
 import django
 from django.db import models
+
 if django.VERSION < (4, 0):
     from django.utils.translation import ugettext_lazy as _
 else:
@@ -380,7 +381,8 @@ class BaseDocTypeTestCase(object):
                 3, len(list(mock_bulk.call_args_list[0][1]['actions']))
             )
             self.assertEqual(mock_bulk.call_count, 1, "bulk is called")
-            self.assertEqual(mock_parallel_bulk.call_count, 0, "parallel bulk is not called")
+            self.assertEqual(mock_parallel_bulk.call_count, 0,
+                             "parallel bulk is not called")
 
     def test_model_instance_iterable_update_with_parallel(self):
         class CarDocument2(DocType):
@@ -419,7 +421,8 @@ class BaseDocTypeTestCase(object):
             e = expect[name]
             self.assertEqual(str(type(field)), e[0], 'field type should be copied over')
             self.assertTrue('__call__' in dir(prep), 'prep function should be callable')
-            self.assertTrue(str(type(prep)) in e[1], 'prep function is correct partial or method')
+            self.assertTrue(str(type(prep)) in e[1],
+                            'prep function is correct partial or method')
 
     def test_init_prepare_results(self):
         """Are the results from init_prepare() actually used in prepare()?"""
@@ -432,7 +435,9 @@ class BaseDocTypeTestCase(object):
         setattr(car, 'pk', 4701)  # Ignored, not in document
         setattr(car, 'type', "imaginary")
 
-        self.assertEqual(d.prepare(car), {'color': 'blue', 'type': 'imaginary', 'name': 'Tusla', 'price': 340123.21})
+        self.assertEqual(d.prepare(car),
+                         {'color': 'blue', 'type': 'imaginary', 'name': 'Tusla',
+                          'price': 340123.21})
 
         m = Mock()
         # This will blow up should we access _fields and try to iterate over it.
@@ -506,6 +511,47 @@ class BaseDocTypeTestCase(object):
         data = json.loads(mock_bulk.call_args[1]['body'].split("\n")[0])
         assert data["index"]["_id"] == article.slug
 
+    @patch('elasticsearch_dsl.connections.Elasticsearch.bulk')
+    def test_should_index_object_is_called(self, mock_bulk):
+        doc = CarDocument()
+        car1 = Car()
+        car2 = Car()
+        car3 = Car()
+        should_index_object = ("django_elasticsearch_dsl.documents."
+                               "DocType.should_index_object")
+        with patch(should_index_object) as mock_should_index_object:
+            doc.update([car1, car2, car3])
+            # As we are indexing 3 object, it should be called 3 times
+            self.assertEqual(mock_should_index_object.call_count, 3,
+                             "should_index_object is called")
+
+    @patch('elasticsearch_dsl.connections.Elasticsearch.bulk')
+    def test_should_index_object_working_perfectly(self, mock_bulk):
+        article1 = Article(slug='article1')
+        article2 = Article(slug='article2')
+
+        @registry.register_document
+        class ArticleDocument(DocType):
+            class Django:
+                model = Article
+                fields = [
+                    'slug',
+                ]
+
+            class Index:
+                name = 'test_articles'
+
+            def should_index_object(self, obj):
+                # Article with slug article1 should not be indexed
+                if obj.slug == "article2":
+                    return False
+                return True
+
+        d = ArticleDocument()
+        d.update([article1, article2])
+        data_body = mock_bulk.call_args[1]['body']
+        self.assertTrue(article1.slug in data_body)
+        self.assertTrue(article2.slug not in data_body)
 
 class RealTimeDocTypeTestCase(BaseDocTypeTestCase, TestCase):
     TARGET_PROCESSOR = 'django_elasticsearch_dsl.signals.RealTimeSignalProcessor'
