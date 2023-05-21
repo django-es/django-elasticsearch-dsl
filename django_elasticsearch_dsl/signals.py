@@ -135,7 +135,6 @@ else:
             We need to do this before the real delete otherwise the relation
             doesn't exists anymore and we can't get the related models instance.
             """
-            #registry.delete_related(instance)
             self.prepare_registry_delete_related_task(instance)
 
         def handle_delete(self, sender, instance, **kwargs):
@@ -143,14 +142,13 @@ else:
 
             Given an individual model instance, delete the object from index.
             """
-            registry.delete(instance, raise_on_error=False)
+            self.prepare_registry_delete_task(instance)
 
         def prepare_registry_delete_related_task(self, instance):
             """
             Select its related instance before this instance was deleted.
             And pass that to celery.
             """
-            bulk_data = {}
             action = 'index'
             for doc in registry._get_related_doc(instance):
                 doc_instance = doc(related_instance_to_ignore=instance)
@@ -159,46 +157,45 @@ else:
                 except ObjectDoesNotExist:
                     related = None
                 if related is not None:
+                    doc_instance.update(related)
                     if isinstance(related, models.Model):
                         object_list = [related]
                     else:
                         object_list = related
-                    bulk_data[
-                        doc_instance.__name__] = doc_instance._get_actions(
-                            object_list, action)
-            self.registry_delete_related_task.delay(bulk_data)
+                    bulk_data = list(doc_instance._get_actions(object_list, action)),
+                    self.registry_delete_task.delay(doc_instance.__class__.__name__, bulk_data)
 
         @shared_task()
-        def registry_delete_related_task(data):
-            for doc_label, bulk_data in data:
-                doc_instance = import_module(doc_label)
-                kwargs = dict()
-                parallel = True
-                doc_instance._bulk(bulk_data, parallel=parallel, **kwargs)
+        def registry_delete_task(doc_label, data):
+            """
+            Handle the bulk delete data on the registry as a Celery task.
+            The different implementations used are due to the difference between delete and update operations. 
+            The update operation can re-read the updated data from the database to ensure eventual consistency, 
+            but the delete needs to be processed before the database record is deleted to obtain the associated data.
+            """
+            doc_instance = import_module(doc_label)
+            parallel = True
+            doc_instance._bulk(bulk_data, parallel=parallel)
 
         def prepare_registry_delete_task(self, instance):
             """
             Get the prepare did before database record deleted.
             """
             action = 'delete'
-            if instance.__class__ in registry._models:
-                bulk_data = {}
-                for doc in registry._models[instance.__class__]:
-                    if not doc.django.ignore_signals:
-                        doc_instance = doc()
-                        bulk_data[
-                            doc_instance.__name__] = doc_instance._get_actions(
-                                [instance], action)
-                if bulk_data:
-                    self.registry_delete_task.delay(bulk_data)
-
-        @shared_task()
-        def registry_delete_task(data):
-            for doc_label, bulk_data in data:
-                doc_instance = import_module(doc_label)
-                kwargs = dict()
-                parallel = True
-                doc_instance._bulk(bulk_data, parallel=parallel, **kwargs)
+            for doc in registry._get_related_doc(instance):
+                doc_instance = doc(related_instance_to_ignore=instance)
+                try:
+                    related = doc_instance.get_instances_from_related(instance)
+                except ObjectDoesNotExist:
+                    related = None
+                if related is not None:
+                    doc_instance.update(related)
+                    if isinstance(related, models.Model):
+                        object_list = [related]
+                    else:
+                        object_list = related
+                    bulk_data = list(doc_instance._get_actions(object_list, action)),
+                    self.registry_delete_task.delay(doc_instance.__class__.__name__, bulk_data)
 
         @shared_task()
         def registry_update_task(pk, app_label, model_name):
