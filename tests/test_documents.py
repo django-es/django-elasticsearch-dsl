@@ -78,7 +78,7 @@ class BaseDocTypeTestCase(object):
                     cls.TARGET_PROCESSOR, settings.ELASTICSEARCH_DSL_SIGNAL_PROCESSOR
                 )
             )
-        super().setUpClass()
+        super(BaseDocTypeTestCase,cls).setUpClass()
 
     def test_model_class_added(self):
         self.assertEqual(CarDocument.django.model, Car)

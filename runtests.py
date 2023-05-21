@@ -39,7 +39,7 @@ try:
                 },
             },
             DEFAULT_AUTO_FIELD="django.db.models.BigAutoField",
-            CELERY_BROKER_URL='redis://localhost:6379/1',
+            CELERY_BROKER_URL='memory://localhost/',
             CELERY_TASK_ALWAYS_EAGER=True,
             CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
             ELASTICSEARCH_DSL_SIGNAL_PROCESSOR=signal_processor
