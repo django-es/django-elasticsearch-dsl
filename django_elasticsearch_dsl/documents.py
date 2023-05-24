@@ -219,6 +219,13 @@ class DocType(DSLDocument):
         for object_instance in object_list:
             if action == 'delete' or self.should_index_object(object_instance):
                 yield self._prepare_action(object_instance, action)
+    
+    def get_actions(self, object_list, action):
+        """
+        Generate the elasticsearch payload.
+        """
+        return self._get_actions(object_list, action)
+
 
     def _bulk(self, *args, **kwargs):
         """Helper for switching between normal and parallel bulk operation"""
