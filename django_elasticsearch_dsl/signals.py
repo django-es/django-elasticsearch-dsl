@@ -127,11 +127,10 @@ else:
             app_label = instance._meta.app_label
             model_name = instance.__class__.__name__
 
-            if instance.__class__ in registry._models or instance.__class__ in registry._related_models:
-                transaction.on_commit(
-                    lambda instance: self.registry_update_task.delay(instance.pk, app_label, model_name))
-                transaction.on_commit(
-                    lambda instance: self.registry_update_related_task.delay(instance.pk, app_label, model_name))
+            transaction.on_commit(
+                lambda instance: self.registry_update_task.delay(instance.pk, app_label, model_name))
+            transaction.on_commit(
+                lambda instance: self.registry_update_related_task.delay(instance.pk, app_label, model_name))
 
         def handle_pre_delete(self, sender, instance, **kwargs):
             """Handle removing of instance object from related models instance.
