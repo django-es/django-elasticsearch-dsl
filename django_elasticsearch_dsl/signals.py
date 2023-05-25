@@ -7,7 +7,6 @@ cause things to index.
 from __future__ import absolute_import
 
 from django.db import models
-from django.db import transaction
 from django.apps import apps
 from django.dispatch import Signal
 from .registries import registry
@@ -124,13 +123,12 @@ else:
             Given an individual model instance, update the object in the index.
             Update the related objects either.
             """
+            pk = instance.pk
             app_label = instance._meta.app_label
             model_name = instance.__class__.__name__
 
-            transaction.on_commit(
-                lambda : self.registry_update_task.delay(instance.pk, app_label, model_name))
-            transaction.on_commit(
-                lambda : self.registry_update_related_task.delay(instance.pk, app_label, model_name))
+            self.registry_update_task.delay(pk, app_label, model_name)
+            self.registry_update_related_task.delay(pk, app_label, model_name)
 
         def handle_pre_delete(self, sender, instance, **kwargs):
             """Handle removing of instance object from related models instance.
