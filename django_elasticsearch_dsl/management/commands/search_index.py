@@ -1,10 +1,19 @@
 from __future__ import unicode_literals, absolute_import
-from datetime import datetime
 
+import argparse
+import functools
+import operator
+from argparse import ArgumentParser
+from datetime import datetime
+from typing import Callable, Any
+
+from django.db.models import Q
 from elasticsearch_dsl import connections
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from six.moves import input
+
+from ..parsers import parse
 from ...registries import registry
 
 
@@ -16,6 +25,9 @@ class Command(BaseCommand):
         self.es_conn = connections.get_connection()
 
     def add_arguments(self, parser):
+        # Ensure --filter description is properly formatted
+        parser.formatter_class = argparse.RawTextHelpFormatter
+
         parser.add_argument(
             '--models',
             metavar='app[.model]',
@@ -79,10 +91,10 @@ class Command(BaseCommand):
             '--use-alias-keep-index',
             action='store_true',
             dest='use_alias_keep_index',
-            help="""
-                Do not delete replaced indices when used with '--rebuild' and
-                '--use-alias' args
-            """
+            help=(
+                "Do not delete replaced indices when used with '--rebuild' and "
+                "'--use-alias' args"
+            )
         )
         parser.set_defaults(parallel=getattr(settings, 'ELASTICSEARCH_DSL_PARALLEL', False))
         parser.add_argument(
@@ -99,6 +111,47 @@ class Command(BaseCommand):
             dest='count',
             help='Do not include a total count in the summary log line'
         )
+        parser.add_argument(
+            "--filter",
+            type=str,
+            nargs="*",
+            help=(
+                "Filter object in the queryset. Argument must be formatted as '[lookup]=[value]', e.g. "
+                "'document_date__gte=2020-05-21.\n"
+                "The accepted value type are:\n"
+                "  - 'None' ('[lookup]=')\n"
+                "  - 'float' ('[lookup]=1.12')\n"
+                "  - 'int' ('[lookup]=23')\n"
+                "  - 'datetime.datetime' ('[lookup]=2020-10-08T12:30:12+02:00')\n"
+                "  - 'list' ('[lookup]=1,2,3,4') Value between comma ',' can be of any other accepted value type\n"
+                "  - 'str' ('[lookup]=week') Value that didn't match any type above will be interpreted as a str\n"
+                "The list of lookup function can be found here: "
+                "https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups"
+            ),
+        )
+        parser.add_argument(
+            "-e",
+            "--exclude",
+            type=str,
+            nargs="*",
+            help=(
+                "Exclude objects from the queryset. Argument must be formatted as '[lookup]=[value]', see '--filter' "
+                "for more information"
+            ),
+        )
+
+    def _parse_filter(self, value):
+        try:
+            lookup, v = value.split("=")
+            v = parse(v)
+        except ValueError:
+            self.stderr.write(
+                "manage.py search_index: error: invalid filter: '{}' (filters must be formatted as "
+                "'<Field Lookups>=[value]')\n".format(value)
+            )
+            exit(1)
+        return lookup, v  # noqa
+
 
     def _get_models(self, args):
         """
@@ -143,13 +196,24 @@ class Command(BaseCommand):
 
     def _populate(self, models, options):
         parallel = options['parallel']
+        filter = None
+        exclude = None
+
+        # Reduce filters to one `Q` object.
+        if options.get('filter') is not None:
+            filter = (self._parse_filter(f) for f in options["filter"])
+            filter = functools.reduce(operator.and_, (Q(**{k: v}) for k, v in filter))
+        if options.get('exclude') is not None:
+            exclude = (self._parse_filter(f) for f in options["exclude"])
+            exclude = functools.reduce(operator.and_, (Q(**{k: v}) for k, v in exclude))
+
         for doc in registry.get_documents(models):
             self.stdout.write("Indexing {} '{}' objects {}".format(
-                doc().get_queryset().count() if options['count'] else "all",
+                doc().get_queryset(filter=filter, exclude=exclude).count() if options['count'] else "all",
                 doc.django.model.__name__,
                 "(parallel)" if parallel else "")
             )
-            qs = doc().get_indexing_queryset()
+            qs = doc().get_indexing_queryset(filter=filter, exclude=exclude)
             doc().update(qs, parallel=parallel, refresh=options['refresh'])
 
     def _get_alias_indices(self, alias):

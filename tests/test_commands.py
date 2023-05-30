@@ -1,6 +1,9 @@
+import datetime
+
+from django.utils.timezone import make_aware
+from django.db.models import Q
 from mock import DEFAULT, Mock, patch
 from unittest import TestCase
-
 from django.core.management.base import CommandError
 from django.core.management import call_command
 from six import StringIO
@@ -130,6 +133,72 @@ class SearchIndexTestCase(WithFixturesMixin, TestCase):
         self.doc_a2.update.assert_called_once_with(self.doc_a2_qs.iterator(), **expected_kwargs)
         self.doc_b1.update.assert_called_once_with(self.doc_b1_qs.iterator(), **expected_kwargs)
         self.doc_c1.update.assert_called_once_with(self.doc_c1_qs.iterator(), **expected_kwargs)
+
+    def test_populate_all_doc_type_filter(self):
+        filters = [
+            "char_column=keyword",
+            "char_column__icontains=word",
+            "int_column=5",
+            "int_column__lte=10",
+            "float_column=5.2",
+            "float_column__lte=10.7",
+            "date_column=2023-05-30",
+            "date_column__year__gte=2025",
+            "datetime_column=2023-05-30T12:00",
+            "datetime_column__year__gte=2025",
+            "nullable_column=",
+            "char_column__in=keyword1,keyword2,keyword3",
+            "int_column__in=1,2,3",
+            "float_column__in=1.1,2.1,3.1",
+            "date_column__in=2023-05-29,2023-05-30,2023-05-31",
+            "datetime_column__in=2023-05-30T12,2023-05-30T13,2023-05-30T14",
+        ]
+        q = (
+            Q(char_column="keyword")
+            & Q(char_column__icontains="word")
+            & Q(int_column=5)
+            & Q(int_column__lte=10)
+            & Q(float_column=5.2)
+            & Q(float_column__lte=10.7)
+            & Q(date_column=make_aware(datetime.datetime(2023, 5, 30)))
+            & Q(date_column__year__gte=2025)
+            & Q(datetime_column=make_aware(datetime.datetime(2023, 5, 30, 12, 0)))
+            & Q(datetime_column__year__gte=2025)
+            & Q(nullable_column=None)
+            & Q(char_column__in=["keyword1", "keyword2", "keyword3"])
+            & Q(int_column__in=[1, 2, 3])
+            & Q(float_column__in=[1.1, 2.1, 3.1])
+            & Q(date_column__in=[
+                make_aware(datetime.datetime(2023, 5, 29)),
+                make_aware(datetime.datetime(2023, 5, 30)),
+                make_aware(datetime.datetime(2023, 5, 31))
+            ])
+            & Q(datetime_column__in=[
+                make_aware(datetime.datetime(2023, 5, 30, 12)),
+                make_aware(datetime.datetime(2023, 5, 30, 13)),
+                make_aware(datetime.datetime(2023, 5, 30, 14)),
+            ])
+        )
+        call_command('search_index', stdout=self.out, action='populate', filter=filters, refresh=True)
+        self.doc_a1.get_queryset.assert_called_with(filter=q, exclude=None)
+        self.doc_a2.get_queryset.assert_called_with(filter=q, exclude=None)
+        self.doc_b1.get_queryset.assert_called_with(filter=q, exclude=None)
+        self.doc_c1.get_queryset.assert_called_with(filter=q, exclude=None)
+
+    def test_populate_all_doc_type_filter_and_exclude(self):
+        call_command(
+            'search_index',
+            stdout=self.out,
+            action='populate',
+            filter=["int_column_gte=5"],
+            exclude=["int_column_gte=10"],
+            refresh=True
+        )
+        kwargs = {"filter": Q(int_column_gte=5), "exclude": Q(int_column_gte=10)}
+        self.doc_a1.get_queryset.assert_called_with(**kwargs)
+        self.doc_a2.get_queryset.assert_called_with(**kwargs)
+        self.doc_b1.get_queryset.assert_called_with(**kwargs)
+        self.doc_c1.get_queryset.assert_called_with(**kwargs)
 
     def test_rebuild_indices(self):
 
