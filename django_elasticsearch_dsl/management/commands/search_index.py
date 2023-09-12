@@ -161,7 +161,7 @@ class Command(BaseCommand):
         alias_delete_actions = [
             {"remove_index": {"index": index}} for index in alias_indices
         ]
-        self.es_conn.indices.update_aliases({"actions": alias_delete_actions})
+        self.es_conn.indices.update_aliases(actions=alias_delete_actions)
         for index in alias_indices:
             self.stdout.write("Deleted index '{}'".format(index))
 
@@ -231,7 +231,7 @@ class Command(BaseCommand):
                 {"remove_index": {"index": index}} for index in old_indices
             ]
 
-        self.es_conn.indices.update_aliases({"actions": alias_actions})
+        self.es_conn.indices.update_aliases(actions=alias_actions)
         if delete_existing_index:
              self.stdout.write("Deleted index '{}'".format(alias))
 
@@ -247,7 +247,7 @@ class Command(BaseCommand):
 
             if alias_delete_actions and not options['use_alias_keep_index']:
                 self.es_conn.indices.update_aliases(
-                    {"actions": alias_delete_actions}
+                    actions=alias_delete_actions
                 )
                 for index in old_indices:
                     self.stdout.write("Deleted index '{}'".format(index))
