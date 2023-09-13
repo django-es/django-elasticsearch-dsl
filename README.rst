@@ -37,6 +37,8 @@ Features
 The library is compatible with all Elasticsearch versions since 5.x
 **but you have to use a matching major version:**
 
+- For Elasticsearch 8.0 and later, use the major version 8 (8.x.y) of the library.
+
 - For Elasticsearch 7.0 and later, use the major version 7 (7.x.y) of the library.
 
 - For Elasticsearch 6.0 and later, use the major version 6 (6.x.y) of the library.
@@ -44,6 +46,9 @@ The library is compatible with all Elasticsearch versions since 5.x
 - For Elasticsearch 5.0 and later, use the major version 0.5 (0.5.x) of the library.
 
 .. code-block:: python
+
+    # Elasticsearch 8.x
+    elasticsearch-dsl>=8.0.0,<9.0.0
 
     # Elasticsearch 7.x
     elasticsearch-dsl>=7.0.0,<8.0.0
