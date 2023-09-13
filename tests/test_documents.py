@@ -494,8 +494,8 @@ class DocTypeTestCase(TestCase):
 
         # Get the data from the elasticsearch low level API because
         # The generator get executed there.
-        data = json.loads(mock_bulk.call_args[1]['body'].split("\n")[0])
-        assert data["index"]["_id"] == article.slug
+        data = json.loads(mock_bulk.call_args[1]['operations'][1])
+        assert data['slug'] == article.slug
 
     @patch('elasticsearch_dsl.connections.Elasticsearch.bulk')
     def test_should_index_object_is_called(self, mock_bulk):
@@ -535,6 +535,10 @@ class DocTypeTestCase(TestCase):
 
         d = ArticleDocument()
         d.update([article1, article2])
-        data_body = mock_bulk.call_args[1]['body']
-        self.assertTrue(article1.slug in data_body)
-        self.assertTrue(article2.slug not in data_body)
+        operations = mock_bulk.call_args[1]['operations']
+        slugs = [
+            json.loads(operation)['slug'] for operation in operations
+            if 'slug' in json.loads(operation)
+        ]
+        self.assertTrue(article1.slug in slugs)
+        self.assertTrue(article2.slug not in slugs)

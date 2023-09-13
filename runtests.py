@@ -7,6 +7,27 @@ try:
     from django.test.utils import get_runner
 
     def get_settings():
+        elasticsearch_dsl_default_settings = {
+            'hosts': os.environ.get(
+                'ELASTICSEARCH_URL',
+                'https://127.0.0.1:9200'
+            ),
+            'http_auth': (
+                os.environ.get('ELASTICSEARCH_USERNAME'),
+                os.environ.get('ELASTICSEARCH_PASSWORD')
+            )
+        }
+
+        elasticsearch_certs_path = os.environ.get(
+            'ELASTICSEARCH_CERTS_PATH'
+        )
+        if elasticsearch_certs_path:
+            elasticsearch_dsl_default_settings['ca_certs'] = (
+                elasticsearch_certs_path
+            )
+        else:
+            elasticsearch_dsl_default_settings['verify_certs'] = False
+
         settings.configure(
             DEBUG=True,
             USE_TZ=True,
@@ -25,10 +46,7 @@ try:
             SITE_ID=1,
             MIDDLEWARE_CLASSES=(),
             ELASTICSEARCH_DSL={
-                'default': {
-                    'hosts': os.environ.get('ELASTICSEARCH_URL',
-                                            '127.0.0.1:9200')
-                },
+                'default': elasticsearch_dsl_default_settings
             },
             DEFAULT_AUTO_FIELD="django.db.models.BigAutoField",
         )
@@ -59,6 +77,21 @@ def make_parser():
         const='localhost:9200',
         help="To run integration test against an Elasticsearch server",
     )
+    parser.add_argument(
+        '--elasticsearch-username',
+        nargs='?',
+        help="Username for Elasticsearch user"
+    )
+    parser.add_argument(
+        '--elasticsearch-password',
+        nargs='?',
+        help="Password for Elasticsearch user"
+    )
+    parser.add_argument(
+        '--elasticsearch-certs-path',
+        nargs='?',
+        help="Path to CA certificates for Elasticsearch"
+    )
     return parser
 
 
@@ -66,6 +99,18 @@ def run_tests(*test_args):
     args, test_args = make_parser().parse_known_args(test_args)
     if args.elasticsearch:
         os.environ.setdefault('ELASTICSEARCH_URL', args.elasticsearch)
+
+    os.environ.setdefault(
+        'ELASTICSEARCH_USERNAME', args.elasticsearch_username
+    )
+    os.environ.setdefault(
+        'ELASTICSEARCH_PASSWORD', args.elasticsearch_password
+    )
+
+    if args.elasticsearch_certs_path:
+        os.environ.setdefault(
+            'ELASTICSEARCH_CERTS_PATH', args.elasticsearch_certs_path
+        )
 
     if not test_args:
         test_args = ['tests']
