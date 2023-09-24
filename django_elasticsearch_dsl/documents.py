@@ -52,9 +52,6 @@ model_field_class_to_field_class = {
     models.UUIDField: KeywordField,
 }
 
-if DJANGO_VERSION >= (3.1,):
-    model_field_class_to_field_class[models.PositiveBigIntegerField] = LongField
-
 
 class DocType(DSLDocument):
     _prepared_fields = []
@@ -65,10 +62,10 @@ class DocType(DSLDocument):
         self._prepared_fields = self.init_prepare()
 
     def __eq__(self, other):
-        return id(self) == id(other)
+        return self.pk == other.pk
 
     def __hash__(self):
-        return id(self)
+        return self.pk
 
     @classmethod
     def _matches(cls, hit):
@@ -89,6 +86,15 @@ class DocType(DSLDocument):
             index=cls._default_index(index),
             doc_type=[cls],
             model=cls.django.model
+        )
+
+    def get_max_id(self):
+        return self.get_queryset().last().pk
+
+    def get_qs_chunk(self, chunk_id):
+        return self.get_queryset().filter(
+            pk__gt=chunk_id * self.django.queryset_pagination,
+            pk__lte=(chunk_id + 1) * self.django.queryset_pagination
         )
 
     def get_queryset(self):
@@ -146,17 +152,6 @@ class DocType(DSLDocument):
             for name, field, prep_func in self._prepared_fields
         }
         return data
-
-    @classmethod
-    def get_model_field_class_to_field_class(cls):
-        """
-        Returns dict of relationship from model field class to elasticsearch
-        field class
-
-        You may want to override this if you have model field class not included
-        in model_field_class_to_field_class.
-        """
-        return model_field_class_to_field_class
 
     @classmethod
     def to_field(cls, field_name, model_field):
