@@ -161,6 +161,7 @@ class DocType(DSLDocument):
         """
         Returns dict of relationship from model field class to elasticsearch
         field class
+
         You may want to override this if you have model field class not included
         in model_field_class_to_field_class.
         """
