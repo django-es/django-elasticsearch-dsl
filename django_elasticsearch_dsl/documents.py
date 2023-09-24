@@ -52,6 +52,9 @@ model_field_class_to_field_class = {
     models.UUIDField: KeywordField,
 }
 
+if DJANGO_VERSION >= (3.1,):
+    model_field_class_to_field_class[models.PositiveBigIntegerField] = LongField
+
 
 class DocType(DSLDocument):
     _prepared_fields = []
