@@ -1,6 +1,6 @@
-bumpversion==0.5.3
-wheel==0.32.2
-django>=2.0,<2.2
+bumpversion==0.6.0
+wheel==0.41.2
+django>=3.2
 elasticsearch-dsl>=7.0.0,<8.0.0
 twine
 sphinx

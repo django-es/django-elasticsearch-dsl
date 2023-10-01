@@ -3,7 +3,7 @@ import unittest
 
 import django
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 if django.VERSION < (4, 0):
     from django.utils.translation import ugettext_lazy as _
 else:
@@ -29,7 +29,7 @@ from .models import Car, Manufacturer, Ad, Category, Article, COUNTRIES
 
 
 @unittest.skipUnless(is_es_online(), 'Elasticsearch is offline')
-class IntegrationTestCase(ESTestCase, TestCase):
+class IntegrationTestCase(ESTestCase, TransactionTestCase):
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
         self.manufacturer = Manufacturer(

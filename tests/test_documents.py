@@ -1,5 +1,7 @@
 import json
 from unittest import TestCase
+from unittest import SkipTest
+
 
 import django
 from django.db import models
@@ -64,7 +66,19 @@ class CarDocument(DocType):
         doc_type = 'car_document'
 
 
-class DocTypeTestCase(TestCase):
+class BaseDocTypeTestCase(object):
+    TARGET_PROCESSOR = None
+
+    @classmethod
+    def setUpClass(cls):
+        from django.conf import settings
+        if cls.TARGET_PROCESSOR != settings.ELASTICSEARCH_DSL_SIGNAL_PROCESSOR:
+            raise SkipTest(
+                "Skipped because {} is required, not {}".format(
+                    cls.TARGET_PROCESSOR, settings.ELASTICSEARCH_DSL_SIGNAL_PROCESSOR
+                )
+            )
+        super(BaseDocTypeTestCase,cls).setUpClass()
 
     def test_model_class_added(self):
         self.assertEqual(CarDocument.django.model, Car)
@@ -542,3 +556,13 @@ class DocTypeTestCase(TestCase):
         ]
         self.assertTrue(article1.slug in slugs)
         self.assertTrue(article2.slug not in slugs)
+        data_body = mock_bulk.call_args[1]['body']
+        self.assertTrue(article1.slug in data_body)
+        self.assertTrue(article2.slug not in data_body)
+
+class RealTimeDocTypeTestCase(BaseDocTypeTestCase, TestCase):
+    TARGET_PROCESSOR = 'django_elasticsearch_dsl.signals.RealTimeSignalProcessor'
+
+
+class CeleryDocTypeTestCase(BaseDocTypeTestCase, TestCase):
+    TARGET_PROCESSOR = 'django_elasticsearch_dsl.signals.CelerySignalProcessor'

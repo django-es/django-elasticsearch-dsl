@@ -37,8 +37,15 @@ An example:
 
 Defaults to ``django_elasticsearch_dsl.signals.RealTimeSignalProcessor``.
 
-You could, for instance, make a ``CelerySignalProcessor`` which would add
-update jobs to the queue to for delayed processing.
+Options: ``django_elasticsearch_dsl.signals.RealTimeSignalProcessor`` \ ``django_elasticsearch_dsl.signals.CelerySignalProcessor``
+
+In this ``CelerySignalProcessor`` implementation,
+Create and update operations will record the updated data primary key from the database and delay the time to find the association to ensure eventual consistency.
+Delete operations are processed to obtain associated data before database records are deleted.
+And celery needs to be pre-configured in the django project, for example  `Using Celery with Django <https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html>`.
+
+You could, for instance, make a ``CustomSignalProcessor`` which would apply
+update jobs as your wish.
 
 ELASTICSEARCH_DSL_PARALLEL
 ==========================
