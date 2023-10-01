@@ -1,2 +1,2 @@
-django>=1.9.6
+django>=3.2
 elasticsearch-dsl>=7.0.0,<8.0.0
