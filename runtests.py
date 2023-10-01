@@ -120,7 +120,7 @@ def make_parser():
 def run_tests(*test_args):
     args, test_args = make_parser().parse_known_args(test_args)
     if args.elasticsearch:
-        os.environ.setdefault('ELASTICSEARCH_URL', args.elasticsearch)
+        os.environ.setdefault('ELASTICSEARCH_URL', "https://127.0.0.1:9200")
 
     if args.elasticsearch_username and args.elasticsearch_password:
         os.environ.setdefault(
