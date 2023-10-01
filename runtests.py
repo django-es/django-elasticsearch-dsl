@@ -29,7 +29,7 @@ try:
             )
         else:
             elasticsearch_dsl_default_settings['verify_certs'] = False
- 
+
         PROCESSOR_CLASSES = {
             'realtime': 'django_elasticsearch_dsl.signals.RealTimeSignalProcessor',
             'celery': 'django_elasticsearch_dsl.signals.CelerySignalProcessor',
