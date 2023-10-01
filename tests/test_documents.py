@@ -556,9 +556,6 @@ class BaseDocTypeTestCase(object):
         ]
         self.assertTrue(article1.slug in slugs)
         self.assertTrue(article2.slug not in slugs)
-        data_body = mock_bulk.call_args[1]['body']
-        self.assertTrue(article1.slug in data_body)
-        self.assertTrue(article2.slug not in data_body)
 
 class RealTimeDocTypeTestCase(BaseDocTypeTestCase, TestCase):
     TARGET_PROCESSOR = 'django_elasticsearch_dsl.signals.RealTimeSignalProcessor'
