@@ -9,6 +9,27 @@ try:
     from django.test.utils import get_runner
 
     def get_settings(signal_processor):
+        elasticsearch_dsl_default_settings = {
+            'hosts': os.environ.get(
+                'ELASTICSEARCH_URL',
+                'https://127.0.0.1:9200'
+            ),
+            'basic_auth': (
+                os.environ.get('ELASTICSEARCH_USERNAME'),
+                os.environ.get('ELASTICSEARCH_PASSWORD')
+            )
+        }
+
+        elasticsearch_certs_path = os.environ.get(
+            'ELASTICSEARCH_CERTS_PATH'
+        )
+        if elasticsearch_certs_path:
+            elasticsearch_dsl_default_settings['ca_certs'] = (
+                elasticsearch_certs_path
+            )
+        else:
+            elasticsearch_dsl_default_settings['verify_certs'] = False
+ 
         PROCESSOR_CLASSES = {
             'realtime': 'django_elasticsearch_dsl.signals.RealTimeSignalProcessor',
             'celery': 'django_elasticsearch_dsl.signals.CelerySignalProcessor',
@@ -33,10 +54,7 @@ try:
             SITE_ID=1,
             MIDDLEWARE_CLASSES=(),
             ELASTICSEARCH_DSL={
-                'default': {
-                    'hosts': os.environ.get('ELASTICSEARCH_URL',
-                                            '127.0.0.1:9200')
-                },
+                'default': elasticsearch_dsl_default_settings
             },
             DEFAULT_AUTO_FIELD="django.db.models.BigAutoField",
             CELERY_BROKER_URL='memory://localhost/',
@@ -81,13 +99,42 @@ def make_parser():
         choices=('realtime', 'celery'),
         help='Defines which signal backend to choose'
     )
+    parser.add_argument(
+        '--elasticsearch-username',
+        nargs='?',
+        help="Username for Elasticsearch user"
+    )
+    parser.add_argument(
+        '--elasticsearch-password',
+        nargs='?',
+        help="Password for Elasticsearch user"
+    )
+    parser.add_argument(
+        '--elasticsearch-certs-path',
+        nargs='?',
+        help="Path to CA certificates for Elasticsearch"
+    )
     return parser
 
 
 def run_tests(*test_args):
     args, test_args = make_parser().parse_known_args(test_args)
     if args.elasticsearch:
-        os.environ.setdefault('ELASTICSEARCH_URL', args.elasticsearch)
+        os.environ.setdefault('ELASTICSEARCH_URL', "https://127.0.0.1:9200")
+
+        username = args.elasticsearch_username or "elastic"
+        password = args.elasticsearch_password or "changeme"
+        os.environ.setdefault(
+            'ELASTICSEARCH_USERNAME', username
+        )
+        os.environ.setdefault(
+            'ELASTICSEARCH_PASSWORD', password
+        )
+
+    if args.elasticsearch_certs_path:
+        os.environ.setdefault(
+            'ELASTICSEARCH_CERTS_PATH', args.elasticsearch_certs_path
+        )
 
     if not test_args:
         test_args = ['tests']

@@ -20,8 +20,9 @@ For example:
 
     ELASTICSEARCH_DSL={
         'default': {
-            'hosts': 'localhost:9200'
-        },
+            'hosts': 'localhost:9200',
+            'http_auth': ('username', 'password')
+        }
     }
 
 ``ELASTICSEARCH_DSL`` is then passed to ``elasticsearch-dsl-py.connections.configure`` (see here_).
