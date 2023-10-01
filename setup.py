@@ -33,6 +33,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 setup(
     name='django-elasticsearch-dsl',
     version=version,
+    python_requires=">=3.8",
     description="""Wrapper around elasticsearch-dsl-py for django models""",
     long_description=readme + '\n\n' + history,
     author='Sabricot',
