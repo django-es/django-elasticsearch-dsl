@@ -8,7 +8,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-version = '7.3'
+version = '7.4'
 
 if sys.argv[-1] == 'publish':
     try:
@@ -63,4 +63,7 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
     ],
+    extras_require={
+        'celery':  ["celery>=4.1.0"],
+    }
 )
