@@ -14,7 +14,7 @@ try:
                 'ELASTICSEARCH_URL',
                 'https://127.0.0.1:9200'
             ),
-            'http_auth': (
+            'basic_auth': (
                 os.environ.get('ELASTICSEARCH_USERNAME'),
                 os.environ.get('ELASTICSEARCH_PASSWORD')
             )
@@ -122,12 +122,13 @@ def run_tests(*test_args):
     if args.elasticsearch:
         os.environ.setdefault('ELASTICSEARCH_URL', "https://127.0.0.1:9200")
 
-    if args.elasticsearch_username and args.elasticsearch_password:
+        username = args.elasticsearch_username or "elastic"
+        password = args.elasticsearch_password or "changeme"
         os.environ.setdefault(
-            'ELASTICSEARCH_USERNAME', args.elasticsearch_username
+            'ELASTICSEARCH_USERNAME', username
         )
         os.environ.setdefault(
-            'ELASTICSEARCH_PASSWORD', args.elasticsearch_password
+            'ELASTICSEARCH_PASSWORD', password
         )
 
     if args.elasticsearch_certs_path:
