@@ -122,6 +122,7 @@ def run_tests(*test_args):
     if args.elasticsearch:
         os.environ.setdefault('ELASTICSEARCH_URL', args.elasticsearch)
 
+    if args.elasticsearch_username and args.elasticsearch_password:
         os.environ.setdefault(
             'ELASTICSEARCH_USERNAME', args.elasticsearch_username
         )
