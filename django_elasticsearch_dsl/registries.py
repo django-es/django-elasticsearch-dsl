@@ -174,5 +174,11 @@ class DocumentRegistry(object):
 
         return set(iterkeys(self._indices))
 
+    def __contains__(self, model):
+        """
+        Checks that model is in registry
+        """
+        return model in self._models or model in self._related_models
+
 
 registry = DocumentRegistry()

@@ -72,4 +72,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
     ],
+    extras_require={
+        'celery':  ["celery>=4.1.0"],
+    }
 )

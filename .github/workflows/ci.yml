@@ -122,6 +122,7 @@ jobs:
         run: |
           TOX_ENV=$(echo "py${{ matrix.python-version }}-django-${{ matrix.django-version }}-es${{ matrix.es-dsl-version }}" | tr -d .)
           python -m tox -e $TOX_ENV -- --elasticsearch
+          python -m tox -e $TOX_ENV -- --elasticsearch --signal-processor celery
 
       - name: Publish Coverage Report
         uses: codecov/codecov-action@v1
