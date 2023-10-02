@@ -45,5 +45,6 @@ class WithFixturesMixin(object):
             Doc.get_queryset = Mock(return_value=mock_qs)
         if _related_models:
             Doc.get_instances_from_related = Mock()
+            Doc.get_instances_from_many_related = Mock()
 
         return Doc

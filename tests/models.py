@@ -9,6 +9,8 @@ else:
     from django.utils.translation import gettext_lazy as _
 from six import python_2_unicode_compatible
 
+from django_elasticsearch_dsl.db import DjangoElasticsearchDslModelManager
+
 
 @python_2_unicode_compatible
 class Car(models.Model):
@@ -106,3 +108,90 @@ class Article(models.Model):
 
     def __str__(self):
         return self.slug
+
+
+@python_2_unicode_compatible
+class CarBulkManager(models.Model):
+    objects = DjangoElasticsearchDslModelManager.as_manager()
+
+    TYPE_CHOICES = (
+        ('se', "Sedan"),
+        ('br', "Break"),
+        ('4x', "4x4"),
+        ('co', "Coupé"),
+    )
+
+    name = models.CharField(max_length=255)
+    launched = models.DateField()
+    type = models.CharField(
+        max_length=2,
+        choices=TYPE_CHOICES,
+        default='se',
+    )
+    manufacturer = models.ForeignKey(
+        'ManufacturerBulkManager', null=True, on_delete=models.SET_NULL
+    )
+    categories = models.ManyToManyField('CategoryBulkManager')
+
+    class Meta:
+        app_label = 'tests'
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
+class ManufacturerBulkManager(models.Model):
+    objects = DjangoElasticsearchDslModelManager.as_manager()
+
+    name = models.CharField(max_length=255, default=_("Test lazy tanslation"))
+    country_code = models.CharField(max_length=2)
+    created = models.DateField()
+    logo = models.ImageField(blank=True)
+
+    class meta:
+        app_label = 'tests'
+
+    def country(self):
+        return COUNTRIES.get(self.country_code, self.country_code)
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
+class CategoryBulkManager(models.Model):
+    objects = DjangoElasticsearchDslModelManager.as_manager()
+
+    title = models.CharField(max_length=255)
+    slug = models.CharField(max_length=255)
+    icon = models.ImageField(blank=True)
+
+    class Meta:
+        app_label = 'tests'
+
+    def __str__(self):
+        return self.title
+
+
+@python_2_unicode_compatible
+class AdBulkManager(models.Model):
+    objects = DjangoElasticsearchDslModelManager.as_manager()
+
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    created = models.DateField(auto_now_add=True)
+    modified = models.DateField(auto_now=True)
+    url = models.URLField()
+    car = models.ForeignKey(
+        'CarBulkManager',
+        related_name='ads',
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        app_label = 'tests'
+
+    def __str__(self):
+        return self.title

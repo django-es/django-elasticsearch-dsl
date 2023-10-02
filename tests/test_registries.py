@@ -144,3 +144,187 @@ class DocumentRegistryTestCase(WithFixturesMixin, TestCase):
         self.assertFalse(self.doc_a1.update.called)
 
         settings.ELASTICSEARCH_DSL_AUTOSYNC = True
+
+
+class DocumentRegistryBulkOperationsTestCase(WithFixturesMixin, TestCase):
+    """
+    Test case for working with bulk operations.
+    """
+
+    def setUp(self) -> None:
+        self.registry = DocumentRegistry()
+        self.index_1 = Index(name='index_1')
+        self.index_2 = Index(name='index_2')
+
+        self.doc_a1 = self._generate_doc_mock(self.ModelA, self.index_1)
+        self.doc_a2 = self._generate_doc_mock(self.ModelA, self.index_1)
+        self.doc_b1 = self._generate_doc_mock(self.ModelB, self.index_2)
+        self.doc_c1 = self._generate_doc_mock(self.ModelC, self.index_1)
+
+    def test_update_instances(self):
+        """
+        Checking for `update`.
+        """
+        doc_a3 = self._generate_doc_mock(
+            self.ModelA, self.index_1, _ignore_signals=True
+        )
+
+        instances = self.ModelA.objects.all()
+        self.registry.update(instances)
+
+        self.assertFalse(doc_a3.update.called)
+        self.assertFalse(self.doc_b1.update.called)
+        self.doc_a1.update.assert_called_once_with(instances)
+        self.doc_a2.update.assert_called_once_with(instances)
+
+    def test_update_instances_as_list(self):
+        """
+        Checking for `update` where instances is list.
+        """
+        doc_a3 = self._generate_doc_mock(
+            self.ModelA, self.index_1, _ignore_signals=True
+        )
+
+        instances = [self.ModelA()]
+        self.registry.update(instances)
+
+        self.assertFalse(doc_a3.update.called)
+        self.assertFalse(self.doc_b1.update.called)
+        self.doc_a1.update.assert_called_once_with(instances)
+        self.doc_a2.update.assert_called_once_with(instances)
+
+    def test_update_related_instances(self):
+        """
+        Checking the correct call of the get function from
+        related objects.
+        """
+        doc_d1 = self._generate_doc_mock(
+            self.ModelD, self.index_1,
+            _related_models=[self.ModelE, self.ModelB]
+        )
+        doc_d2 = self._generate_doc_mock(
+            self.ModelD, self.index_1, _related_models=[self.ModelE]
+        )
+
+        instances_e = self.ModelE.objects.all()
+        instances_b = self.ModelB.objects.all()
+        related_instances = self.ModelD.objects.all()
+
+        doc_d2.get_instances_from_many_related.return_value = related_instances
+        doc_d1.get_instances_from_many_related.return_value = related_instances
+        self.registry.update_related(instances_e, many=True)
+
+        doc_d1.get_instances_from_many_related.assert_called_once_with(
+            self.ModelE, instances_e
+        )
+        doc_d1.get_instances_from_related.assert_not_called()
+        doc_d1.update.assert_called_once_with(related_instances)
+        doc_d2.get_instances_from_many_related.assert_called_once_with(
+            self.ModelE, instances_e
+        )
+        doc_d2.get_instances_from_related.assert_not_called()
+        doc_d2.update.assert_called_once_with(related_instances)
+
+        doc_d1.get_instances_from_many_related.reset_mock()
+        doc_d1.update.reset_mock()
+        doc_d2.get_instances_from_many_related.reset_mock()
+        doc_d2.update.reset_mock()
+
+        self.registry.update_related(instances_b, many=True)
+        doc_d1.get_instances_from_many_related.assert_called_once_with(
+            self.ModelB, instances_b
+        )
+        doc_d1.get_instances_from_related.assert_not_called()
+        doc_d1.update.assert_called_once_with(related_instances)
+        doc_d2.get_instances_from_many_related.assert_not_called()
+        doc_d2.get_instances_from_related.assert_not_called()
+        doc_d2.update.assert_not_called()
+
+    def test_update_related_instances_not_defined(self):
+        """
+        Checking the correct call, if the function of
+        getting objects from related is not defined.
+        """
+        doc_d1 = self._generate_doc_mock(_model=self.ModelD, index=self.index_1,
+                                         _related_models=[self.ModelE])
+
+        instances = self.ModelE.objects.all()
+
+        doc_d1.get_instances_from_related.return_value = None
+        self.registry.update_related(instances)
+
+        doc_d1.get_instances_from_related.assert_called_once_with(instances)
+        doc_d1.update.assert_not_called()
+
+    def test_delete_instances(self):
+        """
+        Checking the correct call `delete`.
+        """
+        doc_a3 = self._generate_doc_mock(
+            self.ModelA, self.index_1, _ignore_signals=True
+        )
+
+        instances = self.ModelA.objects.all()
+        self.registry.delete(instances)
+
+        self.assertFalse(doc_a3.update.called)
+        self.assertFalse(self.doc_b1.update.called)
+        self.doc_a1.update.assert_called_once_with(instances, action='delete')
+        self.doc_a2.update.assert_called_once_with(instances, action='delete')
+
+    def test_delete_related_instances(self):
+        """
+        Checking the correct call `delete_related`.
+
+        The signature is similar to `update_related`.
+        """
+        doc_d1 = self._generate_doc_mock(
+            self.ModelD, self.index_1,
+            _related_models=[self.ModelE, self.ModelB]
+        )
+        doc_d2 = self._generate_doc_mock(
+            self.ModelD, self.index_1, _related_models=[self.ModelE]
+        )
+
+        instances_e = self.ModelE.objects.all()
+        instances_b = self.ModelB.objects.all()
+        related_instances = self.ModelD.objects.all()
+
+        doc_d2.get_instances_from_many_related.return_value = related_instances
+        doc_d1.get_instances_from_many_related.return_value = related_instances
+        self.registry.delete_related(instances_e, many=True)
+
+        doc_d1.get_instances_from_many_related.assert_called_once_with(
+            self.ModelE, instances_e
+        )
+        doc_d1.get_instances_from_related.assert_not_called()
+        doc_d1.update.assert_called_once_with(related_instances)
+        doc_d2.get_instances_from_many_related.assert_called_once_with(
+            self.ModelE, instances_e
+        )
+        doc_d2.get_instances_from_related.assert_not_called()
+        doc_d2.update.assert_called_once_with(related_instances)
+
+        doc_d1.get_instances_from_many_related.reset_mock()
+        doc_d1.update.reset_mock()
+        doc_d2.get_instances_from_many_related.reset_mock()
+        doc_d2.update.reset_mock()
+
+        self.registry.delete_related(instances_b, many=True)
+        doc_d1.get_instances_from_many_related.assert_called_once_with(
+            self.ModelB, instances_b
+        )
+        doc_d1.get_instances_from_related.assert_not_called()
+        doc_d1.update.assert_called_once_with(related_instances)
+        doc_d2.get_instances_from_many_related.assert_not_called()
+        doc_d2.get_instances_from_related.assert_not_called()
+        doc_d2.update.assert_not_called()
+
+    def test_autosync(self):
+        settings.ELASTICSEARCH_DSL_AUTOSYNC = False
+
+        instances = self.ModelA.objects.all()
+        self.registry.update(instances)
+        self.assertFalse(self.doc_a1.update.called)
+
+        settings.ELASTICSEARCH_DSL_AUTOSYNC = True
