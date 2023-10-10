@@ -20,7 +20,7 @@ class Search(DSLSearch):
         It costs a query to the sql db.
         """
         s = self
-        if s._model is not queryset.model:
+        if s._model._wrapped is not queryset.model:
             raise TypeError(
                 'Unexpected queryset model '
                 '(should be: %s, got: %s)' % (s._model, queryset.model)
