@@ -110,18 +110,18 @@ else:
         Allows automatic updates on the index as delayed background tasks using
         Celery.
 
-        NB: We cannot process deletes as background tasks.
-        By the time the Celery worker would pick up the delete job, the
-        model instance would already deleted. We can get around this by
-        setting Celery to use `pickle` and sending the object to the worker,
-        but using `pickle` opens the application up to security concerns.
+        Please note: We are unable to process deletions as background tasks. 
+        If we were to do so, the model instance might already be deleted by the time 
+        the Celery worker picks up the delete job. One workaround could be configuring 
+        Celery to use pickle and sending the object to the worker. 
+        However, employing pickle introduces potential security risks to the application.
         """
 
         def handle_save(self, sender, instance, **kwargs):
             """Handle save with a Celery task.
 
-            Given an individual model instance, update the object in the index.
-            Update the related objects either.
+            Given an individual model instance, update the document in the index.
+            Update the related objects as well.
             """
             pk = instance.pk
             app_label = instance._meta.app_label
