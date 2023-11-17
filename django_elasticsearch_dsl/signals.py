@@ -179,7 +179,20 @@ else:
 
         def prepare_registry_delete_task(self, instance):
             """
-            Get the prepare did before database record deleted.
+            Prepares the necessary data for a deletion task before a database record is deleted.
+
+            This function is called prior to the deletion of a database record. Its main role
+            is to gather all relevant data related to the record that is about to be deleted
+            and to queue a task that will handle the index update. The actual index update is
+            performed by the `registry_delete_task`, which is triggered asynchronously.
+
+            Parameters:
+            - instance (Model): The Django model instance that is about to be deleted.
+
+            The function iterates over documents related to the instance, collects necessary
+            data, and prepares bulk data representing the delete action. This data is used
+            to queue the `registry_delete_task`, which will handle updating the index to
+            reflect the deletion.
             """
             action = 'delete'
             for doc in registry._get_related_doc(instance):
