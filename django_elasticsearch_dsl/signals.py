@@ -166,7 +166,7 @@ else:
                     self.registry_delete_task.delay(doc_instance.__class__.__name__, bulk_data)
 
         @shared_task()
-        def registry_delete_task(doc_label, data):
+        def registry_delete_task(doc_label, bulk_data):
             """
             Handle the bulk delete data on the registry as a Celery task.
             The different implementations used are due to the difference between delete and update operations. 
