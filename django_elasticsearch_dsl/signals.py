@@ -162,18 +162,18 @@ else:
                         object_list = [related]
                     else:
                         object_list = related
-                    bulk_data = list(doc_instance._get_actions(object_list, action)),
-                    self.registry_delete_task.delay(doc_instance.__class__.__name__, bulk_data)
+                    bulk_data = list(doc_instance._get_actions(object_list, action))
+                    self.registry_delete_task.delay(doc_instance.__module__, doc_instance.__class__.__name__, bulk_data)
 
         @shared_task()
-        def registry_delete_task(doc_label, data):
+        def registry_delete_task(doc_module, doc_class, bulk_data):
             """
             Handle the bulk delete data on the registry as a Celery task.
             The different implementations used are due to the difference between delete and update operations. 
             The update operation can re-read the updated data from the database to ensure eventual consistency, 
             but the delete needs to be processed before the database record is deleted to obtain the associated data.
             """
-            doc_instance = import_module(doc_label)
+            doc_instance = getattr(import_module(doc_module), doc_class)()
             parallel = True
             doc_instance._bulk(bulk_data, parallel=parallel)
 
@@ -194,8 +194,8 @@ else:
                         object_list = [related]
                     else:
                         object_list = related
-                    bulk_data = list(doc_instance.get_actions(object_list, action)),
-                    self.registry_delete_task.delay(doc_instance.__class__.__name__, bulk_data)
+                    bulk_data = list(doc_instance.get_actions(object_list, action))
+                    self.registry_delete_task.delay(doc_instance.__module__, doc_instance.__class__.__name__, bulk_data)
 
         @shared_task()
         def registry_update_task(pk, app_label, model_name):
