@@ -299,7 +299,7 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    '': ('https://docs.python.org/', None),
+    'python': ('https://docs.python.org/', None),
     'es-py': ('https://elasticsearch-py.readthedocs.io/en/master/', None) ,
     'es-dsl': ('https://elasticsearch-dsl.readthedocs.io/en/latest/', None),
 }
