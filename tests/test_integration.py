@@ -23,9 +23,22 @@ from .documents import (
     CarWithPrepareDocument,
     ArticleDocument,
     ArticleWithSlugAsIdDocument,
-    index_settings
+    index_settings,
+    CarBulkDocument,
+    ManufacturerBulkDocument
 )
-from .models import Car, Manufacturer, Ad, Category, Article, COUNTRIES
+from .models import (
+    Car,
+    Manufacturer,
+    Ad,
+    Category,
+    Article,
+    COUNTRIES,
+    CarBulkManager,
+    ManufacturerBulkManager,
+    AdBulkManager,
+    CategoryBulkManager
+)
 
 
 @unittest.skipUnless(is_es_online(), 'Elasticsearch is offline')
@@ -412,3 +425,158 @@ class IntegrationTestCase(ESTestCase, TransactionTestCase):
                 "using a custom id is broken".format(article_slug)
             )
         self.assertEqual(es_obj.slug, article.slug)
+
+
+@unittest.skipUnless(is_es_online(), 'Elasticsearch is offline')
+class IntegrationBulkOperationConfTestCase(ESTestCase, TestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        manufacturers = ManufacturerBulkManager.objects.bulk_create([
+            ManufacturerBulkManager(
+                name="Peugeot", created=datetime(1900, 10, 9, 0, 0),
+                country_code="FR", logo='logo.jpg'
+            )
+        ])
+        self.manufacturer = manufacturers[0]
+
+        cars = CarBulkManager.objects.bulk_create([
+            CarBulkManager(
+                name="508", launched=datetime(2010, 9, 9, 0, 0),
+                manufacturer=self.manufacturer
+            ),
+            CarBulkManager(
+                name="208", launched=datetime(2010, 10, 9, 0, 0),
+                manufacturer=self.manufacturer
+            ),
+            CarBulkManager(
+                name="308", launched=datetime(2010, 11, 9, 0, 0)
+            )
+        ])
+        self.car1 = cars[0]
+        self.car2 = cars[1]
+        self.car3 = cars[2]
+
+        self.assertEqual(self.car1.name, "508")
+        self.assertEqual(self.car2.name, "208")
+        self.assertEqual(self.car3.name, "308")
+
+        categories = CategoryBulkManager.objects.bulk_create([
+            CategoryBulkManager(
+                title="Category 1", slug="category-1", icon="icon.jpeg"
+            ),
+            CategoryBulkManager(title="Category 2", slug="category-2")
+        ])
+        self.category1 = categories[0]
+        self.category2 = categories[1]
+
+        self.assertEqual(self.category1.title, "Category 1")
+        self.assertEqual(self.category2.title, "Category 2")
+
+        self.car2.categories.add(self.category1)
+        self.car2.save()
+
+        self.car3.categories.add(self.category1, self.category2)
+        self.car3.save()
+
+        ads = AdBulkManager.objects.bulk_create([
+            AdBulkManager(
+                title=_("Ad number 1"), url="www.ad1.com",
+                description="My super ad description 1",
+                car=self.car1
+            ),
+            AdBulkManager(
+                title="Ad number 2", url="www.ad2.com",
+                description="My super ad descriptio 2",
+                car=self.car1
+            )
+        ])
+        self.ad1 = ads[0]
+        self.ad2 = ads[1]
+
+        self.assertEqual(self.ad1.title, _("Ad number 1"))
+        self.assertEqual(self.ad2.title, "Ad number 2")
+
+    def test_docs_are_updated_by_bulk_operations(self):
+        old_car2_name = self.car2.name
+        car2_name = "1008"
+
+        s = CarBulkDocument.search().query("match", name=old_car2_name)
+        self.assertEqual(s.count(), 1)
+
+        s = CarBulkDocument.search().query("match", name=car2_name)
+        self.assertEqual(s.count(), 0)
+
+        CarBulkManager.objects.filter(id=self.car2.id).update(name=car2_name)
+
+        s = CarBulkDocument.search().query("match", name=old_car2_name)
+        self.assertEqual(s.count(), 0)
+
+        s = CarBulkDocument.search().query("match", name=car2_name)
+        self.assertEqual(s.count(), 1)
+
+        s = CarBulkDocument.search().query("match", name=self.car3.name)
+        car3_doc = s.execute()[0]
+        self.assertEqual(car3_doc.manufacturer.name, None)
+
+        CarBulkManager.objects.filter(
+            id=self.car3.id
+        ).update(manufacturer_id=self.manufacturer.pk)
+
+        s = CarBulkDocument.search().query("match", name=self.car3.name)
+        car3_doc = s.execute()[0]
+        self.assertEqual(car3_doc.manufacturer.name, self.manufacturer.name)
+
+        s = CarBulkDocument.search().query("match", name=self.car3.name)
+        self.assertEqual(s.count(), 1)
+
+        CarBulkManager.objects.filter(id=self.car3.id).delete()
+        s = CarBulkDocument.search().query("match", name=self.car3.name)
+        self.assertEqual(s.count(), 0)
+
+        s = CarBulkDocument.search()
+        self.assertEqual(s.count(), 2)
+
+        s = ManufacturerBulkDocument.search()
+        self.assertEqual(s.count(), 1)
+
+        ManufacturerBulkManager.objects.all().delete()
+        s = ManufacturerBulkDocument.search()
+        self.assertEqual(s.count(), 0)
+
+        s = CarBulkDocument.search()
+        for result in s.execute():
+            self.assertEqual(result.manufacturer.name, None)
+
+    def test_related_docs_are_updated_by_bulk_operations(self):
+        ManufacturerBulkManager.objects.filter(id=self.manufacturer.id).update(
+            name="Citroen"
+        )
+
+        s = CarBulkDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(car2_doc.manufacturer.name, 'Citroen')
+        self.assertEqual(len(car2_doc.ads), 0)
+
+        ad3 = AdBulkManager.objects.bulk_create([
+            AdBulkManager(title=_("Ad number 3"), url="www.ad3.com",
+                          description="My super ad description 3",
+                          car=self.car2)
+        ])
+        s = CarBulkDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(len(car2_doc.ads), 1)
+
+        AdBulkManager.objects.filter(id__in=[ad.id for ad in ad3]).delete()
+        s = CarBulkDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+        self.assertEqual(len(car2_doc.ads), 0)
+
+        ManufacturerBulkManager.objects.filter(
+            id=self.manufacturer.id
+        ).delete()
+        s = CarBulkDocument.search().query("match", name=self.car2.name)
+        car2_doc = s.execute()[0]
+
+        self.assertEqual(car2_doc.manufacturer.name, None)

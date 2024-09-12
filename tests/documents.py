@@ -2,7 +2,17 @@ from elasticsearch_dsl import analyzer
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 
-from .models import Ad, Category, Car, Manufacturer, Article
+from .models import (
+    Ad,
+    Category,
+    Car,
+    Manufacturer,
+    Article,
+    CarBulkManager,
+    CategoryBulkManager,
+    AdBulkManager,
+    ManufacturerBulkManager
+)
 
 index_settings = {
     'number_of_shards': 1,
@@ -180,3 +190,120 @@ class ArticleWithSlugAsIdDocument(Document):
 
 ad_index = AdDocument._index
 car_index = CarDocument._index
+
+
+@registry.register_document
+class CarBulkDocument(Document):
+
+    manufacturer = fields.ObjectField(properties={
+        'name': fields.TextField(),
+        'country': fields.TextField(),
+    })
+
+    ads = fields.NestedField(properties={
+        'description': fields.TextField(analyzer=html_strip),
+        'title': fields.TextField(),
+        'pk': fields.IntegerField(),
+    })
+
+    categories = fields.NestedField(properties={
+        'title': fields.TextField(),
+        'slug': fields.TextField(),
+        'icon': fields.FileField(),
+    })
+
+    class Django:
+        model = CarBulkManager
+        related_models = [AdBulkManager,
+                          ManufacturerBulkManager,
+                          CategoryBulkManager]
+        fields = [
+            'name',
+            'launched',
+            'type',
+        ]
+
+    class Index:
+        name = 'test_cars_bulk'
+        settings = index_settings
+
+    def get_queryset(self):
+        return super(CarBulkDocument, self).get_queryset().select_related(
+            'manufacturer')
+
+    def get_instances_from_many_related(self, cls, related_instance):
+        if isinstance(related_instance, list):
+            if cls == AdBulkManager:
+                return CarBulkManager.objects.filter(
+                    id__in=[
+                        item.car_id for item in related_instance
+                    ]
+                )
+            elif cls == ManufacturerBulkManager:
+                return CarBulkManager.objects.filter(
+                    manufacturer_id__in=[
+                        item.id for item in related_instance
+                    ]
+                )
+            elif cls == CategoryBulkManager:
+                return CarBulkManager.objects.filter(
+                    categories__id__in=[
+                        item.id for item in related_instance
+                    ]
+                )
+        else:
+            if cls == AdBulkManager:
+                return CarBulkManager.objects.filter(
+                    id__in=related_instance.values_list("car_id", flat=True)
+                )
+            elif cls == ManufacturerBulkManager:
+                return CarBulkManager.objects.filter(
+                    manufacturer_id__in=related_instance.values_list(
+                        "id", flat=True
+                    )
+                )
+            elif cls == CategoryBulkManager:
+                return CarBulkManager.objects.filter(
+                    categories__id__in=related_instance.values_list(
+                        "id", flat=True
+                    )
+                )
+
+
+@registry.register_document
+class ManufacturerBulkDocument(Document):
+    country = fields.TextField()
+
+    class Django:
+        model = ManufacturerBulkManager
+        fields = [
+            'name',
+            'created',
+            'country_code',
+            'logo',
+        ]
+
+    class Index:
+        name = 'test_manufacturers_bulk'
+        settings = index_settings
+
+
+@registry.register_document
+class AdBulkDocument(Document):
+    description = fields.TextField(
+        analyzer=html_strip,
+        fields={'raw': fields.KeywordField()}
+    )
+
+    class Django:
+        model = AdBulkManager
+        fields = [
+            'title',
+            'created',
+            'modified',
+            'url',
+        ]
+
+    class Index:
+        name = 'test_ads_bulk'
+        settings = index_settings

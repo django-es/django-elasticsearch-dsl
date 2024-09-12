@@ -50,7 +50,7 @@ class BaseSignalProcessor(object):
         if action in ('post_add', 'post_remove', 'post_clear'):
             self.handle_save(sender, instance)
         elif action in ('pre_remove', 'pre_clear'):
-            self.handle_pre_delete(sender, instance)
+            self.handle_pre_delete(sender, instance, origin=kwargs['model']())
 
     def handle_save(self, sender, instance, **kwargs):
         """Handle save.
@@ -65,15 +65,23 @@ class BaseSignalProcessor(object):
         """Handle removing of instance object from related models instance.
         We need to do this before the real delete otherwise the relation
         doesn't exists anymore and we can't get the related models instance.
+
+        Disabling distribution for deletion cases other
+        than deletion by entity.
         """
-        registry.delete_related(instance)
+        if isinstance(kwargs.get("origin"), models.Model):
+            registry.delete_related(instance)
 
     def handle_delete(self, sender, instance, **kwargs):
         """Handle delete.
 
         Given an individual model instance, delete the object from index.
+
+        Disabling distribution for deletion cases other
+        than deletion by entity.
         """
-        registry.delete(instance, raise_on_error=False)
+        if isinstance(kwargs.get("origin"), models.Model):
+            registry.delete(instance, raise_on_error=False)
 
 
 class RealTimeSignalProcessor(BaseSignalProcessor):
