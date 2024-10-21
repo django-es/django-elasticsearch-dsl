@@ -348,6 +348,7 @@ class FloatFieldTestCase(TestCase):
             'type': 'float',
         }, field.to_dict())
 
+
 class FloatFieldTestCase(TestCase):
     def test_get_mapping(self):
         field = DenseVectorField()
