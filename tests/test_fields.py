@@ -12,7 +12,7 @@ from six import string_types
 from django_elasticsearch_dsl.exceptions import VariableLookupError
 from django_elasticsearch_dsl.fields import (BooleanField, ByteField, CompletionField, DEDField,
                                              DateField, DoubleField, FileField, FloatField,
-                                             GeoPointField,
+                                             DenseVectorField, GeoPointField,
                                              GeoShapeField, IntegerField, IpField, KeywordField,
                                              ListField, LongField,
                                              NestedField, ObjectField, ScaledFloatField, ShortField, TextField
@@ -343,6 +343,14 @@ class DoubleFieldTestCase(TestCase):
 class FloatFieldTestCase(TestCase):
     def test_get_mapping(self):
         field = FloatField()
+
+        self.assertEqual({
+            'type': 'float',
+        }, field.to_dict())
+
+class FloatFieldTestCase(TestCase):
+    def test_get_mapping(self):
+        field = DenseVectorField()
 
         self.assertEqual({
             'type': 'float',
