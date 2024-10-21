@@ -217,6 +217,7 @@ Available Fields
   - ``DoubleField(attr=None, **elasticsearch_properties)``
   - ``FileField(attr=None, **elasticsearch_properties)``
   - ``FloatField(attr=None, **elasticsearch_properties)``
+  - ``DenseVectorField(attr=None, **elasticsearch_properties)``
   - ``IntegerField(attr=None, **elasticsearch_properties)``
   - ``IpField(attr=None, **elasticsearch_properties)``
   - ``KeywordField(attr=None, **elasticsearch_properties)``
