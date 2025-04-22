@@ -12,8 +12,8 @@ Django Elasticsearch DSL
     :target: https://django-elasticsearch-dsl.readthedocs.io/en/latest/
 
 Django Elasticsearch DSL is a package that allows indexing of django models in elasticsearch.
-It is built as a thin wrapper around elasticsearch-dsl-py_
-so you can use all the features developed by the elasticsearch-dsl-py team.
+It is built as a thin wrapper around elasticsearch-py_
+so you can use all the features developed by the elasticsearch-py team.
 
 You can view the full documentation at https://django-elasticsearch-dsl.readthedocs.io
 
