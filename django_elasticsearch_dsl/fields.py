@@ -10,7 +10,7 @@ if django.VERSION < (4, 0):
 else:
     from django.utils.encoding import force_str
 from django.utils.functional import Promise
-from elasticsearch_dsl.field import (
+from elasticsearch.dsl.field import (
     Boolean,
     Byte,
     Completion,

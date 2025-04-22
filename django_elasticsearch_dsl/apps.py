@@ -2,7 +2,7 @@ from django.apps import AppConfig
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from elasticsearch_dsl.connections import connections
+from elasticsearch.dsl.connections import connections
 
 
 class DEDConfig(AppConfig):

@@ -10,7 +10,7 @@ if django.VERSION < (4, 0):
     from django.utils.translation import ugettext_lazy as _
 else:
     from django.utils.translation import gettext_lazy as _
-from elasticsearch_dsl import GeoPoint, InnerDoc
+from elasticsearch.dsl import GeoPoint, InnerDoc
 from mock import patch, Mock
 
 from django_elasticsearch_dsl import fields
@@ -453,7 +453,7 @@ class BaseDocTypeTestCase(object):
     # got iterated and generate_id called.
     # If we mock the bulk in django_elasticsearch_dsl.document
     # the actual bulk will be never called and the test will fail
-    @patch('elasticsearch_dsl.connections.Elasticsearch.bulk')
+    @patch('elasticsearch.dsl.connections.Elasticsearch.bulk')
     def test_default_generate_id_is_called(self, _):
         article = Article(
             id=124594,
@@ -481,7 +481,7 @@ class BaseDocTypeTestCase(object):
             d.update(article)
             patched_method.assert_called()
 
-    @patch('elasticsearch_dsl.connections.Elasticsearch.bulk')
+    @patch('elasticsearch.dsl.connections.Elasticsearch.bulk')
     def test_custom_generate_id_is_called(self, mock_bulk):
         article = Article(
             id=54218,
@@ -511,7 +511,7 @@ class BaseDocTypeTestCase(object):
         data = json.loads(mock_bulk.call_args[1]['operations'][1])
         assert data['slug'] == article.slug
 
-    @patch('elasticsearch_dsl.connections.Elasticsearch.bulk')
+    @patch('elasticsearch.dsl.connections.Elasticsearch.bulk')
     def test_should_index_object_is_called(self, mock_bulk):
         doc = CarDocument()
         car1 = Car()
@@ -525,7 +525,7 @@ class BaseDocTypeTestCase(object):
             self.assertEqual(mock_should_index_object.call_count, 3,
                              "should_index_object is called")
 
-    @patch('elasticsearch_dsl.connections.Elasticsearch.bulk')
+    @patch('elasticsearch.dsl.connections.Elasticsearch.bulk')
     def test_should_index_object_working_perfectly(self, mock_bulk):
         article1 = Article(slug='article1')
         article2 = Article(slug='article2')

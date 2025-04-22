@@ -7,7 +7,7 @@ from functools import partial
 from django import VERSION as DJANGO_VERSION
 from django.db import models
 from elasticsearch.helpers import bulk, parallel_bulk
-from elasticsearch_dsl import Document as DSLDocument
+from elasticsearch.dsl import Document as DSLDocument
 from six import iteritems
 
 from .exceptions import ModelFieldNotMappedError
@@ -219,7 +219,7 @@ class DocType(DSLDocument):
         for object_instance in object_list:
             if action == 'delete' or self.should_index_object(object_instance):
                 yield self._prepare_action(object_instance, action)
-    
+
     def get_actions(self, object_list, action):
         """
         Generate the elasticsearch payload.

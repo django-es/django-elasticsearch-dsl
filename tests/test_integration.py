@@ -11,7 +11,7 @@ else:
 from six import StringIO
 
 from elasticsearch.exceptions import NotFoundError
-from elasticsearch_dsl import Index as DSLIndex
+from elasticsearch.dsl import Index as DSLIndex
 from django_elasticsearch_dsl.test import ESTestCase, is_es_online
 from tests import ES_MAJOR_VERSION
 
