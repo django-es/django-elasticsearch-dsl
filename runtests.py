@@ -12,17 +12,15 @@ try:
         elasticsearch_dsl_default_settings = {
             'hosts': os.environ.get(
                 'ELASTICSEARCH_URL',
-                'https://127.0.0.1:9200'
+                'http://127.0.0.1:9200'
             ),
-            'basic_auth': (
-                os.environ.get('ELASTICSEARCH_USERNAME'),
-                os.environ.get('ELASTICSEARCH_PASSWORD')
-            )
+
         }
 
         elasticsearch_certs_path = os.environ.get(
             'ELASTICSEARCH_CERTS_PATH'
         )
+
         if elasticsearch_certs_path:
             elasticsearch_dsl_default_settings['ca_certs'] = (
                 elasticsearch_certs_path
@@ -120,18 +118,20 @@ def make_parser():
 def run_tests(*test_args):
     args, test_args = make_parser().parse_known_args(test_args)
     if args.elasticsearch:
-        os.environ.setdefault('ELASTICSEARCH_URL', "https://127.0.0.1:9200")
+        os.environ.setdefault('ELASTICSEARCH_URL', "http://127.0.0.1:9200")
 
-        username = args.elasticsearch_username or "elastic"
-        password = args.elasticsearch_password or "changeme"
-        os.environ.setdefault(
-            'ELASTICSEARCH_USERNAME', username
-        )
-        os.environ.setdefault(
-            'ELASTICSEARCH_PASSWORD', password
-        )
+        username = args.elasticsearch_username
+        password = args.elasticsearch_password
+        if username and password:
+            os.environ.setdefault(
+                'ELASTICSEARCH_USERNAME', username
+            )
+            os.environ.setdefault(
+                'ELASTICSEARCH_PASSWORD', password
+            )
 
     if args.elasticsearch_certs_path:
+        os.environ.setdefault('ELASTICSEARCH_URL', "https://127.0.0.1:9200")
         os.environ.setdefault(
             'ELASTICSEARCH_CERTS_PATH', args.elasticsearch_certs_path
         )

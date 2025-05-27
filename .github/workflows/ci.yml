@@ -13,14 +13,21 @@ jobs:
       fail-fast: false
 
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
-        django-version: ["3.2", "4.1", "4.2"]
-        es-dsl-version: ["6.4", "7.4"]
-        es-version: ["8.10.2"]
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        django-version: [ "3.2", "4.1", "4.2", "5.0", "5.1", "5.2" ]
+        es-py-version: [ "6.4", "7.4", "8.18.1"]
 
         exclude:
           - python-version: "3.11"
             django-version: "3.2"
+          - python-version: "3.12"
+            django-version: "3.2"
+          - python-version: "3.13"
+            django-version: "3.2"
+          - es-py-version: "6.4"
+            es-version: "8.10.2"
+          - es-py-version: "7.4"
+            es-version: "8.10.2"
 
     steps:
       - name: Install and Run Elasticsearch
@@ -47,12 +54,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install "Django==${{ matrix.django-version }}"
-          python -m pip install "elasticsearch-dsl==${{ matrix.es-dsl-version }}"
+          python -m pip install "elasticsearch==${{ matrix.es-py-version }}"
           python -m pip install -r requirements_test.txt
 
-      - name: Run tests with Python ${{ matrix.python-version }} and Django ${{ matrix.django-version }} and elasticsearch-dsl-py ${{ matrix.es-dsl-version }}
+      - name: Run tests with Python ${{ matrix.python-version }} and Django ${{ matrix.django-version }} and elasticsearch-dsl-py ${{ matrix.es-py-version }}
         run: |
-          TOX_ENV=$(echo "py${{ matrix.python-version }}-django-${{ matrix.django-version }}-es${{ matrix.es-dsl-version }}" | tr -d .)
+          TOX_ENV=$(echo "py${{ matrix.python-version }}-django-${{ matrix.django-version }}-es${{ matrix.es-py-version }}" | tr -d .)
           python -m tox -e $TOX_ENV -- --elasticsearch
           python -m tox -e $TOX_ENV -- --elasticsearch --signal-processor celery
 

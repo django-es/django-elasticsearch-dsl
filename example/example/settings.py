@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'django_elasticsearch_dsl',
 
     # if your app has other dependencies that need to be added to the site
@@ -82,9 +81,7 @@ DATABASES = {
 }
 
 ELASTICSEARCH_DSL = {
-    'default': {
-        'hosts': 'localhost:9200'
-    },
+    "default": {"host": "localhost", "port": 9200, "timeout": 60},
 }
 
 ELASTICSEARCH_DSL_INDEX_SETTINGS = {

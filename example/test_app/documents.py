@@ -1,4 +1,4 @@
-from elasticsearch_dsl import analyzer
+from elasticsearch.dsl import analyzer
 from django_elasticsearch_dsl import Document, Index, fields
 from django_elasticsearch_dsl.registries import registry
 

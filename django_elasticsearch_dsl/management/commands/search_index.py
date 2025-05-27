@@ -1,7 +1,7 @@
 from __future__ import unicode_literals, absolute_import
 from datetime import datetime
 
-from elasticsearch_dsl import connections
+from elasticsearch.dsl import connections
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from six.moves import input

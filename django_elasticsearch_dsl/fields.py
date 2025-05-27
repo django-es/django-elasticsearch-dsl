@@ -10,7 +10,7 @@ if django.VERSION < (4, 0):
 else:
     from django.utils.encoding import force_str
 from django.utils.functional import Promise
-from elasticsearch_dsl.field import (
+from elasticsearch.dsl.field import (
     Boolean,
     Byte,
     Completion,
@@ -100,36 +100,24 @@ class ObjectField(DEDField, Object):
     def _get_inner_field_data(self, obj, field_value_to_ignore=None):
         data = {}
 
-        if hasattr(self, 'properties'):
-            for name, field in self.properties.to_dict().items():
-                if not isinstance(field, DEDField):
-                    continue
+        doc_instance = self._doc_class()
+        for name, field in self._doc_class._doc_type.mapping.properties._params.get(
+            'properties', {}).items():  # noqa
+            if not isinstance(field, DEDField):
+                continue
 
-                if field._path == []:
-                    field._path = [name]
+            if field._path == []:
+                field._path = [name]
 
+            # This allows for retrieving data from an InnerDoc with prepare_field_name functions.
+            prep_func = getattr(doc_instance, 'prepare_%s' % name, None)
+
+            if prep_func:
+                data[name] = prep_func(obj)
+            else:
                 data[name] = field.get_value_from_instance(
                     obj, field_value_to_ignore
                 )
-        else:
-            doc_instance = self._doc_class()
-            for name, field in self._doc_class._doc_type.mapping.properties._params.get(
-                'properties', {}).items():  # noqa
-                if not isinstance(field, DEDField):
-                    continue
-
-                if field._path == []:
-                    field._path = [name]
-
-                # This allows for retrieving data from an InnerDoc with prepare_field_name functions.
-                prep_func = getattr(doc_instance, 'prepare_%s' % name, None)
-
-                if prep_func:
-                    data[name] = prep_func(obj)
-                else:
-                    data[name] = field.get_value_from_instance(
-                        obj, field_value_to_ignore
-                    )
 
         # This allows for ObjectFields to be indexed from dicts with
         # dynamic keys (i.e. keys/fields not defined in 'properties')

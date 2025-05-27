@@ -12,20 +12,20 @@ Install Django Elasticsearch DSL::
 
 Then add ``django_elasticsearch_dsl`` to the INSTALLED_APPS
 
-You must define ``ELASTICSEARCH_DSL`` in your django settings.
+You must define ``elasticsearch.dsl`` in your django settings.
 
 For example:
 
 .. code-block:: python
 
-    ELASTICSEARCH_DSL={
+    elasticsearch.dsl={
         'default': {
             'hosts': 'localhost:9200',
             'http_auth': ('username', 'password')
         }
     }
 
-``ELASTICSEARCH_DSL`` is then passed to ``elasticsearch-dsl-py.connections.configure`` (see here_).
+``elasticsearch.dsl`` is then passed to ``elasticsearch-dsl-py.connections.configure`` (see here_).
 
 .. _here: http://elasticsearch-dsl.readthedocs.io/en/stable/configuration.html#multiple-clusters
 

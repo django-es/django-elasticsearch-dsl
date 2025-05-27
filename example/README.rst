@@ -18,7 +18,7 @@ connections setting in example/settings.py.
 
 .. code:: python
 
-    ELASTICSEARCH_DSL={
+    elasticsearch.dsl={
         'default': {
             'hosts': 'localhost:9200'
         },

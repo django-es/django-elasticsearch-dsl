@@ -1,7 +1,7 @@
 bumpversion==0.6.0
 wheel==0.41.2
 django>=3.2
-elasticsearch-dsl>=7.0.0,<8.0.0
+elasticsearch>=8.18.1,<9.0.0
 twine
 sphinx
 -e .

@@ -46,7 +46,7 @@ The library is compatible with all Elasticsearch versions since 5.x
 .. code-block:: python
 
     # Elasticsearch 8.x
-    elasticsearch-dsl>=8.0.0,<9.0.0
+    elasticsearch-dsl>=8.18.1,<9.0.0
 
     # Elasticsearch 7.x
     elasticsearch-dsl>=7.0.0,<8.0.0
