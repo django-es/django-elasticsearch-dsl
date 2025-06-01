@@ -15,7 +15,7 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
         django-version: ["3.2", "4.1", "4.2", "5.0", "5.1", "5.2"]
-        es-py-version: ["6.4", "7.4", "9.0"]
+        es-py-version: ["6.4", "7.17", "9.0"]
         es-version: ["8.10.2", "9.0.0"]
 
         exclude:
