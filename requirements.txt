@@ -1,2 +1,2 @@
 django>=3.2
-elasticsearch-dsl>=8.0.0,<9.0.0
+elasticsearch>=8.18.0,<9.0.0

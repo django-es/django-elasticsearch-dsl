@@ -1,8 +1,9 @@
-from elasticsearch_dsl import analyzer
+from elasticsearch.dsl import analyzer
+
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 
-from .models import Ad, Category, Car, Manufacturer, Article
+from .models import Ad, Article, Car, Category, Manufacturer
 
 index_settings = {
     'number_of_shards': 1,

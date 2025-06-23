@@ -1,31 +1,33 @@
-from datetime import datetime
 import unittest
+from datetime import datetime
 
 import django
 from django.core.management import call_command
 from django.test import TestCase, TransactionTestCase
+
 if django.VERSION < (4, 0):
     from django.utils.translation import ugettext_lazy as _
 else:
     from django.utils.translation import gettext_lazy as _
+
+from elasticsearch.dsl import Index as DSLIndex
+from elasticsearch.exceptions import NotFoundError
 from six import StringIO
 
-from elasticsearch.exceptions import NotFoundError
-from elasticsearch_dsl import Index as DSLIndex
 from django_elasticsearch_dsl.test import ESTestCase, is_es_online
 from tests import ES_MAJOR_VERSION
 
 from .documents import (
-    ad_index,
     AdDocument,
-    car_index,
-    CarDocument,
-    CarWithPrepareDocument,
     ArticleDocument,
     ArticleWithSlugAsIdDocument,
-    index_settings
+    CarDocument,
+    CarWithPrepareDocument,
+    ad_index,
+    car_index,
+    index_settings,
 )
-from .models import Car, Manufacturer, Ad, Category, Article, COUNTRIES
+from .models import COUNTRIES, Ad, Article, Car, Category, Manufacturer
 
 
 @unittest.skipUnless(is_es_online(), 'Elasticsearch is offline')
