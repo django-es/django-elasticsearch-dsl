@@ -4,7 +4,7 @@ Index
 In typical scenario using `class Index` on a `Document` class is sufficient to perform any action.
 In a few cases though it can be useful to manipulate an Index object directly.
 
-To define an Elasticsearch index you must instantiate a ``elasticsearch_dsl.Index`` class
+To define an Elasticsearch index you must instantiate a ``elasticsearch.dsl.Index`` class
 and set the name and settings of the index.
 After you instantiate your class,
 you need to associate it with the Document you want to put in this Elasticsearch index
@@ -14,7 +14,7 @@ and also add the `registry.register_document` decorator.
 .. code-block:: python
 
     # documents.py
-    from elasticsearch_dsl import Index
+    from elasticsearch.dsl import Index
     from django_elasticsearch_dsl import Document
     from .models import Car, Manufacturer
 

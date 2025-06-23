@@ -43,7 +43,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        'elasticsearch-dsl>=8.9.0,<=8.17.1',
+        'elasticsearch>=8.18.0,<9.0.0',
         'six',
     ],
     license="Apache Software License 2.0",

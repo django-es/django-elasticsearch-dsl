@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from elasticsearch_dsl import Index as DSLIndex
+from elasticsearch.dsl import Index as DSLIndex
 from six import python_2_unicode_compatible
 
 from .apps import DEDConfig

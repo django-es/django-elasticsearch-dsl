@@ -1,7 +1,6 @@
 from django.db.models import Case, When
 from django.db.models.fields import IntegerField
-
-from elasticsearch_dsl import Search as DSLSearch
+from elasticsearch.dsl import Search as DSLSearch
 
 
 class Search(DSLSearch):
