@@ -30,12 +30,14 @@ Features
 - Index fast using `parallel` indexing.
 - Requirements
 
-   - Django >= 3.2
-   - Python 3.8, 3.9, 3.10, 3.11
+   - Django >= 4.2
+   - Python 3.9, 3.10, 3.11, 3.12, 3.13
 
 **Elasticsearch Compatibility:**
 The library is compatible with all Elasticsearch versions since 5.x
 **but you have to use a matching major version:**
+
+- For Elasticsearch 9.0 and later, use the major version 9 (9.x.y) of the library.
 
 - For Elasticsearch 8.0 and later, use the major version 8 (8.x.y) of the library.
 
@@ -44,6 +46,9 @@ The library is compatible with all Elasticsearch versions since 5.x
 - For Elasticsearch 6.0 and later, use the major version 6 (6.x.y) of the library.
 
 .. code-block:: python
+
+    # Elasticsearch 9.x
+    elasticsearch>=9.0.0,<10.0.0
 
     # Elasticsearch 8.x
     elasticsearch-dsl>=8.0.0,<9.0.0
