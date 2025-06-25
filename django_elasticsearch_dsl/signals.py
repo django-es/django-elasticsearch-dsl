@@ -110,18 +110,18 @@ else:
         Allows automatic updates on the index as delayed background tasks using
         Celery.
 
-        NB: We cannot process deletes as background tasks.
-        By the time the Celery worker would pick up the delete job, the
-        model instance would already deleted. We can get around this by
-        setting Celery to use `pickle` and sending the object to the worker,
-        but using `pickle` opens the application up to security concerns.
+        Please note: We are unable to process deletions as background tasks. 
+        If we were to do so, the model instance might already be deleted by the time 
+        the Celery worker picks up the delete job. One workaround could be configuring 
+        Celery to use pickle and sending the object to the worker. 
+        However, employing pickle introduces potential security risks to the application.
         """
 
         def handle_save(self, sender, instance, **kwargs):
             """Handle save with a Celery task.
 
-            Given an individual model instance, update the object in the index.
-            Update the related objects either.
+            Given an individual model instance, update the document in the index.
+            Update the related objects as well.
             """
             pk = instance.pk
             app_label = instance._meta.app_label
@@ -166,7 +166,7 @@ else:
                     self.registry_delete_task.delay(doc_instance.__class__.__name__, bulk_data)
 
         @shared_task()
-        def registry_delete_task(doc_label, data):
+        def registry_delete_task(doc_label, bulk_data):
             """
             Handle the bulk delete data on the registry as a Celery task.
             The different implementations used are due to the difference between delete and update operations. 
@@ -179,7 +179,20 @@ else:
 
         def prepare_registry_delete_task(self, instance):
             """
-            Get the prepare did before database record deleted.
+            Prepares the necessary data for a deletion task before a database record is deleted.
+
+            This function is called prior to the deletion of a database record. Its main role
+            is to gather all relevant data related to the record that is about to be deleted
+            and to queue a task that will handle the index update. The actual index update is
+            performed by the `registry_delete_task`, which is triggered asynchronously.
+
+            Parameters:
+            - instance (Model): The Django model instance that is about to be deleted.
+
+            The function iterates over documents related to the instance, collects necessary
+            data, and prepares bulk data representing the delete action. This data is used
+            to queue the `registry_delete_task`, which will handle updating the index to
+            reflect the deletion.
             """
             action = 'delete'
             for doc in registry._get_related_doc(instance):
