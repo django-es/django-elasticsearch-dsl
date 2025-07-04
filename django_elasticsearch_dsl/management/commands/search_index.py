@@ -300,7 +300,7 @@ class Command(BaseCommand):
         # conflicts with indices, therefore this is needed regardless
         # of using the '--use-alias' arg.
         aliases = []
-        for index in self.es_conn.indices.get_alias().values():
+        for index in self.es_conn.indices.get_alias(index='*,-.*').values():
             aliases += index['aliases'].keys()
 
         if action == 'create':
