@@ -33,7 +33,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 setup(
     name='django-elasticsearch-dsl',
     version=version,
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     description="""Wrapper around elasticsearch-dsl-py for django models""",
     long_description=readme + '\n\n' + history,
     author='Sabricot',
@@ -43,7 +43,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        'elasticsearch>=8.18.0,<9.0.0',
+        'elasticsearch>=9.0.0,<10.0.0',
         'six',
     ],
     license="Apache Software License 2.0",
@@ -52,19 +52,21 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Framework :: Django',
-        'Framework :: Django :: 3.2',
-        'Framework :: Django :: 4.1',
         'Framework :: Django :: 4.2',
+        'Framework :: Django :: 5.0',
+        'Framework :: Django :: 5.1',
+        'Framework :: Django :: 5.2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
     ],
     extras_require={
-        'celery':  ["celery>=4.1.0"],
+        'celery':  ["celery>=5.5.3"],
     }
 )

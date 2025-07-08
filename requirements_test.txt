@@ -1,8 +1,8 @@
-coverage==7.3.1
-mock>=1.0.1
-flake8>=2.1.0
+coverage>=7.9.1
+mock>=5.2.0
+flake8>=7.3.0
 tox>=1.7.0
-Pillow==10.0.0
-celery>=4.1.0
+Pillow>=11.0.0
+celery>=5.5.3
 
 # Additional test requirements go here
