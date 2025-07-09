@@ -16,6 +16,7 @@ from elasticsearch.dsl.field import (
     Byte,
     Completion,
     Date,
+    DenseVector,
     Double,
     Field,
     Float,
@@ -187,6 +188,10 @@ class DoubleField(DEDField, Double):
 
 
 class FloatField(DEDField, Float):
+    pass
+
+
+class DenseVectorField(DEDField, DenseVector):
     pass
 
 
